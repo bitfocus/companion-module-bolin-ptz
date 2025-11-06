@@ -1,0 +1,26 @@
+{
+	"id": "bolin-ptz",
+	"name": "bolin-ptz",
+	"shortname": "Bolin PTZ",
+	"description": "Control Bolin PTZ cameras.",
+	"version": "0.0.0",
+	"license": "MIT",
+	"repository": "git+https://github.com/bitfocus/companion-module-bolin-ptz.git",
+	"bugs": "https://github.com/bitfocus/companion-module-bolin-ptz/issues",
+	"maintainers": [
+		{
+			"name": "Bryce Seifert",
+			"email": "bryce@bitfocus.io"
+		}
+	],
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../dist/main.js"
+	},
+	"legacyIds": [],
+	"manufacturer": "Bolin Technology",
+	"products": ["PTZ"],
+	"keywords": ["PTZ", "Camera"]
+}
