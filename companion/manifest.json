@@ -1,7 +1,7 @@
 {
 	"id": "bolin-ptz",
 	"name": "bolin-ptz",
-	"shortname": "Bolin PTZ",
+	"shortname": "bolin-ptz",
 	"description": "Control Bolin PTZ cameras.",
 	"version": "0.0.0",
 	"license": "MIT",
