@@ -76,3 +76,77 @@ export interface PresetRequest {
 	Name: string
 	Number: number
 }
+
+/**
+ * Zoom direction for PTZ camera control
+ */
+export type ZoomDirection = 'Wide' | 'Tele' | 'Stop'
+
+/**
+ * Zoom command parameters
+ */
+export interface ZoomCommand {
+	Direction: ZoomDirection
+	Speed: number
+}
+
+/**
+ * Focus direction for PTZ camera control
+ */
+export type FocusDirection = 'Near' | 'Far' | 'Stop' | 'Manual' | 'Auto'
+
+/**
+ * Focus command parameters
+ */
+export interface FocusCommand {
+	Direction: FocusDirection
+	Speed?: number
+}
+
+/**
+ * PT movement mode for camera control
+ */
+export type PTMoveMode = 1 | 2 // 1 = Standard, 2 = Superfine
+
+/**
+ * PT movement direction for camera control
+ */
+export type PTDirection = 'Up' | 'Down' | 'Left' | 'Right' | 'LeftUp' | 'RightUp' | 'LeftDown' | 'RightDown' | 'Stop'
+
+/**
+ * PT movement command parameters
+ */
+export interface PTMoveCommand {
+	Mode: PTMoveMode
+	SuperfineSpeed: number
+	Direction: PTDirection
+}
+
+/**
+ * PTZ position information
+ */
+export interface PTZFPosition {
+	PanPosition: number
+	TiltPosition: number
+	ZoomPosition: number
+}
+
+/**
+ * PTZ position set command parameters (all fields optional)
+ */
+export interface PTZFPositionSet {
+	PanPosition?: number
+	TiltPosition?: number
+	ZoomPosition?: number
+	PanTiltSpeed?: number
+	ZoomSpeed?: number
+}
+
+/**
+ * PTZ relative position command parameters (all fields optional)
+ */
+export interface PTZFRelPosition {
+	PanPosition?: number
+	TiltPosition?: number
+	PanTiltSpeed?: number
+}

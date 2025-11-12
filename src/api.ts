@@ -1,6 +1,19 @@
 import { createHash, randomBytes } from 'crypto'
 import type { ModuleConfig } from './config.js'
-import type { ApiResponse, LoginRequest, LoginResponse, SystemInfo, PresetInfo, PresetRequest } from './types.js'
+import type {
+	ApiResponse,
+	LoginRequest,
+	LoginResponse,
+	SystemInfo,
+	PresetInfo,
+	PresetRequest,
+	ZoomCommand,
+	FocusCommand,
+	PTMoveCommand,
+	PTZFPosition,
+	PTZFPositionSet,
+	PTZFRelPosition,
+} from './types.js'
 import type { ModuleInstance } from './main.js'
 
 export class BolinCamera {
@@ -139,7 +152,7 @@ export class BolinCamera {
 		}
 		const data = (await response.json()) as ApiResponse
 		if (typeof data?.Content?.Status === 'number' && data.Content.Status !== 0) {
-			this.self.log('warn', `API request failed with status: ${data.Content.Status}`)
+			this.self.log('warn', `API request failed with status: ${JSON.stringify(data.Content)}`)
 		}
 		return data
 	}
@@ -184,5 +197,84 @@ export class BolinCamera {
 	 */
 	currentPresets(): PresetInfo[] | null {
 		return this.presets
+	}
+
+	/**
+	 * Sends a "Go Home" command to the camera.
+	 */
+	async goHome(): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqGoHome', {
+			GoHomeInfo: {
+				Action: 'GoHome',
+			},
+		})
+	}
+
+	/**
+	 * Sends a zoom command to the camera.
+	 * @param zoom The zoom command with direction and speed
+	 */
+	async zoom(zoom: ZoomCommand): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFZoom', {
+			PTZFZoomInfo: {
+				Speed: zoom.Speed,
+				Direction: zoom.Direction,
+			},
+		})
+	}
+
+	/**
+	 * Sends a focus command to the camera.
+	 * @param focus The focus command with direction and speed
+	 */
+	async focus(focus: FocusCommand): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFFocus', {
+			PTZFFocusInfo: focus,
+		})
+	}
+
+	/**
+	 * Sends a PT (Pan/Tilt) movement command to the camera.
+	 * @param move The PT movement command with mode, speed, and direction
+	 */
+	async ptMove(move: PTMoveCommand): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFMove', {
+			PTZFMoveInfo: move,
+		})
+	}
+
+	/**
+	 * Sends a manual restart command to the camera.
+	 */
+	async restart(): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetManualRestart')
+	}
+
+	/**
+	 * Gets the current PTZ position from the camera.
+	 */
+	async getPTZPosition(): Promise<PTZFPosition> {
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPosition', undefined, '2.0.000')
+		return response.Content.PTZFPosition as PTZFPosition
+	}
+
+	/**
+	 * Sets the PTZ position on the camera.
+	 * @param position The PTZ position parameters (all fields optional)
+	 */
+	async setPTZPosition(position: PTZFPositionSet): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPosition', {
+			PTZFPosition: position,
+		})
+	}
+
+	/**
+	 * Sets the PTZ position relative to the current position.
+	 * @param position The relative PTZ position parameters (all fields optional)
+	 */
+	async setPTZRelPosition(position: PTZFRelPosition): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFRelPosition', {
+			PTZFRelPosition: position,
+		})
 	}
 }
