@@ -22,12 +22,12 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 	async init(config: ModuleConfig, _isFirstInit: boolean, secrets: ModuleSecrets): Promise<void> {
 		this.config = config
 		this.secrets = secrets
+		this.updateVariableDefinitions()
 
 		await this.performLogin()
 
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
-		this.updateVariableDefinitions() // export variable definitions
 	}
 
 	// When module gets deleted
@@ -67,7 +67,14 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 				this.log('debug', 'System info: ' + JSON.stringify(systemInfo))
 				console.log('System info: ' + JSON.stringify(systemInfo))
 
+				//Testing only
 				await this.camera.getCurrentPresets()
+				await this.camera.getPTZPosition()
+				await this.camera.getLensInfo()
+				await this.camera.getPictureInfo()
+				await this.camera.getGammaInfo()
+				await this.camera.getWhiteBalanceInfo()
+				await this.camera.getExposureInfo()
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 				this.updateStatus(InstanceStatus.ConnectionFailure)

@@ -150,3 +150,259 @@ export interface PTZFRelPosition {
 	TiltPosition?: number
 	PanTiltSpeed?: number
 }
+
+/**
+ * Focus mode enum
+ */
+export type FocusMode = 'Auto' | 'Manual'
+
+/**
+ * Focus area enum
+ */
+export type FocusArea = 'Default' | 'All' | 'Top' | 'Center' | 'Bottom'
+
+/**
+ * Near limit enum
+ */
+export type NearLimit = '1cm' | '30cm' | '1.0m'
+
+/**
+ * AF sensitivity enum
+ */
+export type AFSensitivity = 'Low' | 'Middle' | 'High'
+
+/**
+ * Lens information
+ */
+export interface LensInfo {
+	FocusMode: FocusMode
+	FocusArea: FocusArea
+	NearLimit: NearLimit
+	AFSensitivity: AFSensitivity
+	SmartFocus: boolean
+	DigitalZoom: boolean
+	ZoomRatioOSD: boolean
+	MFSpeed: number
+}
+
+/**
+ * DeFlicker enum
+ */
+export type DeFlicker = 'OFF' | '50HZ' | '60HZ'
+
+/**
+ * Scene enum
+ */
+export type Scene = 'Standard' | 'Bright' | 'Clarity' | 'Soft'
+
+/**
+ * DefogMode enum
+ */
+export type DefogMode = 'OFF' | 'Auto' | 'Manual'
+
+/**
+ * Effect enum
+ */
+export type Effect = 'Day' | 'Night'
+
+/**
+ * Picture information
+ */
+export interface PictureInfo {
+	'2DNR': number
+	'3DNR': number
+	Sharpness: number
+	Hue: number
+	DeFlicker: DeFlicker
+	Flip: boolean
+	Mirror: boolean
+	HLCMode: boolean
+	BLC: boolean
+	Contrast: number
+	Saturation: number
+	Scene: Scene
+	DefogMode: DefogMode
+	DefogLevel: number
+	Effect: Effect
+	MagentaSaturation: number
+	RedSaturation: number
+	YellowSaturation: number
+	GreenSaturation: number
+	CyanSaturation: number
+	BlueSaturation: number
+	MagentaHue: number
+	RedHue: number
+	YellowHue: number
+	GreenHue: number
+	CyanHue: number
+	BlueHue: number
+	MagentaValue: number
+	RedValue: number
+	YellowValue: number
+	GreenValue: number
+	CyanValue: number
+	BlueValue: number
+}
+
+/**
+ * Gamma level enum
+ */
+export type GammaLevel = 'Default' | '0.45' | '0.50' | '0.55' | '0.63'
+
+/**
+ * Gamma information
+ */
+export interface GammaInfo {
+	Level: GammaLevel
+	Bright: number
+	WDR: boolean
+	WDRLevel: number
+}
+
+/**
+ * White balance mode enum
+ */
+export type WhiteBalanceMode = 'Auto' | 'Indoor' | 'Outdoor' | 'OPW' | 'ATW' | 'User' | 'SVL' | 'ManualColorTemperature'
+
+/**
+ * Color temperature enum (2500K to 9000K in 100K increments)
+ */
+export type ColorTemperature =
+	| '2500K'
+	| '2600K'
+	| '2700K'
+	| '2800K'
+	| '2900K'
+	| '3000K'
+	| '3100K'
+	| '3200K'
+	| '3300K'
+	| '3400K'
+	| '3500K'
+	| '3600K'
+	| '3700K'
+	| '3800K'
+	| '3900K'
+	| '4000K'
+	| '4100K'
+	| '4200K'
+	| '4300K'
+	| '4400K'
+	| '4500K'
+	| '4600K'
+	| '4700K'
+	| '4800K'
+	| '4900K'
+	| '5000K'
+	| '5100K'
+	| '5200K'
+	| '5300K'
+	| '5400K'
+	| '5500K'
+	| '5600K'
+	| '5700K'
+	| '5800K'
+	| '5900K'
+	| '6000K'
+	| '6100K'
+	| '6200K'
+	| '6300K'
+	| '6400K'
+	| '6500K'
+	| '6600K'
+	| '6700K'
+	| '6800K'
+	| '6900K'
+	| '7000K'
+	| '7100K'
+	| '7200K'
+	| '7300K'
+	| '7400K'
+	| '7500K'
+	| '7600K'
+	| '7700K'
+	| '7800K'
+	| '7900K'
+	| '8000K'
+	| '8100K'
+	| '8200K'
+	| '8300K'
+	| '8400K'
+	| '8500K'
+	| '8600K'
+	| '8700K'
+	| '8800K'
+	| '8900K'
+	| '9000K'
+
+/**
+ * White balance information
+ */
+export interface WhiteBalanceInfo {
+	Mode: WhiteBalanceMode
+	WBSensitivity: number
+	RGain: number
+	BGain: number
+	RTuning: number
+	GTuning: number
+	BTuning: number
+	ColorTemperature: ColorTemperature
+}
+
+/**
+ * Exposure mode enum
+ */
+export type ExposureMode = 'Auto' | 'Manual' | 'ShutterPri' | 'IrisPri'
+
+/**
+ * Shutter speed enum
+ */
+export type ShutterSpeed =
+	| '1/60'
+	| '1/90'
+	| '1/100'
+	| '1/125'
+	| '1/180'
+	| '1/195'
+	| '1/215'
+	| '1/230'
+	| '1/250'
+	| '1/350'
+	| '1/500'
+	| '1/725'
+	| '1/1000'
+	| '1/1500'
+	| '1/2000'
+	| '1/3000'
+	| '1/4000'
+	| '1/6000'
+	| '1/10000'
+	| '1/30000'
+	| '1/100000'
+
+/**
+ * Exposure information
+ */
+export interface ExposureInfo {
+	Mode: ExposureMode
+	Gain: number
+	GainLimit: number
+	ExCompLevel: number
+	SmartExposure: boolean
+	ShutterSpeed: ShutterSpeed
+	Iris: number
+}
+
+/**
+ * Camera state tracking
+ */
+export interface CameraState {
+	ptzPosition: PTZFPosition | null
+	systemInfo: SystemInfo | null
+	presets: PresetInfo[] | null
+	lensInfo: LensInfo | null
+	pictureInfo: PictureInfo | null
+	gammaInfo: GammaInfo | null
+	whiteBalanceInfo: WhiteBalanceInfo | null
+	exposureInfo: ExposureInfo | null
+}
