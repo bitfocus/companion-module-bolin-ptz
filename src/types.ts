@@ -87,7 +87,7 @@ export type ZoomDirection = 'Wide' | 'Tele' | 'Stop'
  */
 export interface ZoomCommand {
 	Direction: ZoomDirection
-	Speed: number
+	Speed?: number
 }
 
 /**
@@ -394,9 +394,20 @@ export interface ExposureInfo {
 }
 
 /**
+ * Position limitations information
+ */
+export interface PositionLimitations {
+	DownLimit?: boolean
+	UpLimit?: boolean
+	LeftLimit?: boolean
+	RightLimit?: boolean
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
+	positionLimitations: PositionLimitations | null
 	ptzPosition: PTZFPosition | null
 	systemInfo: SystemInfo | null
 	presets: PresetInfo[] | null

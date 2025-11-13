@@ -19,6 +19,7 @@ import type {
 	GammaInfo,
 	WhiteBalanceInfo,
 	ExposureInfo,
+	PositionLimitations,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 
@@ -34,6 +35,7 @@ export class BolinCamera {
 	private gammaInfo: GammaInfo | null = null
 	private whiteBalanceInfo: WhiteBalanceInfo | null = null
 	private exposureInfo: ExposureInfo | null = null
+	private positionLimitations: PositionLimitations | null = null
 	private previousState: CameraState | null = null
 	private self: ModuleInstance
 
@@ -132,6 +134,7 @@ export class BolinCamera {
 		this.gammaInfo = null
 		this.whiteBalanceInfo = null
 		this.exposureInfo = null
+		this.positionLimitations = null
 		this.previousState = null
 	}
 
@@ -140,6 +143,7 @@ export class BolinCamera {
 	 */
 	getState(): CameraState {
 		return {
+			positionLimitations: this.positionLimitations,
 			ptzPosition: this.ptzPosition,
 			systemInfo: this.systemInfo,
 			presets: this.presets,
@@ -372,6 +376,34 @@ export class BolinCamera {
 			}
 			if (!previousState?.exposureInfo || previousState.exposureInfo.Iris !== currentState.exposureInfo.Iris) {
 				variables.iris = currentState.exposureInfo.Iris.toString()
+			}
+		}
+
+		// Update position limitations variables if changed
+		if (currentState.positionLimitations) {
+			if (
+				!previousState?.positionLimitations ||
+				previousState.positionLimitations.DownLimit !== currentState.positionLimitations.DownLimit
+			) {
+				variables.position_limit_down = currentState.positionLimitations.DownLimit?.toString() || ''
+			}
+			if (
+				!previousState?.positionLimitations ||
+				previousState.positionLimitations.UpLimit !== currentState.positionLimitations.UpLimit
+			) {
+				variables.position_limit_up = currentState.positionLimitations.UpLimit?.toString() ?? ''
+			}
+			if (
+				!previousState?.positionLimitations ||
+				previousState.positionLimitations.LeftLimit !== currentState.positionLimitations.LeftLimit
+			) {
+				variables.position_limit_left = currentState.positionLimitations.LeftLimit?.toString() ?? ''
+			}
+			if (
+				!previousState?.positionLimitations ||
+				previousState.positionLimitations.RightLimit !== currentState.positionLimitations.RightLimit
+			) {
+				variables.position_limit_right = currentState.positionLimitations.RightLimit?.toString() ?? ''
 			}
 		}
 
@@ -895,5 +927,33 @@ export class BolinCamera {
 			}
 			this.updateVariablesOnStateChange()
 		}
+	}
+
+	/**
+	 * Gets the position limitations from the camera.
+	 */
+	async getPositionLimits(): Promise<PositionLimitations> {
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPositionLimitations')
+		const positionLimitations = response.Content.PositionLimitations as PositionLimitations
+		this.positionLimitations = positionLimitations
+		this.updateVariablesOnStateChange()
+		return positionLimitations
+	}
+
+	/**
+	 * Gets the stored position limitations
+	 */
+	currentPositionLimits(): PositionLimitations | null {
+		return this.positionLimitations
+	}
+
+	/**
+	 * Sets the position limitations on the camera.
+	 * @param limitations The position limitations parameters (all fields optional)
+	 */
+	async setPositionLimits(limitations: PositionLimitations): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPositionLimitations', {
+			PositionLimitations: limitations,
+		})
 	}
 }

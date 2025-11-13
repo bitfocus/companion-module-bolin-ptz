@@ -190,5 +190,21 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			name: 'Iris',
 			variableId: 'iris',
 		},
+		{
+			name: 'Position Limit - Down',
+			variableId: 'position_limit_down',
+		},
+		{
+			name: 'Position Limit - Up',
+			variableId: 'position_limit_up',
+		},
+		{
+			name: 'Position Limit - Left',
+			variableId: 'position_limit_left',
+		},
+		{
+			name: 'Right Limit Enabled',
+			variableId: 'position_limit_right',
+		},
 	])
 }

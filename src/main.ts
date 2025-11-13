@@ -75,8 +75,8 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 				await this.camera.getGammaInfo()
 				await this.camera.getWhiteBalanceInfo()
 				await this.camera.getExposureInfo()
+				await this.camera.getPositionLimits()
 			} else {
-				this.updateStatus(InstanceStatus.ConnectionFailure)
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}
 		} catch (error) {
