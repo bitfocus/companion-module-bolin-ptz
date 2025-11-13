@@ -877,7 +877,7 @@ export class BolinCamera {
 	 * Sends a manual restart command to the camera.
 	 */
 	async restart(): Promise<void> {
-		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetManualRestart')
+		await this.sendRequest('/apiv2/system', 'ReqSetManualRestart')
 	}
 
 	/**
