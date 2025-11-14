@@ -937,6 +937,7 @@ export class BolinCamera {
 		const positionLimitations = response.Content.PositionLimitations as PositionLimitations
 		this.positionLimitations = positionLimitations
 		this.updateVariablesOnStateChange()
+		this.self.checkFeedbacks('positionLimitEnabled')
 		return positionLimitations
 	}
 
@@ -955,5 +956,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPositionLimitations', {
 			PositionLimitations: limitations,
 		})
+		await this.getPositionLimits()
 	}
 }

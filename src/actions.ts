@@ -251,7 +251,6 @@ export function UpdateActions(self: ModuleInstance): void {
 			const actionType = action.options.lock as 'toggle' | 'true' | 'false'
 
 			if (directions.length === 0) return
-			// Get current position limits
 			const currentLimits = (await self.camera.getPositionLimits()) || {}
 
 			const updates: PositionLimitations = {}

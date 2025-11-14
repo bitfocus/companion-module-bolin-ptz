@@ -5,6 +5,7 @@ import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { BolinCamera } from './api.js'
+import { UpdatePresets } from './presets.js'
 
 export interface ModuleSecrets {
 	password: string
@@ -28,6 +29,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
+		this.updatePresets() // export presets
 	}
 
 	// When module gets deleted
@@ -102,6 +104,10 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 
 	updateVariableDefinitions(): void {
 		UpdateVariableDefinitions(this)
+	}
+
+	updatePresets(): void {
+		UpdatePresets(this)
 	}
 }
 
