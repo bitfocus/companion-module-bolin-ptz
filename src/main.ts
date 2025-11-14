@@ -78,6 +78,8 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 				await this.camera.getWhiteBalanceInfo()
 				await this.camera.getExposureInfo()
 				await this.camera.getPositionLimits()
+				await this.camera.getVideoOutput()
+				await this.camera.getGeneralCapabilities()
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}

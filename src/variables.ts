@@ -206,5 +206,33 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			name: 'Right Limit Enabled',
 			variableId: 'position_limit_right',
 		},
+		{
+			name: 'System Format',
+			variableId: 'system_format',
+		},
+		{
+			name: 'HDMI Resolution',
+			variableId: 'hdmi_resolution',
+		},
+		{
+			name: 'HDMI Color Space',
+			variableId: 'hdmi_color_space',
+		},
+		{
+			name: 'HDMI Bit Depth',
+			variableId: 'hdmi_bit_depth',
+		},
+		{
+			name: 'SDI Resolution',
+			variableId: 'sdi_resolution',
+		},
+		{
+			name: 'SDI Bit Depth',
+			variableId: 'sdi_bit_depth',
+		},
+		{
+			name: 'SDI Color Space',
+			variableId: 'sdi_color_space',
+		},
 	])
 }

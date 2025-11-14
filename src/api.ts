@@ -20,6 +20,9 @@ import type {
 	WhiteBalanceInfo,
 	ExposureInfo,
 	PositionLimitations,
+	MenuAction,
+	VideoOutputInfo,
+	GeneralCapabilities,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 
@@ -36,6 +39,8 @@ export class BolinCamera {
 	private whiteBalanceInfo: WhiteBalanceInfo | null = null
 	private exposureInfo: ExposureInfo | null = null
 	private positionLimitations: PositionLimitations | null = null
+	private videoOutputInfo: VideoOutputInfo | null = null
+	private generalCapabilities: GeneralCapabilities | null = null
 	private previousState: CameraState | null = null
 	private self: ModuleInstance
 
@@ -135,6 +140,8 @@ export class BolinCamera {
 		this.whiteBalanceInfo = null
 		this.exposureInfo = null
 		this.positionLimitations = null
+		this.videoOutputInfo = null
+		this.generalCapabilities = null
 		this.previousState = null
 	}
 
@@ -152,6 +159,8 @@ export class BolinCamera {
 			gammaInfo: this.gammaInfo,
 			whiteBalanceInfo: this.whiteBalanceInfo,
 			exposureInfo: this.exposureInfo,
+			videoOutputInfo: this.videoOutputInfo,
+			generalCapabilities: this.generalCapabilities,
 		}
 	}
 
@@ -404,6 +413,52 @@ export class BolinCamera {
 				previousState.positionLimitations.RightLimit !== currentState.positionLimitations.RightLimit
 			) {
 				variables.position_limit_right = currentState.positionLimitations.RightLimit?.toString() ?? ''
+			}
+		}
+
+		// Update video output info variables if changed
+		if (currentState.videoOutputInfo) {
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.SystemFormat !== currentState.videoOutputInfo.SystemFormat
+			) {
+				variables.system_format = currentState.videoOutputInfo.SystemFormat ?? ''
+			}
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.HDMIResolution !== currentState.videoOutputInfo.HDMIResolution
+			) {
+				variables.hdmi_resolution = currentState.videoOutputInfo.HDMIResolution ?? ''
+			}
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.HDMIColorSpace !== currentState.videoOutputInfo.HDMIColorSpace
+			) {
+				variables.hdmi_color_space = currentState.videoOutputInfo.HDMIColorSpace?.toString() ?? ''
+			}
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.HDMIBitDepth !== currentState.videoOutputInfo.HDMIBitDepth
+			) {
+				variables.hdmi_bit_depth = currentState.videoOutputInfo.HDMIBitDepth?.toString() ?? ''
+			}
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.SDIResolution !== currentState.videoOutputInfo.SDIResolution
+			) {
+				variables.sdi_resolution = currentState.videoOutputInfo.SDIResolution?.toString() ?? ''
+			}
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.SDIBitDepth !== currentState.videoOutputInfo.SDIBitDepth
+			) {
+				variables.sdi_bit_depth = currentState.videoOutputInfo.SDIBitDepth?.toString() ?? ''
+			}
+			if (
+				!previousState?.videoOutputInfo ||
+				previousState.videoOutputInfo.SDIColorSpace !== currentState.videoOutputInfo.SDIColorSpace
+			) {
+				variables.sdi_color_space = currentState.videoOutputInfo.SDIColorSpace?.toString() ?? ''
 			}
 		}
 
@@ -957,5 +1012,61 @@ export class BolinCamera {
 			PositionLimitations: limitations,
 		})
 		await this.getPositionLimits()
+	}
+
+	/**
+	 * Controls the OSD menu on the camera.
+	 * @param action The menu action to perform (ON, OFF, Up, Down, Left, Right, OK, Menutoggle)
+	 */
+	async setOSDMenu(action: MenuAction = 'Menutoggle'): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetMenu', {
+			MenuInfo: {
+				Action: action,
+			},
+		})
+	}
+
+	/**
+	 * Gets video output information from the camera and stores it in state
+	 */
+	async getVideoOutput(): Promise<VideoOutputInfo> {
+		const response = await this.sendRequest('/apiv2/general', 'ReqGetVideoOutputInfo', undefined, '2.0.000')
+		this.videoOutputInfo = response.Content.VideoOutputInfo as VideoOutputInfo
+		this.updateVariablesOnStateChange()
+		return this.videoOutputInfo
+	}
+
+	async setVideoOutput(output: VideoOutputInfo): Promise<void> {
+		await this.sendRequest('/apiv2/general', 'ReqSetVideoOutputInfo', {
+			VideoOutputInfo: output,
+		})
+		this.videoOutputInfo = output
+		this.updateVariablesOnStateChange()
+	}
+	/**
+	 * Gets the stored video output information
+	 */
+	currentVideoOutputInfo(): VideoOutputInfo | null {
+		return this.videoOutputInfo
+	}
+
+	/**
+	 * Gets general capabilities from the camera and stores it in state
+	 */
+	async getGeneralCapabilities(): Promise<GeneralCapabilities> {
+		const response = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities', undefined, '2.0.000')
+		const generalCapabilities = response.Content as GeneralCapabilities
+
+		this.generalCapabilities = generalCapabilities
+
+		this.updateVariablesOnStateChange()
+		return this.generalCapabilities
+	}
+
+	/**
+	 * Gets the stored general capabilities
+	 */
+	currentGeneralCapabilities(): GeneralCapabilities | null {
+		return this.generalCapabilities
 	}
 }

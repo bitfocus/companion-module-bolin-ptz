@@ -1,5 +1,12 @@
 import type { ModuleInstance } from './main.js'
-import type { ZoomCommand, FocusCommand, PTMoveCommand, PositionLimitations } from './types.js'
+import type {
+	CapabilityDataValue,
+	ZoomCommand,
+	FocusCommand,
+	PTMoveCommand,
+	PositionLimitations,
+	MenuAction,
+} from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
 export function UpdateActions(self: ModuleInstance): void {
@@ -266,6 +273,56 @@ export function UpdateActions(self: ModuleInstance): void {
 			}
 
 			await self.camera.setPositionLimits(updates)
+		},
+	}
+
+	actions['setOSDMenu'] = {
+		name: 'OSD Menu Control',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Action',
+				id: 'command',
+				default: 'ON',
+				choices: [
+					{ label: 'ON', id: 'ON' },
+					{ label: 'OFF / Back', id: 'OFF' },
+					{ label: 'Up', id: 'Up' },
+					{ label: 'Down', id: 'Down' },
+					{ label: 'Left', id: 'Left' },
+					{ label: 'Right', id: 'Right' },
+					{ label: 'OK', id: 'OK' },
+				],
+			},
+		],
+		description: 'Set the OSD menu',
+		callback: async (action) => {
+			if (!self.camera) return
+			await self.camera.setOSDMenu(action.options.command as MenuAction)
+		},
+	}
+
+	actions['setHDMIResolution'] = {
+		name: 'Set HDMI Resolution',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Resolution',
+				choices:
+					self.camera
+						?.currentGeneralCapabilities()
+						?.[
+							'VideoOutputInfo'
+						]?.['HDMIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
+					[],
+				default: '1920x1080P60',
+				id: 'resolution',
+			},
+		],
+		description: 'Set the HDMI resolution',
+		callback: async (action) => {
+			if (!self.camera) return
+			await self.camera.setVideoOutput({ HDMIResolution: action.options.resolution as string })
 		},
 	}
 

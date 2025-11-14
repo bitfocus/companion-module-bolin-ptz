@@ -404,6 +404,61 @@ export interface PositionLimitations {
 }
 
 /**
+ * OSD menu action enum
+ */
+export type MenuAction = 'ON' | 'OFF' | 'Up' | 'Down' | 'Left' | 'Right' | 'OK' | 'Menutoggle'
+
+/**
+ * Video output information
+ */
+export interface VideoOutputInfo {
+	SystemFormat?: string
+	HDMIResolution?: string
+	HDMIColorSpace?: number
+	HDMIBitDepth?: number
+	SDIColorSpace?: number
+	SDIResolution?: string
+	SDIBitDepth?: number
+}
+
+/**
+ * Capability data value/description pair
+ */
+export interface CapabilityDataValue {
+	Value: string | number
+	Description: string
+}
+
+/**
+ * Capability descriptor for string/enum types
+ */
+export interface CapabilityDescriptor {
+	Type: string
+	Readonly: boolean
+	Description: string
+	Data?: CapabilityDataValue[]
+	[key: string]: unknown
+}
+
+/**
+ * General capabilities information
+ */
+export interface GeneralCapabilities {
+	SystemFormat?: CapabilityDescriptor
+	VideoOutputInfo?: {
+		SystemFormat?: CapabilityDescriptor
+		HDMIResolution?: CapabilityDescriptor
+		SDIResolution?: CapabilityDescriptor
+		HDMIColorSpace?: CapabilityDescriptor
+		HDMIBitDepth?: CapabilityDescriptor
+		SDIColorSpace?: CapabilityDescriptor
+		SDIBitDepth?: CapabilityDescriptor
+		[key: string]: CapabilityDescriptor | undefined
+	}
+	[key: string]: unknown
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -416,4 +471,6 @@ export interface CameraState {
 	gammaInfo: GammaInfo | null
 	whiteBalanceInfo: WhiteBalanceInfo | null
 	exposureInfo: ExposureInfo | null
+	videoOutputInfo: VideoOutputInfo | null
+	generalCapabilities: GeneralCapabilities | null
 }
