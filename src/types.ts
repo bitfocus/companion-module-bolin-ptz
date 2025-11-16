@@ -458,6 +458,11 @@ export interface GeneralCapabilities {
 	[key: string]: unknown
 }
 
+export interface PresetSpeed {
+	PresetZoomSpeed: number
+	PresetSpeed: number
+}
+
 /**
  * Camera state tracking
  */
@@ -466,6 +471,7 @@ export interface CameraState {
 	ptzPosition: PTZFPosition | null
 	systemInfo: SystemInfo | null
 	presets: PresetInfo[] | null
+	presetSpeed: PresetSpeed | null
 	lensInfo: LensInfo | null
 	pictureInfo: PictureInfo | null
 	gammaInfo: GammaInfo | null

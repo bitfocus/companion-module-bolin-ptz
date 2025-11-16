@@ -90,6 +90,53 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 	}
 
+	actions['setPresetSpeed'] = {
+		name: 'Set Preset Speed',
+		options: [
+			{
+				type: 'textinput',
+				label: 'Preset Speed',
+				default: '5',
+				id: 'presetSpeed',
+				useVariables: true,
+				description: '(1 - 5)',
+			},
+			{
+				type: 'textinput',
+				label: 'Preset Zoom Speed',
+				default: '5',
+				id: 'zoomSpeed',
+				description: '(1 - 5)',
+				useVariables: true,
+			},
+		],
+		description: 'Set the preset speed',
+		callback: async (action) => {
+			if (!self.camera) return
+			const presetSpeed = parseInt(action.options.presetSpeed as string)
+			const presetZoomSpeed = parseInt(action.options.zoomSpeed as string)
+			if (isNaN(presetSpeed)) {
+				self.log('warn', 'Preset Speed must be a number')
+				return
+			}
+			if (isNaN(presetZoomSpeed)) {
+				self.log('warn', 'Preset Zoom Speed must be a number')
+				return
+			}
+			if (presetSpeed < 1 || presetSpeed > 5) {
+				self.log('warn', 'Preset Speed must be between 1 and 5')
+				return
+			}
+			if (presetZoomSpeed < 1 || presetZoomSpeed > 5) {
+				self.log('warn', 'Preset Zoom Speed must be between 1 and 5')
+				return
+			}
+			await self.camera.setPresetSpeed({
+				PresetSpeed: presetSpeed,
+				PresetZoomSpeed: presetZoomSpeed,
+			})
+		},
+	}
 	actions['goHome'] = {
 		name: 'Go Home',
 		options: [],
@@ -115,28 +162,29 @@ export function UpdateActions(self: ModuleInstance): void {
 				id: 'direction',
 			},
 			{
-				type: 'checkbox',
-				id: 'override',
-				label: 'Speed Override',
-				default: false,
-				isVisibleExpression: '$(options:direction) !== "Stop"',
-			},
-			{
-				type: 'number',
+				type: 'textinput',
 				label: 'Speed',
-				default: 5,
+				default: '5',
 				id: 'speed',
-				min: 1,
-				max: 8,
-				isVisibleExpression: '$(options:direction) !== "Stop" && $(options:override) === true',
+				description: '(1 - 8)',
+				useVariables: true,
 			},
 		],
 		description: 'Zoom the camera',
 		callback: async (action) => {
 			if (!self.camera) return
+			const speed = parseInt(action.options.speed as string)
+			if (isNaN(speed)) {
+				self.log('warn', 'Speed must be a number')
+				return
+			}
+			if (speed < 1 || speed > 8) {
+				self.log('warn', 'Speed must be between 1 and 5')
+				return
+			}
 			const zoom: ZoomCommand = {
 				Direction: action.options.direction as ZoomCommand['Direction'],
-				Speed: action.options.override ? (action.options.speed as number) || 5 : undefined,
+				Speed: speed,
 			}
 			await self.camera.zoom(zoom)
 		},
@@ -157,22 +205,29 @@ export function UpdateActions(self: ModuleInstance): void {
 				id: 'direction',
 			},
 			{
-				type: 'number',
+				type: 'textinput',
 				label: 'Speed',
-				default: 5,
+				default: '5',
 				id: 'speed',
-				min: 1,
-				max: 8,
-				isVisibleExpression:
-					'$(options:direction) !== "Stop" && $(options:direction) !== "Manual" && $(options:direction) !== "Auto"',
+				description: '(1 - 8)',
+				useVariables: true,
 			},
 		],
 		description: 'Focus the camera',
 		callback: async (action) => {
 			if (!self.camera) return
+			const speed = parseInt(action.options.speed as string)
+			if (isNaN(speed)) {
+				self.log('warn', 'Speed must be a number')
+				return
+			}
+			if (speed < 1 || speed > 8) {
+				self.log('warn', 'Speed must be between 1 and 8')
+				return
+			}
 			const focus: FocusCommand = {
 				Direction: action.options.direction as FocusCommand['Direction'],
-				Speed: (action.options.speed as number) || 5,
+				Speed: speed,
 			}
 			await self.camera.focus(focus)
 		},
@@ -223,28 +278,29 @@ export function UpdateActions(self: ModuleInstance): void {
 				id: 'direction',
 			},
 			{
-				type: 'checkbox',
-				id: 'override',
-				label: 'Speed Override',
-				default: false,
-				isVisibleExpression: '$(options:direction) !== "Stop"',
-			},
-			{
-				type: 'number',
+				type: 'textinput',
 				label: 'Speed',
-				default: 5,
+				default: '128',
 				id: 'speed',
-				min: 1,
-				max: 8,
-				isVisibleExpression: '$(options:direction) !== "Stop" && $(options:override) === true',
+				description: '(1 - 255)',
+				useVariables: true,
 			},
 		],
 		description: 'Move the camera',
 		callback: async (action) => {
 			if (!self.camera) return
+			const speed = parseInt(action.options.speed as string)
+			if (isNaN(speed)) {
+				self.log('warn', 'Speed must be a number')
+				return
+			}
+			if (speed < 1 || speed > 255) {
+				self.log('warn', 'Speed must be between 1 and 255')
+				return
+			}
 			const move: PTMoveCommand = {
 				Mode: 1,
-				SuperfineSpeed: action.options.override ? (action.options.speed as number) || 128 : 128,
+				SuperfineSpeed: speed,
 				Direction: action.options.direction as PTMoveCommand['Direction'],
 			}
 			await self.camera.ptMove(move)

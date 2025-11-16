@@ -80,6 +80,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 				await this.camera.getPositionLimits()
 				await this.camera.getVideoOutput()
 				await this.camera.getGeneralCapabilities()
+				await this.camera.getPresetSpeed()
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}

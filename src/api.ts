@@ -7,6 +7,7 @@ import type {
 	SystemInfo,
 	PresetInfo,
 	PresetRequest,
+	PresetSpeed,
 	ZoomCommand,
 	FocusCommand,
 	PTMoveCommand,
@@ -33,6 +34,7 @@ export class BolinCamera {
 	private systemInfo: SystemInfo | null = null
 	private presets: PresetInfo[] | null = null
 	private ptzPosition: PTZFPosition | null = null
+	private presetSpeed: PresetSpeed | null = null
 	private lensInfo: LensInfo | null = null
 	private pictureInfo: PictureInfo | null = null
 	private gammaInfo: GammaInfo | null = null
@@ -154,6 +156,7 @@ export class BolinCamera {
 			ptzPosition: this.ptzPosition,
 			systemInfo: this.systemInfo,
 			presets: this.presets,
+			presetSpeed: this.presetSpeed,
 			lensInfo: this.lensInfo,
 			pictureInfo: this.pictureInfo,
 			gammaInfo: this.gammaInfo,
@@ -193,6 +196,22 @@ export class BolinCamera {
 				previousState.ptzPosition.ZoomPosition !== currentState.ptzPosition.ZoomPosition
 			) {
 				variables.zoom_position = currentState.ptzPosition.ZoomPosition.toString()
+			}
+		}
+
+		// Update preset speed variables if changed
+		if (currentState.presetSpeed) {
+			if (
+				!previousState?.presetSpeed ||
+				previousState.presetSpeed.PresetZoomSpeed !== currentState.presetSpeed.PresetZoomSpeed
+			) {
+				variables.preset_zoom_speed = currentState.presetSpeed.PresetZoomSpeed.toString()
+			}
+			if (
+				!previousState?.presetSpeed ||
+				previousState.presetSpeed.PresetSpeed !== currentState.presetSpeed.PresetSpeed
+			) {
+				variables.preset_speed = currentState.presetSpeed.PresetSpeed.toString()
 			}
 		}
 
@@ -545,10 +564,9 @@ export class BolinCamera {
 	 * Gets the current presets from the camera and stores them in state
 	 */
 	async setPreset(preset: PresetRequest): Promise<void> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPreset', {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPreset', {
 			PresetInfo: preset,
 		})
-		console.log('Set preset response: ' + JSON.stringify(response))
 	}
 
 	/**
@@ -556,6 +574,30 @@ export class BolinCamera {
 	 */
 	currentPresets(): PresetInfo[] | null {
 		return this.presets
+	}
+
+	async getPresetSpeed(): Promise<PresetSpeed> {
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPresetSpeed')
+		this.presetSpeed = response.Content.PTZFPresetSpeed as PresetSpeed
+		this.updateVariablesOnStateChange()
+		return response.Content.PresetSpeed as PresetSpeed
+	}
+
+	/**
+	 * Sets the preset speed
+	 */
+	async setPresetSpeed(presetSpeed: PresetSpeed): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPresetSpeed', {
+			PTZFPresetSpeed: presetSpeed,
+		})
+		await this.getPresetSpeed()
+	}
+
+	/**
+	 * Gets the stored preset speed
+	 */
+	currentPresetSpeed(): PresetSpeed | null {
+		return this.presetSpeed
 	}
 
 	/**
