@@ -171,7 +171,6 @@ export class BolinCamera {
 	 * Updates variables when state changes, only updating values that have actually changed
 	 */
 	private updateVariablesOnStateChange(): void {
-		console.log('Updating variables on state change')
 		const currentState = this.getState()
 		const previousState = this.previousState
 
@@ -668,7 +667,7 @@ export class BolinCamera {
 	 * Gets picture information from the camera and stores it in state
 	 */
 	async getPictureInfo(): Promise<PictureInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetPictureInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetPictureInfo')
 		const rawPictureInfo = response.Content.PictureInfo as {
 			'2DNR': number
 			'3DNR': number
@@ -755,7 +754,7 @@ export class BolinCamera {
 	 * Gets gamma information from the camera and stores it in state
 	 */
 	async getGammaInfo(): Promise<GammaInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetGammaInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetGammaInfo')
 		const rawGammaInfo = response.Content.GammaInfo as {
 			Level: number
 			Bright: number
@@ -981,7 +980,7 @@ export class BolinCamera {
 	 * Gets the current PTZ position from the camera.
 	 */
 	async getPTZPosition(): Promise<PTZFPosition> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPosition', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPosition')
 		const position = response.Content.PTZFPosition as PTZFPosition
 		this.ptzPosition = position
 		this.updateVariablesOnStateChange()
@@ -1072,7 +1071,7 @@ export class BolinCamera {
 	 * Gets video output information from the camera and stores it in state
 	 */
 	async getVideoOutput(): Promise<VideoOutputInfo> {
-		const response = await this.sendRequest('/apiv2/general', 'ReqGetVideoOutputInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/general', 'ReqGetVideoOutputInfo')
 		this.videoOutputInfo = response.Content.VideoOutputInfo as VideoOutputInfo
 		this.updateVariablesOnStateChange()
 		return this.videoOutputInfo
@@ -1096,7 +1095,7 @@ export class BolinCamera {
 	 * Gets general capabilities from the camera and stores it in state
 	 */
 	async getGeneralCapabilities(): Promise<GeneralCapabilities> {
-		const response = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities')
 		const generalCapabilities = response.Content as GeneralCapabilities
 
 		this.generalCapabilities = generalCapabilities

@@ -15,7 +15,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 	config!: ModuleConfig // Setup in init()
 	secrets!: ModuleSecrets // Setup in init()
 	public camera: BolinCamera | null = null
-
+	public interval: NodeJS.Timeout | null = null
 	constructor(internal: unknown) {
 		super(internal)
 	}
@@ -25,16 +25,19 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 		this.secrets = secrets
 		this.updateVariableDefinitions()
 
-		await this.performLogin()
+		this.updateModuleComponents()
 
-		this.updateActions() // export actions
-		this.updateFeedbacks() // export feedbacks
-		this.updatePresets() // export presets
+		// Perform login asynchronously after init completes to avoid timeout
+		setImmediate(() => {
+			void this.performLogin()
+		})
 	}
 
 	// When module gets deleted
 	async destroy(): Promise<void> {
 		this.log('debug', 'destroy')
+		if (this.interval) clearInterval(this.interval)
+		this.interval = null
 		if (this.camera) {
 			this.camera.clearAuth()
 			this.camera = null
@@ -67,20 +70,10 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 
 				const systemInfo = await this.camera.getSystemInfo()
 				this.log('debug', 'System info: ' + JSON.stringify(systemInfo))
-				console.log('System info: ' + JSON.stringify(systemInfo))
 
-				//Testing only
-				await this.camera.getCurrentPresets()
-				await this.camera.getPTZPosition()
-				await this.camera.getLensInfo()
-				await this.camera.getPictureInfo()
-				await this.camera.getGammaInfo()
-				await this.camera.getWhiteBalanceInfo()
-				await this.camera.getExposureInfo()
-				await this.camera.getPositionLimits()
-				await this.camera.getVideoOutput()
-				await this.camera.getGeneralCapabilities()
-				await this.camera.getPresetSpeed()
+				await this.getCameraInfo()
+				this.updateModuleComponents()
+				this.pollCameraInfo()
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}
@@ -90,6 +83,33 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			this.updateStatus(InstanceStatus.ConnectionFailure)
 			this.log('error', `Login error: ${errorMessage}`)
 		}
+	}
+
+	async getCameraInfo(): Promise<void> {
+		if (!this.camera) return
+
+		await Promise.all([
+			this.camera.getCurrentPresets(),
+			this.camera.getPTZPosition(),
+			this.camera.getLensInfo(),
+			this.camera.getPictureInfo(),
+			this.camera.getGammaInfo(),
+			this.camera.getWhiteBalanceInfo(),
+			this.camera.getExposureInfo(),
+			this.camera.getPositionLimits(),
+			this.camera.getVideoOutput(),
+			this.camera.getGeneralCapabilities(),
+			this.camera.getPresetSpeed(),
+		])
+	}
+
+	pollCameraInfo(): void {
+		if (!this.camera) return
+		if (this.interval) clearInterval(this.interval)
+		this.interval = setInterval(() => {
+			void this.getCameraInfo()
+		}, 1000)
+		this.log('debug', 'Polling camera info every 1 second')
 	}
 
 	// Return config fields for web config
@@ -111,6 +131,13 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 
 	updatePresets(): void {
 		UpdatePresets(this)
+	}
+
+	updateModuleComponents(): void {
+		this.updateActions()
+		this.updateFeedbacks()
+		this.updatePresets()
+		this.updateVariableDefinitions()
 	}
 }
 
