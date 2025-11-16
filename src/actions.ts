@@ -12,7 +12,7 @@ import { CompanionActionDefinitions } from '@companion-module/base'
 export function UpdateActions(self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {}
 
-	actions['callPreset'] = {
+	actions['presetControl'] = {
 		name: 'Preset Control',
 		description: 'Call, save or delete a preset',
 		options: [
@@ -23,9 +23,8 @@ export function UpdateActions(self: ModuleInstance): void {
 					{ label: 'Call', id: 'Call' },
 					{ label: 'Save', id: 'Set' },
 					{ label: 'Delete', id: 'Delete' },
-					{ label: 'Add', id: 'Add' },
 				],
-				default: 'call',
+				default: 'Call',
 				id: 'command',
 			},
 			{
@@ -34,21 +33,59 @@ export function UpdateActions(self: ModuleInstance): void {
 				choices: self.camera?.currentPresets()?.map((preset) => ({ label: preset.Name, id: preset.Number })) ?? [],
 				default: 1,
 				id: 'preset',
+				isVisibleExpression: '$(options:customPreset) === false',
+			},
+			{ type: 'checkbox', label: 'Custom Preset', default: false, id: 'customPreset' },
+			{
+				type: 'textinput',
+				label: 'Custom Preset Number',
+				default: '1',
+				id: 'customPresetNumber',
+				isVisibleExpression: '$(options:customPreset) === true',
+				useVariables: true,
+				description: '(1 - 255)',
+			},
+			{
+				type: 'textinput',
+				label: 'Custom Preset Name',
+				default: 'Preset $(options:customPresetNumber)',
+				id: 'customPresetName',
+				isVisibleExpression: 'Preset $(options:customPreset) === true',
+				useVariables: true,
 			},
 		],
 		callback: async (action) => {
 			if (!self.camera) return
-			const presetId = action.options.preset
-			if (presetId) {
-				const presets = self.camera.currentPresets()
-				const preset = presets?.find((p) => p.Number === presetId)
-				if (preset) {
-					await self.camera.setPreset({
-						Action: action.options.command as string,
-						Name: preset.Name,
-						Number: preset.Number,
-					})
+			const command = action.options.command as string
+
+			if (action.options.customPreset) {
+				const customPresetNumber = parseInt(action.options.customPresetNumber as string)
+				const customPresetName = action.options.customPresetName as string
+				if (isNaN(customPresetNumber)) {
+					self.log('warn', 'Custom Preset Number must be a number')
+					return
 				}
+				if (customPresetNumber < 1 || customPresetNumber > 255) {
+					self.log('warn', 'Custom Preset Number must be between 1 and 255')
+					return
+				}
+				await self.camera.setPreset({
+					Action: command,
+					Name: customPresetName,
+					Number: customPresetNumber,
+				})
+			} else {
+				const presets = self.camera.currentPresets()
+				const preset = presets?.find((p) => p.Number === action.options.preset)
+				if (!preset) {
+					self.log('warn', 'Preset not found')
+					return
+				}
+				await self.camera.setPreset({
+					Action: command,
+					Name: preset.Name,
+					Number: preset.Number,
+				})
 			}
 		},
 	}

@@ -59,6 +59,81 @@ export function UpdatePresets(self: ModuleInstance): void {
 			feedbacks: [],
 		}
 	}
-
+	const cameraPresets = self.camera?.currentPresets()
+	if (!cameraPresets) return
+	presets['presetCallHeader'] = {
+		category: 'PTZ Presets',
+		name: 'Call Presets',
+		type: 'text',
+		text: '',
+	}
+	for (const preset of cameraPresets) {
+		presets[`presetCall${preset.Number.toString()}`] = {
+			type: 'button',
+			category: 'PTZ Presets',
+			name: 'Call ' + preset.Name + ' (' + preset.Number + ')',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `CALL\\n${preset.Name}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'presetControl',
+							options: {
+								command: 'Call',
+								preset: preset.Number,
+								customPreset: false,
+								customPresetNumber: preset.Number,
+								customPresetName: 'Preset $(options:customPresetNumber)',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+	presets['presetSaveHeader'] = {
+		category: 'PTZ Presets',
+		name: 'Save Presets',
+		type: 'text',
+		text: '',
+	}
+	for (const preset of cameraPresets) {
+		presets[`presetSave${preset.Number.toString()}`] = {
+			type: 'button',
+			category: 'PTZ Presets',
+			name: 'Save ' + preset.Name + ' (' + preset.Number + ')',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `SAVE\\n${preset.Name}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'presetControl',
+							options: {
+								command: 'Set',
+								preset: preset.Number,
+								customPreset: false,
+								customPresetNumber: preset.Number,
+								customPresetName: 'Preset $(options:customPresetNumber)',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
 	self.setPresetDefinitions(presets)
 }
