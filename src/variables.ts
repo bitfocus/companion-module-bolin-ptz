@@ -234,5 +234,13 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			name: 'SDI Color Space',
 			variableId: 'sdi_color_space',
 		},
+		{
+			name: 'Preset Zoom Speed',
+			variableId: 'preset_zoom_speed',
+		},
+		{
+			name: 'Preset Speed',
+			variableId: 'preset_speed',
+		},
 	])
 }

@@ -16,6 +16,12 @@ export function UpdatePresets(self: ModuleInstance): void {
 		{ key: 'ptzRightDown', name: 'PTZ Right Down', iconType: 'directionDownRight' as const, direction: 'RightDown' },
 	] as const
 
+	presets['ptzControlHeaderMovement'] = {
+		category: 'PTZ Control',
+		name: 'Camera Movement',
+		type: 'text',
+		text: '',
+	}
 	for (const { key, name, iconType, direction } of ptzDirections) {
 		presets[key] = {
 			type: 'button',
@@ -39,8 +45,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 							actionId: 'ptMove',
 							options: {
 								direction: direction,
-								override: false,
-								speed: 5,
+								speed: '128',
 							},
 						},
 					],
@@ -49,8 +54,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 							actionId: 'ptMove',
 							options: {
 								direction: 'Stop',
-								override: false,
-								speed: 5,
+								speed: '128',
 							},
 						},
 					],
@@ -59,6 +63,222 @@ export function UpdatePresets(self: ModuleInstance): void {
 			feedbacks: [],
 		}
 	}
+	presets[`home`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Go Home',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `HOME`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'goHome',
+						options: {},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets[`presetZoomIn`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Zoom In',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `ZOOM\\nIN`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'zoom',
+						options: {
+							direction: 'Tele',
+							speed: '5',
+						},
+					},
+				],
+				up: [
+					{
+						actionId: 'zoom',
+						options: {
+							direction: 'Stop',
+							speed: '5',
+						},
+					},
+				],
+			},
+		],
+		feedbacks: [],
+	}
+	presets[`presetZoomOut`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Zoom Out',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `ZOOM\\nOUT`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'zoom',
+						options: {
+							direction: 'Wide',
+							speed: '5',
+						},
+					},
+				],
+				up: [
+					{
+						actionId: 'zoom',
+						options: {
+							direction: 'Stop',
+							speed: '5',
+						},
+					},
+				],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['ptzControlHeaderFocus'] = {
+		category: 'PTZ Control',
+		name: 'Camera Focus',
+		type: 'text',
+		text: '',
+	}
+	presets[`presetFocusNear`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Focus Near',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `FOCUS\\nNEAR`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'focusMode',
+						options: {
+							mode: 'Manual',
+						},
+					},
+					{
+						actionId: 'focus',
+						options: {
+							direction: 'Near',
+							speed: '5',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets[`presetFocusFar`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Focus Far',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `FOCUS\\nFAR`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'focusMode',
+						options: {
+							mode: 'Manual',
+						},
+					},
+					{
+						actionId: 'focus',
+						options: {
+							direction: 'Far',
+							speed: '5',
+						},
+					},
+				],
+				up: [
+					{
+						actionId: 'zoom',
+						options: {
+							direction: 'Stop',
+							speed: '5',
+						},
+					},
+				],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['ptzControlHeaderpositionLimit'] = {
+		category: 'PTZ Control',
+		name: 'Position Limits',
+		type: 'text',
+		text: '',
+	}
+	for (const limit of ['Up', 'Down', 'Left', 'Right']) {
+		presets[`positionLimit${limit}`] = {
+			type: 'button',
+			category: 'PTZ Control',
+			name: `Position Limit ${limit}}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `LOCK\\n${limit}`,
+				size: 14,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'setPositionLimits',
+							options: {
+								direction: [`${limit}Limit`],
+								lock: 'toggle',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'positionLimitEnabled',
+					options: {
+						direction: `${limit}Limit`,
+					},
+					style: {
+						bgcolor: 0xcc0000,
+						text: `${limit} LOCKED`,
+					},
+				},
+			],
+		}
+	}
+
 	const cameraPresets = self.camera?.currentPresets()
 	if (!cameraPresets) return
 	presets['presetCallHeader'] = {
