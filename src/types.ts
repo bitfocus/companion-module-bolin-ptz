@@ -209,39 +209,39 @@ export type Effect = 'Day' | 'Night'
  * Picture information
  */
 export interface PictureInfo {
-	'2DNR': number
-	'3DNR': number
-	Sharpness: number
-	Hue: number
-	DeFlicker: DeFlicker
-	Flip: boolean
-	Mirror: boolean
-	HLCMode: boolean
-	BLC: boolean
-	Contrast: number
-	Saturation: number
-	Scene: Scene
-	DefogMode: DefogMode
-	DefogLevel: number
-	Effect: Effect
-	MagentaSaturation: number
-	RedSaturation: number
-	YellowSaturation: number
-	GreenSaturation: number
-	CyanSaturation: number
-	BlueSaturation: number
-	MagentaHue: number
-	RedHue: number
-	YellowHue: number
-	GreenHue: number
-	CyanHue: number
-	BlueHue: number
-	MagentaValue: number
-	RedValue: number
-	YellowValue: number
-	GreenValue: number
-	CyanValue: number
-	BlueValue: number
+	'2DNR'?: number
+	'3DNR'?: number
+	Sharpness?: number
+	Hue?: number
+	DeFlicker?: DeFlicker
+	Flip?: boolean
+	Mirror?: boolean
+	HLCMode?: boolean
+	BLC?: boolean
+	Contrast?: number
+	Saturation?: number
+	Scene?: Scene
+	DefogMode?: DefogMode
+	DefogLevel?: number
+	Effect?: Effect
+	MagentaSaturation?: number
+	RedSaturation?: number
+	YellowSaturation?: number
+	GreenSaturation?: number
+	CyanSaturation?: number
+	BlueSaturation?: number
+	MagentaHue?: number
+	RedHue?: number
+	YellowHue?: number
+	GreenHue?: number
+	CyanHue?: number
+	BlueHue?: number
+	MagentaValue?: number
+	RedValue?: number
+	YellowValue?: number
+	GreenValue?: number
+	CyanValue?: number
+	BlueValue?: number
 }
 
 /**
@@ -339,14 +339,14 @@ export type ColorTemperature =
  * White balance information
  */
 export interface WhiteBalanceInfo {
-	Mode: WhiteBalanceMode
-	WBSensitivity: number
-	RGain: number
-	BGain: number
-	RTuning: number
-	GTuning: number
-	BTuning: number
-	ColorTemperature: ColorTemperature
+	Mode?: WhiteBalanceMode
+	WBSensitivity?: number
+	RGain?: number
+	BGain?: number
+	RTuning?: number
+	GTuning?: number
+	BTuning?: number
+	ColorTemperature?: ColorTemperature
 }
 
 /**

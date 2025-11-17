@@ -255,49 +255,49 @@ export class BolinCamera {
 		// Update picture info variables if changed
 		if (currentState.pictureInfo) {
 			if (!previousState?.pictureInfo || previousState.pictureInfo['2DNR'] !== currentState.pictureInfo['2DNR']) {
-				variables['2dnr'] = currentState.pictureInfo['2DNR'].toString()
+				variables['2dnr'] = currentState.pictureInfo['2DNR']?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo['3DNR'] !== currentState.pictureInfo['3DNR']) {
-				variables['3dnr'] = currentState.pictureInfo['3DNR'].toString()
+				variables['3dnr'] = currentState.pictureInfo['3DNR']?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Sharpness !== currentState.pictureInfo.Sharpness) {
-				variables.sharpness = currentState.pictureInfo.Sharpness.toString()
+				variables.sharpness = currentState.pictureInfo.Sharpness?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Contrast !== currentState.pictureInfo.Contrast) {
-				variables.contrast = currentState.pictureInfo.Contrast.toString()
+				variables.contrast = currentState.pictureInfo.Contrast?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Saturation !== currentState.pictureInfo.Saturation) {
-				variables.saturation = currentState.pictureInfo.Saturation.toString()
+				variables.saturation = currentState.pictureInfo.Saturation?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Hue !== currentState.pictureInfo.Hue) {
-				variables.hue = currentState.pictureInfo.Hue.toString()
+				variables.hue = currentState.pictureInfo.Hue?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.DeFlicker !== currentState.pictureInfo.DeFlicker) {
-				variables.deflicker = currentState.pictureInfo.DeFlicker
+				variables.deflicker = currentState.pictureInfo.DeFlicker?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Scene !== currentState.pictureInfo.Scene) {
-				variables.scene = currentState.pictureInfo.Scene
+				variables.scene = currentState.pictureInfo.Scene?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.DefogMode !== currentState.pictureInfo.DefogMode) {
-				variables.defog_mode = currentState.pictureInfo.DefogMode
+				variables.defog_mode = currentState.pictureInfo.DefogMode?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.DefogLevel !== currentState.pictureInfo.DefogLevel) {
-				variables.defog_level = currentState.pictureInfo.DefogLevel.toString()
+				variables.defog_level = currentState.pictureInfo.DefogLevel?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Effect !== currentState.pictureInfo.Effect) {
-				variables.effect = currentState.pictureInfo.Effect
+				variables.effect = currentState.pictureInfo.Effect?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Flip !== currentState.pictureInfo.Flip) {
-				variables.flip = currentState.pictureInfo.Flip.toString()
+				variables.flip = currentState.pictureInfo.Flip?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Mirror !== currentState.pictureInfo.Mirror) {
-				variables.mirror = currentState.pictureInfo.Mirror.toString()
+				variables.mirror = currentState.pictureInfo.Mirror?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.HLCMode !== currentState.pictureInfo.HLCMode) {
-				variables.hlc_mode = currentState.pictureInfo.HLCMode.toString()
+				variables.hlc_mode = currentState.pictureInfo.HLCMode?.toString() || ''
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.BLC !== currentState.pictureInfo.BLC) {
-				variables.blc = currentState.pictureInfo.BLC.toString()
+				variables.blc = currentState.pictureInfo.BLC?.toString() || ''
 			}
 		}
 
@@ -323,49 +323,49 @@ export class BolinCamera {
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.Mode !== currentState.whiteBalanceInfo.Mode
 			) {
-				variables.wb_mode = currentState.whiteBalanceInfo.Mode
+				variables.wb_mode = currentState.whiteBalanceInfo.Mode || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.WBSensitivity !== currentState.whiteBalanceInfo.WBSensitivity
 			) {
-				variables.wb_sensitivity = currentState.whiteBalanceInfo.WBSensitivity.toString()
+				variables.wb_sensitivity = currentState.whiteBalanceInfo.WBSensitivity?.toString() || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.RGain !== currentState.whiteBalanceInfo.RGain
 			) {
-				variables.r_gain = currentState.whiteBalanceInfo.RGain.toString()
+				variables.r_gain = currentState.whiteBalanceInfo.RGain?.toString() || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.BGain !== currentState.whiteBalanceInfo.BGain
 			) {
-				variables.b_gain = currentState.whiteBalanceInfo.BGain.toString()
+				variables.b_gain = currentState.whiteBalanceInfo.BGain?.toString() || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.RTuning !== currentState.whiteBalanceInfo.RTuning
 			) {
-				variables.r_tuning = currentState.whiteBalanceInfo.RTuning.toString()
+				variables.r_tuning = currentState.whiteBalanceInfo.RTuning?.toString() || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.GTuning !== currentState.whiteBalanceInfo.GTuning
 			) {
-				variables.g_tuning = currentState.whiteBalanceInfo.GTuning.toString()
+				variables.g_tuning = currentState.whiteBalanceInfo.GTuning?.toString() || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.BTuning !== currentState.whiteBalanceInfo.BTuning
 			) {
-				variables.b_tuning = currentState.whiteBalanceInfo.BTuning.toString()
+				variables.b_tuning = currentState.whiteBalanceInfo.BTuning?.toString() || ''
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.ColorTemperature !== currentState.whiteBalanceInfo.ColorTemperature
 			) {
-				variables.color_temperature = currentState.whiteBalanceInfo.ColorTemperature
+				variables.color_temperature = currentState.whiteBalanceInfo.ColorTemperature?.toString() || ''
 			}
 		}
 
@@ -836,6 +836,18 @@ export class BolinCamera {
 	 */
 	currentWhiteBalanceInfo(): WhiteBalanceInfo | null {
 		return this.whiteBalanceInfo
+	}
+
+	async setWhiteBalanceInfo(whiteBalanceInfo: WhiteBalanceInfo): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetWhiteBalanceInfo', {
+			WhiteBalanceInfo: whiteBalanceInfo,
+		})
+	}
+
+	async setPictureInfo(pictureInfo: PictureInfo): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetPictureInfo', {
+			PictureInfo: pictureInfo,
+		})
 	}
 
 	/**

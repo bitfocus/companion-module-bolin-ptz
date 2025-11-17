@@ -6,11 +6,70 @@ import type {
 	PTMoveCommand,
 	PositionLimitations,
 	MenuAction,
+	WhiteBalanceInfo,
+	PictureInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
 export function UpdateActions(self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {}
+
+	const toggleChoices = [
+		{ label: 'Toggle', id: 'toggle' },
+		{ label: 'Enable', id: 'true' },
+		{ label: 'Disable', id: 'false' },
+	]
+
+	const setChoices = [
+		{ label: 'Increase', id: 'increase' },
+		{ label: 'Decrease', id: 'decrease' },
+		{ label: 'Set', id: 'set' },
+	]
+
+	function createValueAction(
+		actionId: string,
+		name: string,
+		getCurrentValue: () => number | undefined,
+		setValue: (value: number) => Promise<void>,
+		defaultValue: number = 50,
+		step: number = 1,
+	): void {
+		actions[actionId] = {
+			name: name,
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Adjustment',
+					choices: setChoices,
+					default: 'increase',
+					id: 'adjustment',
+				},
+				{
+					type: 'textinput',
+					label: 'Value',
+					default: step.toString(),
+					id: 'value',
+					useVariables: true,
+				},
+			],
+			description: `Set the ${name.toLowerCase()}`,
+			callback: async (action) => {
+				if (!self.camera) return
+				const currentValue = getCurrentValue() ?? defaultValue
+				let newValue: number
+
+				if (action.options.adjustment === 'increase') {
+					newValue = currentValue + step
+				} else if (action.options.adjustment === 'decrease') {
+					newValue = currentValue - step
+				} else {
+					newValue = parseInt(action.options.value as string)
+				}
+
+				await setValue(newValue)
+			},
+		}
+	}
 
 	actions['presetControl'] = {
 		name: 'Preset Control',
@@ -335,11 +394,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			{
 				type: 'dropdown',
 				label: 'Lock',
-				choices: [
-					{ label: 'Toggle', id: 'toggle' },
-					{ label: 'Enable', id: 'true' },
-					{ label: 'Disable', id: 'false' },
-				],
+				choices: toggleChoices,
 				default: 'toggle',
 				id: 'lock',
 			},
@@ -416,6 +471,266 @@ export function UpdateActions(self: ModuleInstance): void {
 		callback: async (action) => {
 			if (!self.camera) return
 			await self.camera.setVideoOutput({ HDMIResolution: action.options.resolution as string })
+		},
+	}
+
+	actions['whiteBalanceMode'] = {
+		name: 'White Balance Mode',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Mode',
+				choices: [
+					{ label: 'Auto', id: 1 },
+					{ label: 'Indoor', id: 2 },
+					{ label: 'Outdoor', id: 3 },
+					{ label: 'OPW', id: 4 },
+					{ label: 'ATW', id: 'ATW' },
+					{ label: 'User', id: 'User' },
+					{ label: 'SVL', id: 'SVL' },
+					{ label: 'ManualColorTemperature', id: 'ManualColorTemperature' },
+				],
+				default: 'Auto',
+				id: 'mode',
+			},
+		],
+		description: 'Set the white balance mode',
+		callback: async (action) => {
+			if (!self.camera) return
+			await self.camera.setWhiteBalanceInfo({ Mode: action.options.mode } as WhiteBalanceInfo)
+		},
+	}
+
+	actions['flip'] = {
+		name: 'Flip',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Flip',
+				choices: toggleChoices,
+				default: 'toggle',
+				id: 'flip',
+			},
+		],
+		description: 'Set the flip',
+		callback: async (action) => {
+			if (!self.camera) return
+			if (action.options.flip === 'toggle') {
+				await self.camera.setPictureInfo({ Flip: !self.camera.currentPictureInfo()?.Flip } as PictureInfo)
+			} else {
+				await self.camera.setPictureInfo({ Flip: action.options.flip === 'true' ? true : false } as PictureInfo)
+			}
+		},
+	}
+	actions['mirror'] = {
+		name: 'Mirror',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Mirror',
+				choices: toggleChoices,
+				default: 'toggle',
+				id: 'mirror',
+			},
+		],
+		description: 'Set the mirror',
+		callback: async (action) => {
+			if (!self.camera) return
+			if (action.options.mirror === 'toggle') {
+				await self.camera.setPictureInfo({ Mirror: !self.camera.currentPictureInfo()?.Mirror })
+			} else {
+				await self.camera.setPictureInfo({ Mirror: action.options.mirror === 'true' ? true : false } as PictureInfo)
+			}
+		},
+	}
+
+	actions['hlcMode'] = {
+		name: 'HLC Mode',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Mode',
+				choices: toggleChoices,
+				default: 'toggle',
+				id: 'mode',
+			},
+		],
+		description: 'Set the HLC mode',
+		callback: async (action) => {
+			if (!self.camera) return
+			if (action.options.mode === 'toggle') {
+				await self.camera.setPictureInfo({ HLCMode: !self.camera.currentPictureInfo()?.HLCMode })
+			} else {
+				await self.camera.setPictureInfo({ HLCMode: action.options.mode === 'true' ? true : false })
+			}
+		},
+	}
+
+	actions['blcMode'] = {
+		name: 'BLC',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Mode',
+				choices: toggleChoices,
+				default: 'toggle',
+				id: 'mode',
+			},
+		],
+		description: 'Set the HLC mode',
+		callback: async (action) => {
+			if (!self.camera) return
+			if (action.options.mode === 'toggle') {
+				await self.camera.setPictureInfo({ BLC: !self.camera.currentPictureInfo()?.BLC })
+			} else {
+				await self.camera.setPictureInfo({ BLC: action.options.mode === 'true' ? true : false })
+			}
+		},
+	}
+	createValueAction(
+		'2dnr',
+		'2DNR',
+		() => self.camera?.currentPictureInfo()?.['2DNR'],
+		async (value) => {
+			await self.camera!.setPictureInfo({ ['2DNR']: value } as Partial<PictureInfo>)
+		},
+	)
+	createValueAction(
+		'3dnr',
+		'3DNR',
+		() => self.camera?.currentPictureInfo()?.['3DNR'],
+		async (value) => {
+			await self.camera!.setPictureInfo({ ['3DNR']: value } as Partial<PictureInfo>)
+		},
+	)
+
+	createValueAction(
+		'sharpness',
+		'Sharpness',
+		() => self.camera?.currentPictureInfo()?.Sharpness,
+		async (value) => {
+			await self.camera!.setPictureInfo({ Sharpness: value } as Partial<PictureInfo>)
+		},
+	)
+	createValueAction(
+		'hue',
+		'Hue',
+		() => self.camera?.currentPictureInfo()?.Hue,
+		async (value) => {
+			await self.camera!.setPictureInfo({ Hue: value } as Partial<PictureInfo>)
+		},
+	)
+	createValueAction(
+		'contrast',
+		'Contrast',
+		() => self.camera?.currentPictureInfo()?.Contrast,
+		async (value) => {
+			await self.camera!.setPictureInfo({ Contrast: value } as Partial<PictureInfo>)
+		},
+	)
+	createValueAction(
+		'saturation',
+		'Saturation',
+		() => self.camera?.currentPictureInfo()?.Saturation,
+		async (value) => {
+			await self.camera!.setPictureInfo({ Saturation: value } as Partial<PictureInfo>)
+		},
+	)
+
+	createValueAction(
+		'defogLevel',
+		'Defog Level',
+		() => self.camera?.currentPictureInfo()?.DefogLevel,
+		async (value) => {
+			await self.camera!.setPictureInfo({ DefogLevel: value } as Partial<PictureInfo>)
+		},
+	)
+
+	const ColorMatrixOptions = [
+		{ label: 'Magenta Hue', id: 'MagentaHue' },
+		{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
+		{ label: 'Magenta Value', id: 'MagentaValue' },
+		{ label: 'Red Hue', id: 'RedHue' },
+		{ label: 'Red Saturation', id: 'RedSaturation' },
+		{ label: 'Red Value', id: 'RedValue' },
+		{ label: 'Yellow Hue', id: 'YellowHue' },
+		{ label: 'Yellow Saturation', id: 'YellowSaturation' },
+		{ label: 'Yellow Value', id: 'YellowValue' },
+		{ label: 'Green Hue', id: 'GreenHue' },
+		{ label: 'Green Saturation', id: 'GreenSaturation' },
+		{ label: 'Green Value', id: 'GreenValue' },
+		{ label: 'Cyan Hue', id: 'CyanHue' },
+		{ label: 'Cyan Saturation', id: 'CyanSaturation' },
+		{ label: 'Cyan Value', id: 'CyanValue' },
+		{ label: 'Blue Hue', id: 'BlueHue' },
+		{ label: 'Blue Saturation', id: 'BlueSaturation' },
+		{ label: 'Blue Value', id: 'BlueValue' },
+	]
+
+	actions['colorMatrix'] = {
+		name: 'Color Matrix',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Matrix Option',
+				choices: ColorMatrixOptions,
+				default: 'MagentaSaturation',
+				id: 'matrix',
+			},
+			{
+				type: 'dropdown',
+				label: 'Adjustment',
+				choices: setChoices,
+				default: 'increase',
+				id: 'adjustment',
+			},
+			{
+				type: 'textinput',
+				label: 'Value',
+				default: '0',
+				id: 'value',
+				useVariables: true,
+			},
+		],
+		description: 'Set the color matrix',
+		callback: async (action) => {
+			if (!self.camera) return
+			const matrixOption = action.options.matrix as keyof PictureInfo
+			if (action.options.adjustment === 'increase') {
+				await self.camera.setPictureInfo({
+					[matrixOption]: ((self.camera.currentPictureInfo()?.[matrixOption] as number) ?? 0) + 1,
+				} as Partial<PictureInfo>)
+			} else if (action.options.adjustment === 'decrease') {
+				await self.camera.setPictureInfo({
+					[matrixOption]: ((self.camera.currentPictureInfo()?.[matrixOption] as number) ?? 0) - 1,
+				} as Partial<PictureInfo>)
+			} else {
+				await self.camera.setPictureInfo({
+					[matrixOption]: parseInt(action.options.value as string),
+				} as Partial<PictureInfo>)
+			}
+		},
+	}
+
+	actions['deflicker'] = {
+		name: 'Deflicker',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Mode',
+				choices: [
+					{ label: 'OFF', id: 0 },
+					{ label: '50HZ', id: 1 },
+					{ label: '60HZ', id: 2 },
+				],
+				default: 'OFF',
+				id: 'mode',
+			},
+		],
+		description: 'Set the deflicker',
+		callback: async (action) => {
+			if (!self.camera) return
+			await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
 		},
 	}
 
