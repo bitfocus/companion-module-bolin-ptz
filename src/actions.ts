@@ -26,6 +26,38 @@ export function UpdateActions(self: ModuleInstance): void {
 		{ label: 'Set', id: 'set' },
 	]
 
+	function createToggleAction(
+		actionId: string,
+		name: string,
+		getCurrentValue: () => boolean | undefined,
+		setValue: (value: boolean) => Promise<void>,
+	): void {
+		actions[actionId] = {
+			name: name,
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Mode',
+					choices: toggleChoices,
+					default: 'toggle',
+					id: 'mode',
+				},
+			],
+			description: `Set the ${name.toLowerCase()}`,
+			callback: async (action) => {
+				if (!self.camera) return
+				const currentValue = getCurrentValue() ?? false
+				let newValue: boolean
+				if (action.options.mode === 'toggle') {
+					newValue = !currentValue
+				} else {
+					newValue = action.options.mode === 'true' ? true : false
+				}
+				await setValue(newValue)
+			},
+		}
+	}
+
 	function createValueAction(
 		actionId: string,
 		name: string,
@@ -501,92 +533,42 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 	}
 
-	actions['flip'] = {
-		name: 'Flip',
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Flip',
-				choices: toggleChoices,
-				default: 'toggle',
-				id: 'flip',
-			},
-		],
-		description: 'Set the flip',
-		callback: async (action) => {
-			if (!self.camera) return
-			if (action.options.flip === 'toggle') {
-				await self.camera.setPictureInfo({ Flip: !self.camera.currentPictureInfo()?.Flip } as PictureInfo)
-			} else {
-				await self.camera.setPictureInfo({ Flip: action.options.flip === 'true' ? true : false } as PictureInfo)
-			}
+	createToggleAction(
+		'flip',
+		'Flip',
+		() => self.camera?.currentPictureInfo()?.Flip,
+		async (value) => {
+			await self.camera!.setPictureInfo({ Flip: value } as Partial<PictureInfo>)
 		},
-	}
-	actions['mirror'] = {
-		name: 'Mirror',
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Mirror',
-				choices: toggleChoices,
-				default: 'toggle',
-				id: 'mirror',
-			},
-		],
-		description: 'Set the mirror',
-		callback: async (action) => {
-			if (!self.camera) return
-			if (action.options.mirror === 'toggle') {
-				await self.camera.setPictureInfo({ Mirror: !self.camera.currentPictureInfo()?.Mirror })
-			} else {
-				await self.camera.setPictureInfo({ Mirror: action.options.mirror === 'true' ? true : false } as PictureInfo)
-			}
-		},
-	}
+	)
 
-	actions['hlcMode'] = {
-		name: 'HLC Mode',
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Mode',
-				choices: toggleChoices,
-				default: 'toggle',
-				id: 'mode',
-			},
-		],
-		description: 'Set the HLC mode',
-		callback: async (action) => {
-			if (!self.camera) return
-			if (action.options.mode === 'toggle') {
-				await self.camera.setPictureInfo({ HLCMode: !self.camera.currentPictureInfo()?.HLCMode })
-			} else {
-				await self.camera.setPictureInfo({ HLCMode: action.options.mode === 'true' ? true : false })
-			}
+	createToggleAction(
+		'mirror',
+		'Mirror',
+		() => self.camera?.currentPictureInfo()?.Mirror,
+		async (value) => {
+			await self.camera!.setPictureInfo({ Mirror: value } as Partial<PictureInfo>)
 		},
-	}
+	)
 
-	actions['blcMode'] = {
-		name: 'BLC',
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Mode',
-				choices: toggleChoices,
-				default: 'toggle',
-				id: 'mode',
-			},
-		],
-		description: 'Set the HLC mode',
-		callback: async (action) => {
-			if (!self.camera) return
-			if (action.options.mode === 'toggle') {
-				await self.camera.setPictureInfo({ BLC: !self.camera.currentPictureInfo()?.BLC })
-			} else {
-				await self.camera.setPictureInfo({ BLC: action.options.mode === 'true' ? true : false })
-			}
+	createToggleAction(
+		'hlcMode',
+		'HLC Mode',
+		() => self.camera?.currentPictureInfo()?.HLCMode,
+		async (value) => {
+			await self.camera!.setPictureInfo({ HLCMode: value } as Partial<PictureInfo>)
 		},
-	}
+	)
+
+	createToggleAction(
+		'blcMode',
+		'BLC',
+		() => self.camera?.currentPictureInfo()?.BLC,
+		async (value) => {
+			await self.camera!.setPictureInfo({ BLC: value } as Partial<PictureInfo>)
+		},
+	)
+
 	createValueAction(
 		'2dnr',
 		'2DNR',
