@@ -109,10 +109,8 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 		this.interval = setInterval(() => {
 			void this.getCameraInfo()
 		}, 1000)
-		this.log('debug', 'Polling camera info every 1 second')
 	}
 
-	// Return config fields for web config
 	getConfigFields(): SomeCompanionConfigField[] {
 		return GetConfigFields()
 	}

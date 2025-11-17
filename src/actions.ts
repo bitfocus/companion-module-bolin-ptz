@@ -11,6 +11,7 @@ import type {
 	LensInfo,
 	GammaInfo,
 	ExposureInfo,
+	PTZFPosition,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
@@ -825,5 +826,92 @@ export function UpdateActions(self: ModuleInstance): void {
 			await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
 		},
 	)
+
+	actions['ptzPosition'] = {
+		name: 'Set PTZ Position (Absolute)',
+		options: [
+			{
+				type: 'textinput',
+				label: 'Pan Position',
+				default: '0',
+				id: 'panPosition',
+				useVariables: true,
+			},
+			{
+				type: 'textinput',
+				label: 'Tilt Position',
+				default: '0',
+				id: 'tiltPosition',
+				useVariables: true,
+			},
+			{
+				type: 'textinput',
+				label: 'Zoom Position',
+				default: '0',
+				id: 'zoomPosition',
+				useVariables: true,
+			},
+			{
+				type: 'textinput',
+				label: 'Pan Tilt Speed',
+				default: '0',
+				id: 'panTiltSpeed',
+				useVariables: true,
+			},
+			{
+				type: 'textinput',
+				label: 'Zoom Speed',
+				default: '0',
+				id: 'zoomSpeed',
+				useVariables: true,
+			},
+		],
+		description: 'Set the PTZ position',
+		callback: async (action) => {
+			if (!self.camera) return
+			await self.camera.setPTZPosition({
+				PanPosition: parseInt(action.options.panPosition as string),
+				TiltPosition: parseInt(action.options.tiltPosition as string),
+				ZoomPosition: parseInt(action.options.zoomPosition as string),
+				PanTiltSpeed: parseInt(action.options.panTiltSpeed as string),
+				ZoomSpeed: parseInt(action.options.zoomSpeed as string),
+			} as PTZFPosition)
+		},
+	}
+	actions['ptzRelPosition'] = {
+		name: 'Adjust PTZ Position (Relative)',
+		options: [
+			{
+				type: 'textinput',
+				label: 'Pan Adjustment',
+				default: '0',
+				id: 'panPosition',
+				useVariables: true,
+			},
+			{
+				type: 'textinput',
+				label: 'Tilt Adjustment',
+				default: '0',
+				id: 'tiltPosition',
+				useVariables: true,
+			},
+			{
+				type: 'textinput',
+				label: 'Pan Tilt Speed',
+				default: '0',
+				id: 'panTiltSpeed',
+				useVariables: true,
+			},
+		],
+		description: 'Set the PTZ position',
+		callback: async (action) => {
+			if (!self.camera) return
+			await self.camera.setPTZRelPosition({
+				PanPosition: parseInt(action.options.panPosition as string),
+				TiltPosition: parseInt(action.options.tiltPosition as string),
+				PanTiltSpeed: parseInt(action.options.panTiltSpeed as string),
+			})
+		},
+	}
 	self.setActionDefinitions(actions)
 }

@@ -731,7 +731,7 @@ export class BolinCamera {
 	 * Sets the PTZ position relative to the current position.
 	 * @param position The relative PTZ position parameters (all fields optional)
 	 */
-	async setPTZRelPosition(position: PTZFRelPosition): Promise<void> {
+	async setPTZRelPosition(position: Partial<PTZFRelPosition>): Promise<void> {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFRelPosition', {
 			PTZFRelPosition: position,
 		})

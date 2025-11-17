@@ -262,13 +262,13 @@ export function UpdateVariablesOnStateChange(
 			!previousState?.ptzPosition ||
 			previousState.ptzPosition.TiltPosition !== currentState.ptzPosition.TiltPosition
 		) {
-			variables.tilt_position = currentState.ptzPosition.TiltPosition.toString()
+			variables.tilt_position = currentState.ptzPosition.TiltPosition
 		}
 		if (
 			!previousState?.ptzPosition ||
 			previousState.ptzPosition.ZoomPosition !== currentState.ptzPosition.ZoomPosition
 		) {
-			variables.zoom_position = currentState.ptzPosition.ZoomPosition.toString()
+			variables.zoom_position = currentState.ptzPosition.ZoomPosition
 		}
 	}
 
@@ -278,10 +278,10 @@ export function UpdateVariablesOnStateChange(
 			!previousState?.presetSpeed ||
 			previousState.presetSpeed.PresetZoomSpeed !== currentState.presetSpeed.PresetZoomSpeed
 		) {
-			variables.preset_zoom_speed = currentState.presetSpeed.PresetZoomSpeed.toString()
+			variables.preset_zoom_speed = currentState.presetSpeed.PresetZoomSpeed
 		}
 		if (!previousState?.presetSpeed || previousState.presetSpeed.PresetSpeed !== currentState.presetSpeed.PresetSpeed) {
-			variables.preset_speed = currentState.presetSpeed.PresetSpeed.toString()
+			variables.preset_speed = currentState.presetSpeed.PresetSpeed
 		}
 	}
 
@@ -446,22 +446,22 @@ export function UpdateVariablesOnStateChange(
 			variables.exposure_mode = currentState.exposureInfo.Mode
 		}
 		if (!previousState?.exposureInfo || previousState.exposureInfo.Gain !== currentState.exposureInfo.Gain) {
-			variables.gain = currentState.exposureInfo.Gain.toString()
+			variables.gain = currentState.exposureInfo.Gain
 		}
 		if (!previousState?.exposureInfo || previousState.exposureInfo.GainLimit !== currentState.exposureInfo.GainLimit) {
-			variables.gain_limit = currentState.exposureInfo.GainLimit.toString()
+			variables.gain_limit = currentState.exposureInfo.GainLimit
 		}
 		if (
 			!previousState?.exposureInfo ||
 			previousState.exposureInfo.ExCompLevel !== currentState.exposureInfo.ExCompLevel
 		) {
-			variables.ex_comp_level = currentState.exposureInfo.ExCompLevel.toString()
+			variables.ex_comp_level = currentState.exposureInfo.ExCompLevel
 		}
 		if (
 			!previousState?.exposureInfo ||
 			previousState.exposureInfo.SmartExposure !== currentState.exposureInfo.SmartExposure
 		) {
-			variables.smart_exposure = currentState.exposureInfo.SmartExposure.toString()
+			variables.smart_exposure = currentState.exposureInfo.SmartExposure
 		}
 		if (
 			!previousState?.exposureInfo ||
@@ -470,7 +470,7 @@ export function UpdateVariablesOnStateChange(
 			variables.shutter_speed = currentState.exposureInfo.ShutterSpeed
 		}
 		if (!previousState?.exposureInfo || previousState.exposureInfo.Iris !== currentState.exposureInfo.Iris) {
-			variables.iris = currentState.exposureInfo.Iris.toString()
+			variables.iris = currentState.exposureInfo.Iris
 		}
 	}
 
