@@ -49,6 +49,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 					label: 'Value',
 					id: 'value',
 					default: defaultValue.toString(),
+					useVariables: true,
 				},
 			],
 			callback: (feedback: any) => {
