@@ -8,6 +8,8 @@ import type {
 	MenuAction,
 	WhiteBalanceInfo,
 	PictureInfo,
+	LensInfo,
+	GammaInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
@@ -440,7 +442,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			if (directions.length === 0) return
 			const currentLimits = (await self.camera.getPositionLimits()) || {}
 
-			const updates: PositionLimitations = {}
+			const updates: Partial<PositionLimitations> = {}
 			for (const direction of directions) {
 				const fieldName = direction as keyof PositionLimitations
 				if (fieldName) {
@@ -715,6 +717,40 @@ export function UpdateActions(self: ModuleInstance): void {
 			await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
 		},
 	}
+
+	createToggleAction(
+		'smartFocus',
+		'Smart Focus',
+		() => self.camera?.currentLensInfo()?.SmartFocus,
+		async (value) => {
+			await self.camera!.setLensInfo({ SmartFocus: value } as Partial<LensInfo>)
+		},
+	)
+	createToggleAction(
+		'digitalZoom',
+		'Digital Zoom',
+		() => self.camera?.currentLensInfo()?.DigitalZoom,
+		async (value) => {
+			await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
+		},
+	)
+	createToggleAction(
+		'zoomRatioOSD',
+		'Zoom Ratio OSD',
+		() => self.camera?.currentLensInfo()?.ZoomRatioOSD,
+		async (value) => {
+			await self.camera!.setLensInfo({ ZoomRatioOSD: value } as Partial<LensInfo>)
+		},
+	)
+
+	createToggleAction(
+		'wdr',
+		'WDR',
+		() => self.camera?.currentGammaInfo()?.WDR,
+		async (value) => {
+			await self.camera!.setGammaInfo({ WDR: value } as Partial<GammaInfo>)
+		},
+	)
 
 	self.setActionDefinitions(actions)
 }

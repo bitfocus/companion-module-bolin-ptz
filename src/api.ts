@@ -174,7 +174,7 @@ export class BolinCamera {
 		const currentState = this.getState()
 		const previousState = this.previousState
 
-		const variables: Record<string, string> = {}
+		const variables: Record<string, number | string | boolean> = {}
 
 		// Update PTZ position variables if changed
 		if (currentState.ptzPosition) {
@@ -182,7 +182,7 @@ export class BolinCamera {
 				!previousState?.ptzPosition ||
 				previousState.ptzPosition.PanPosition !== currentState.ptzPosition.PanPosition
 			) {
-				variables.pan_position = currentState.ptzPosition.PanPosition.toString()
+				variables.pan_position = currentState.ptzPosition.PanPosition
 			}
 			if (
 				!previousState?.ptzPosition ||
@@ -227,77 +227,77 @@ export class BolinCamera {
 		// Update lens info variables if changed
 		if (currentState.lensInfo) {
 			if (!previousState?.lensInfo || previousState.lensInfo.FocusMode !== currentState.lensInfo.FocusMode) {
-				variables.focus_mode = currentState.lensInfo.FocusMode.toString()
+				variables.focus_mode = currentState.lensInfo.FocusMode
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.FocusArea !== currentState.lensInfo.FocusArea) {
-				variables.focus_area = currentState.lensInfo.FocusArea.toString()
+				variables.focus_area = currentState.lensInfo.FocusArea
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.NearLimit !== currentState.lensInfo.NearLimit) {
-				variables.near_limit = currentState.lensInfo.NearLimit.toString()
+				variables.near_limit = currentState.lensInfo.NearLimit
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.AFSensitivity !== currentState.lensInfo.AFSensitivity) {
-				variables.af_sensitivity = currentState.lensInfo.AFSensitivity.toString()
+				variables.af_sensitivity = currentState.lensInfo.AFSensitivity
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.SmartFocus !== currentState.lensInfo.SmartFocus) {
-				variables.smart_focus = currentState.lensInfo.SmartFocus.toString()
+				variables.smart_focus = currentState.lensInfo.SmartFocus
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.DigitalZoom !== currentState.lensInfo.DigitalZoom) {
-				variables.digital_zoom = currentState.lensInfo.DigitalZoom.toString()
+				variables.digital_zoom = currentState.lensInfo.DigitalZoom
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.ZoomRatioOSD !== currentState.lensInfo.ZoomRatioOSD) {
-				variables.zoom_ratio_osd = currentState.lensInfo.ZoomRatioOSD.toString()
+				variables.zoom_ratio_osd = currentState.lensInfo.ZoomRatioOSD
 			}
 			if (!previousState?.lensInfo || previousState.lensInfo.MFSpeed !== currentState.lensInfo.MFSpeed) {
-				variables.mf_speed = currentState.lensInfo.MFSpeed.toString()
+				variables.mf_speed = currentState.lensInfo.MFSpeed
 			}
 		}
 
 		// Update picture info variables if changed
 		if (currentState.pictureInfo) {
 			if (!previousState?.pictureInfo || previousState.pictureInfo['2DNR'] !== currentState.pictureInfo['2DNR']) {
-				variables['2dnr'] = currentState.pictureInfo['2DNR']?.toString() || ''
+				variables['2dnr'] = currentState.pictureInfo['2DNR']
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo['3DNR'] !== currentState.pictureInfo['3DNR']) {
-				variables['3dnr'] = currentState.pictureInfo['3DNR']?.toString() || ''
+				variables['3dnr'] = currentState.pictureInfo['3DNR']
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Sharpness !== currentState.pictureInfo.Sharpness) {
-				variables.sharpness = currentState.pictureInfo.Sharpness?.toString() || ''
+				variables.sharpness = currentState.pictureInfo.Sharpness
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Contrast !== currentState.pictureInfo.Contrast) {
-				variables.contrast = currentState.pictureInfo.Contrast?.toString() || ''
+				variables.contrast = currentState.pictureInfo.Contrast
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Saturation !== currentState.pictureInfo.Saturation) {
-				variables.saturation = currentState.pictureInfo.Saturation?.toString() || ''
+				variables.saturation = currentState.pictureInfo.Saturation
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Hue !== currentState.pictureInfo.Hue) {
-				variables.hue = currentState.pictureInfo.Hue?.toString() || ''
+				variables.hue = currentState.pictureInfo.Hue
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.DeFlicker !== currentState.pictureInfo.DeFlicker) {
-				variables.deflicker = currentState.pictureInfo.DeFlicker?.toString() || ''
+				variables.deflicker = currentState.pictureInfo.DeFlicker
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Scene !== currentState.pictureInfo.Scene) {
-				variables.scene = currentState.pictureInfo.Scene?.toString() || ''
+				variables.scene = currentState.pictureInfo.Scene
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.DefogMode !== currentState.pictureInfo.DefogMode) {
-				variables.defog_mode = currentState.pictureInfo.DefogMode?.toString() || ''
+				variables.defog_mode = currentState.pictureInfo.DefogMode
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.DefogLevel !== currentState.pictureInfo.DefogLevel) {
-				variables.defog_level = currentState.pictureInfo.DefogLevel?.toString() || ''
+				variables.defog_level = currentState.pictureInfo.DefogLevel
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Effect !== currentState.pictureInfo.Effect) {
-				variables.effect = currentState.pictureInfo.Effect?.toString() || ''
+				variables.effect = currentState.pictureInfo.Effect
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Flip !== currentState.pictureInfo.Flip) {
-				variables.flip = currentState.pictureInfo.Flip?.toString() || ''
+				variables.flip = currentState.pictureInfo.Flip
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.Mirror !== currentState.pictureInfo.Mirror) {
-				variables.mirror = currentState.pictureInfo.Mirror?.toString() || ''
+				variables.mirror = currentState.pictureInfo.Mirror
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.HLCMode !== currentState.pictureInfo.HLCMode) {
-				variables.hlc_mode = currentState.pictureInfo.HLCMode?.toString() || ''
+				variables.hlc_mode = currentState.pictureInfo.HLCMode
 			}
 			if (!previousState?.pictureInfo || previousState.pictureInfo.BLC !== currentState.pictureInfo.BLC) {
-				variables.blc = currentState.pictureInfo.BLC?.toString() || ''
+				variables.blc = currentState.pictureInfo.BLC
 			}
 		}
 
@@ -307,13 +307,13 @@ export class BolinCamera {
 				variables.gamma_level = currentState.gammaInfo.Level
 			}
 			if (!previousState?.gammaInfo || previousState.gammaInfo.Bright !== currentState.gammaInfo.Bright) {
-				variables.gamma_bright = currentState.gammaInfo.Bright.toString()
+				variables.gamma_bright = currentState.gammaInfo.Bright
 			}
 			if (!previousState?.gammaInfo || previousState.gammaInfo.WDR !== currentState.gammaInfo.WDR) {
-				variables.wdr = currentState.gammaInfo.WDR.toString()
+				variables.wdr = currentState.gammaInfo.WDR
 			}
 			if (!previousState?.gammaInfo || previousState.gammaInfo.WDRLevel !== currentState.gammaInfo.WDRLevel) {
-				variables.wdr_level = currentState.gammaInfo.WDRLevel.toString()
+				variables.wdr_level = currentState.gammaInfo.WDRLevel
 			}
 		}
 
@@ -329,43 +329,43 @@ export class BolinCamera {
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.WBSensitivity !== currentState.whiteBalanceInfo.WBSensitivity
 			) {
-				variables.wb_sensitivity = currentState.whiteBalanceInfo.WBSensitivity?.toString() || ''
+				variables.wb_sensitivity = currentState.whiteBalanceInfo.WBSensitivity
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.RGain !== currentState.whiteBalanceInfo.RGain
 			) {
-				variables.r_gain = currentState.whiteBalanceInfo.RGain?.toString() || ''
+				variables.r_gain = currentState.whiteBalanceInfo.RGain
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.BGain !== currentState.whiteBalanceInfo.BGain
 			) {
-				variables.b_gain = currentState.whiteBalanceInfo.BGain?.toString() || ''
+				variables.b_gain = currentState.whiteBalanceInfo.BGain
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.RTuning !== currentState.whiteBalanceInfo.RTuning
 			) {
-				variables.r_tuning = currentState.whiteBalanceInfo.RTuning?.toString() || ''
+				variables.r_tuning = currentState.whiteBalanceInfo.RTuning
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.GTuning !== currentState.whiteBalanceInfo.GTuning
 			) {
-				variables.g_tuning = currentState.whiteBalanceInfo.GTuning?.toString() || ''
+				variables.g_tuning = currentState.whiteBalanceInfo.GTuning
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.BTuning !== currentState.whiteBalanceInfo.BTuning
 			) {
-				variables.b_tuning = currentState.whiteBalanceInfo.BTuning?.toString() || ''
+				variables.b_tuning = currentState.whiteBalanceInfo.BTuning
 			}
 			if (
 				!previousState?.whiteBalanceInfo ||
 				previousState.whiteBalanceInfo.ColorTemperature !== currentState.whiteBalanceInfo.ColorTemperature
 			) {
-				variables.color_temperature = currentState.whiteBalanceInfo.ColorTemperature?.toString() || ''
+				variables.color_temperature = currentState.whiteBalanceInfo.ColorTemperature
 			}
 		}
 
@@ -412,25 +412,25 @@ export class BolinCamera {
 				!previousState?.positionLimitations ||
 				previousState.positionLimitations.DownLimit !== currentState.positionLimitations.DownLimit
 			) {
-				variables.position_limit_down = currentState.positionLimitations.DownLimit?.toString() || ''
+				variables.position_limit_down = currentState.positionLimitations.DownLimit
 			}
 			if (
 				!previousState?.positionLimitations ||
 				previousState.positionLimitations.UpLimit !== currentState.positionLimitations.UpLimit
 			) {
-				variables.position_limit_up = currentState.positionLimitations.UpLimit?.toString() ?? ''
+				variables.position_limit_up = currentState.positionLimitations.UpLimit
 			}
 			if (
 				!previousState?.positionLimitations ||
 				previousState.positionLimitations.LeftLimit !== currentState.positionLimitations.LeftLimit
 			) {
-				variables.position_limit_left = currentState.positionLimitations.LeftLimit?.toString() ?? ''
+				variables.position_limit_left = currentState.positionLimitations.LeftLimit
 			}
 			if (
 				!previousState?.positionLimitations ||
 				previousState.positionLimitations.RightLimit !== currentState.positionLimitations.RightLimit
 			) {
-				variables.position_limit_right = currentState.positionLimitations.RightLimit?.toString() ?? ''
+				variables.position_limit_right = currentState.positionLimitations.RightLimit
 			}
 		}
 
@@ -452,31 +452,31 @@ export class BolinCamera {
 				!previousState?.videoOutputInfo ||
 				previousState.videoOutputInfo.HDMIColorSpace !== currentState.videoOutputInfo.HDMIColorSpace
 			) {
-				variables.hdmi_color_space = currentState.videoOutputInfo.HDMIColorSpace?.toString() ?? ''
+				variables.hdmi_color_space = currentState.videoOutputInfo.HDMIColorSpace
 			}
 			if (
 				!previousState?.videoOutputInfo ||
 				previousState.videoOutputInfo.HDMIBitDepth !== currentState.videoOutputInfo.HDMIBitDepth
 			) {
-				variables.hdmi_bit_depth = currentState.videoOutputInfo.HDMIBitDepth?.toString() ?? ''
+				variables.hdmi_bit_depth = currentState.videoOutputInfo.HDMIBitDepth
 			}
 			if (
 				!previousState?.videoOutputInfo ||
 				previousState.videoOutputInfo.SDIResolution !== currentState.videoOutputInfo.SDIResolution
 			) {
-				variables.sdi_resolution = currentState.videoOutputInfo.SDIResolution?.toString() ?? ''
+				variables.sdi_resolution = currentState.videoOutputInfo.SDIResolution
 			}
 			if (
 				!previousState?.videoOutputInfo ||
 				previousState.videoOutputInfo.SDIBitDepth !== currentState.videoOutputInfo.SDIBitDepth
 			) {
-				variables.sdi_bit_depth = currentState.videoOutputInfo.SDIBitDepth?.toString() ?? ''
+				variables.sdi_bit_depth = currentState.videoOutputInfo.SDIBitDepth
 			}
 			if (
 				!previousState?.videoOutputInfo ||
 				previousState.videoOutputInfo.SDIColorSpace !== currentState.videoOutputInfo.SDIColorSpace
 			) {
-				variables.sdi_color_space = currentState.videoOutputInfo.SDIColorSpace?.toString() ?? ''
+				variables.sdi_color_space = currentState.videoOutputInfo.SDIColorSpace
 			}
 		}
 
@@ -663,6 +663,12 @@ export class BolinCamera {
 		return this.lensInfo
 	}
 
+	async setLensInfo(lensInfo: Partial<LensInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetLensInfo', {
+			LensInfo: lensInfo,
+		})
+	}
+
 	/**
 	 * Gets picture information from the camera and stores it in state
 	 */
@@ -786,6 +792,12 @@ export class BolinCamera {
 		return this.gammaInfo
 	}
 
+	async setGammaInfo(gammaInfo: Partial<GammaInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetGammaInfo', {
+			GammaInfo: gammaInfo,
+		})
+	}
+
 	/**
 	 * Gets white balance information from the camera and stores it in state
 	 */
@@ -844,7 +856,7 @@ export class BolinCamera {
 		})
 	}
 
-	async setPictureInfo(pictureInfo: PictureInfo): Promise<void> {
+	async setPictureInfo(pictureInfo: Partial<PictureInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetPictureInfo', {
 			PictureInfo: pictureInfo,
 		})
@@ -1060,7 +1072,7 @@ export class BolinCamera {
 	 * Sets the position limitations on the camera.
 	 * @param limitations The position limitations parameters (all fields optional)
 	 */
-	async setPositionLimits(limitations: PositionLimitations): Promise<void> {
+	async setPositionLimits(limitations: Partial<PositionLimitations>): Promise<void> {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPositionLimitations', {
 			PositionLimitations: limitations,
 		})
@@ -1089,12 +1101,10 @@ export class BolinCamera {
 		return this.videoOutputInfo
 	}
 
-	async setVideoOutput(output: VideoOutputInfo): Promise<void> {
+	async setVideoOutput(output: Partial<VideoOutputInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/general', 'ReqSetVideoOutputInfo', {
 			VideoOutputInfo: output,
 		})
-		this.videoOutputInfo = output
-		this.updateVariablesOnStateChange()
 	}
 	/**
 	 * Gets the stored video output information
