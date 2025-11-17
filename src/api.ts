@@ -172,6 +172,9 @@ export class BolinCamera {
 	 * Updates variables when state changes, only updating values that have actually changed
 	 */
 	private updateVariablesOnStateChange(): void {
+		//lazy feedback check for now
+		this.self.checkFeedbacks()
+
 		if (!this.previousState) {
 			this.previousState = this.getState()
 		}
@@ -538,7 +541,7 @@ export class BolinCamera {
 		return this.whiteBalanceInfo
 	}
 
-	async setWhiteBalanceInfo(whiteBalanceInfo: WhiteBalanceInfo): Promise<void> {
+	async setWhiteBalanceInfo(whiteBalanceInfo: Partial<WhiteBalanceInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetWhiteBalanceInfo', {
 			WhiteBalanceInfo: whiteBalanceInfo,
 		})
@@ -635,6 +638,12 @@ export class BolinCamera {
 	 */
 	currentExposureInfo(): ExposureInfo | null {
 		return this.exposureInfo
+	}
+
+	async setExposureInfo(exposureInfo: Partial<ExposureInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetExposureInfo', {
+			ExposureInfo: exposureInfo,
+		})
 	}
 
 	/**

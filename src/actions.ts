@@ -10,6 +10,7 @@ import type {
 	PictureInfo,
 	LensInfo,
 	GammaInfo,
+	ExposureInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
@@ -534,7 +535,47 @@ export function UpdateActions(self: ModuleInstance): void {
 			await self.camera.setWhiteBalanceInfo({ Mode: action.options.mode } as WhiteBalanceInfo)
 		},
 	}
+	createValueAction(
+		'rGain',
+		'Red Gain',
+		() => self.camera?.currentWhiteBalanceInfo()?.RGain,
+		async (value) => {
+			await self.camera!.setWhiteBalanceInfo({ RGain: value } as Partial<WhiteBalanceInfo>)
+		},
+	)
+	createValueAction(
+		'bGain',
+		'Blue Gain',
+		() => self.camera?.currentWhiteBalanceInfo()?.BGain,
+		async (value) => {
+			await self.camera!.setWhiteBalanceInfo({ BGain: value } as Partial<WhiteBalanceInfo>)
+		},
+	)
+	createValueAction(
+		'rTuning',
+		'Red Tuning',
+		() => self.camera?.currentWhiteBalanceInfo()?.RTuning,
+		async (value) => {
+			await self.camera!.setWhiteBalanceInfo({ RTuning: value } as Partial<WhiteBalanceInfo>)
+		},
+	)
+	createValueAction(
+		'bTuning',
+		'Blue Tuning',
+		() => self.camera?.currentWhiteBalanceInfo()?.BTuning,
+		async (value) => {
+			await self.camera!.setWhiteBalanceInfo({ BTuning: value } as Partial<WhiteBalanceInfo>)
+		},
+	)
 
+	createValueAction(
+		'gTuning',
+		'Green Tuning',
+		() => self.camera?.currentWhiteBalanceInfo()?.GTuning,
+		async (value) => {
+			await self.camera!.setWhiteBalanceInfo({ GTuning: value } as Partial<WhiteBalanceInfo>)
+		},
+	)
 	createToggleAction(
 		'flip',
 		'Flip',
@@ -752,5 +793,37 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 	)
 
+	createValueAction(
+		'gain',
+		'Gain',
+		() => self.camera?.currentExposureInfo()?.Gain,
+		async (value) => {
+			await self.camera!.setExposureInfo({ Gain: value } as Partial<ExposureInfo>)
+		},
+	)
+	createValueAction(
+		'gainLimit',
+		'Gain Limit',
+		() => self.camera?.currentExposureInfo()?.GainLimit,
+		async (value) => {
+			await self.camera!.setExposureInfo({ GainLimit: value } as Partial<ExposureInfo>)
+		},
+	)
+	createValueAction(
+		'expCompLevel',
+		'Exposure Compensation Level',
+		() => self.camera?.currentExposureInfo()?.ExCompLevel,
+		async (value) => {
+			await self.camera!.setExposureInfo({ ExCompLevel: value } as Partial<ExposureInfo>)
+		},
+	)
+	createToggleAction(
+		'smartExposure',
+		'Smart Exposure',
+		() => self.camera?.currentExposureInfo()?.SmartExposure,
+		async (value) => {
+			await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
+		},
+	)
 	self.setActionDefinitions(actions)
 }
