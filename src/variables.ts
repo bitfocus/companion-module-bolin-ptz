@@ -56,6 +56,14 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			variableId: 'mf_speed',
 		},
 		{
+			name: 'Preset Zoom Speed',
+			variableId: 'preset_zoom_speed',
+		},
+		{
+			name: 'Preset Speed',
+			variableId: 'preset_speed',
+		},
+		{
 			name: '2DNR',
 			variableId: '2dnr',
 		},
@@ -132,36 +140,36 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			variableId: 'wdr_level',
 		},
 		{
-			name: 'White Balance Mode',
+			name: 'White Balance - Mode',
 			variableId: 'wb_mode',
 		},
 		{
-			name: 'WB Sensitivity',
+			name: 'White Balance - Sensitivity',
 			variableId: 'wb_sensitivity',
 		},
 		{
-			name: 'R Gain',
-			variableId: 'r_gain',
+			name: 'White Balance - Red Gain',
+			variableId: 'wb_r_gain',
 		},
 		{
-			name: 'B Gain',
-			variableId: 'b_gain',
+			name: 'White Balance - Blue Gain',
+			variableId: 'wb_b_gain',
 		},
 		{
-			name: 'R Tuning',
-			variableId: 'r_tuning',
+			name: 'White Balance - Red Tuning',
+			variableId: 'wb_r_tuning',
 		},
 		{
-			name: 'G Tuning',
-			variableId: 'g_tuning',
+			name: 'White Balance - Green Tuning',
+			variableId: 'wb_g_tuning',
 		},
 		{
-			name: 'B Tuning',
-			variableId: 'b_tuning',
+			name: 'White Balance - Blue Tuning',
+			variableId: 'wb_b_tuning',
 		},
 		{
-			name: 'Color Temperature',
-			variableId: 'color_temperature',
+			name: 'White Balance - Color Temperature',
+			variableId: 'wb_color_temperature',
 		},
 		{
 			name: 'Exposure Mode',
@@ -204,7 +212,7 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			variableId: 'position_limit_left',
 		},
 		{
-			name: 'Right Limit Enabled',
+			name: 'Position Limit - Right',
 			variableId: 'position_limit_right',
 		},
 		{
@@ -234,14 +242,6 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 		{
 			name: 'SDI Color Space',
 			variableId: 'sdi_color_space',
-		},
-		{
-			name: 'Preset Zoom Speed',
-			variableId: 'preset_zoom_speed',
-		},
-		{
-			name: 'Preset Speed',
-			variableId: 'preset_speed',
 		},
 	])
 }
@@ -406,37 +406,37 @@ export function UpdateVariablesOnStateChange(
 			!previousState?.whiteBalanceInfo ||
 			previousState.whiteBalanceInfo.RGain !== currentState.whiteBalanceInfo.RGain
 		) {
-			variables.r_gain = currentState.whiteBalanceInfo.RGain
+			variables.wb_r_gain = currentState.whiteBalanceInfo.RGain
 		}
 		if (
 			!previousState?.whiteBalanceInfo ||
 			previousState.whiteBalanceInfo.BGain !== currentState.whiteBalanceInfo.BGain
 		) {
-			variables.b_gain = currentState.whiteBalanceInfo.BGain
+			variables.wb_b_gain = currentState.whiteBalanceInfo.BGain
 		}
 		if (
 			!previousState?.whiteBalanceInfo ||
 			previousState.whiteBalanceInfo.RTuning !== currentState.whiteBalanceInfo.RTuning
 		) {
-			variables.r_tuning = currentState.whiteBalanceInfo.RTuning
+			variables.wb_r_tuning = currentState.whiteBalanceInfo.RTuning
 		}
 		if (
 			!previousState?.whiteBalanceInfo ||
 			previousState.whiteBalanceInfo.GTuning !== currentState.whiteBalanceInfo.GTuning
 		) {
-			variables.g_tuning = currentState.whiteBalanceInfo.GTuning
+			variables.wb_g_tuning = currentState.whiteBalanceInfo.GTuning
 		}
 		if (
 			!previousState?.whiteBalanceInfo ||
 			previousState.whiteBalanceInfo.BTuning !== currentState.whiteBalanceInfo.BTuning
 		) {
-			variables.b_tuning = currentState.whiteBalanceInfo.BTuning
+			variables.wb_b_tuning = currentState.whiteBalanceInfo.BTuning
 		}
 		if (
 			!previousState?.whiteBalanceInfo ||
 			previousState.whiteBalanceInfo.ColorTemperature !== currentState.whiteBalanceInfo.ColorTemperature
 		) {
-			variables.color_temperature = currentState.whiteBalanceInfo.ColorTemperature
+			variables.wb_color_temperature = currentState.whiteBalanceInfo.ColorTemperature
 		}
 	}
 
