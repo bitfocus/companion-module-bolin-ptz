@@ -479,6 +479,24 @@ export interface PanTiltInfo {
 }
 
 /**
+ * Overlay type enum (0 = text, 1 = date, 2 = logo)
+ */
+export type OverlayType = 0 | 1 | 2
+
+/**
+ * Overlay information
+ */
+export interface OverlayInfo {
+	Channel: number
+	Type: OverlayType
+	Enable: boolean
+	Text?: string
+	PosX: number
+	PosY: number
+	Color?: string
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -495,4 +513,5 @@ export interface CameraState {
 	videoOutputInfo: VideoOutputInfo | null
 	generalCapabilities: GeneralCapabilities | null
 	panTiltInfo: PanTiltInfo | null
+	overlayInfo: OverlayInfo[] | null
 }

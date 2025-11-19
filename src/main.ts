@@ -101,6 +101,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			this.camera.getGeneralCapabilities(),
 			this.camera.getPresetSpeed(),
 			this.camera.getPTInfo(),
+			this.camera.getOverlayInfo(),
 		])
 	}
 

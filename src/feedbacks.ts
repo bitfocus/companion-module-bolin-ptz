@@ -78,6 +78,31 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		self.camera?.currentWhiteBalanceInfo()?.ColorTemperature ?? 5500,
 	)
 
+	feedbacks['overlayEnabled'] = {
+		name: 'Overlay Enabled',
+		description: 'Overlay enabled',
+		type: 'boolean',
+		defaultStyle: {
+			bgcolor: 0x009900,
+		},
+		options: [
+			{
+				type: 'textinput',
+				label: 'Overlay Number',
+				id: 'channel',
+				default: '1',
+				useVariables: true,
+			},
+		],
+		callback: (feedback: any) => {
+			const channel = Number(feedback.options.channel)
+			const overlayInfo = self.camera?.currentOverlayInfo()
+			if (!overlayInfo) return false
+			const overlay = overlayInfo.find((o) => o.Channel === channel)
+			return overlay?.Enable ?? false
+		},
+	}
+
 	createToggleFeedback('flip', 'Flip', 'Flip enabled', () => {
 		return self.camera?.currentPictureInfo()?.Flip ?? false
 	})

@@ -25,6 +25,7 @@ import type {
 	VideoOutputInfo,
 	GeneralCapabilities,
 	PanTiltInfo,
+	OverlayInfo,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -46,6 +47,7 @@ export class BolinCamera {
 	private videoOutputInfo: VideoOutputInfo | null = null
 	private generalCapabilities: GeneralCapabilities | null = null
 	private panTiltInfo: PanTiltInfo | null = null
+	private overlayInfo: OverlayInfo[] | null = null
 	private previousState: CameraState | null = null
 	private self: ModuleInstance
 
@@ -148,6 +150,7 @@ export class BolinCamera {
 		this.videoOutputInfo = null
 		this.generalCapabilities = null
 		this.panTiltInfo = null
+		this.overlayInfo = null
 		this.previousState = null
 	}
 
@@ -169,6 +172,7 @@ export class BolinCamera {
 			videoOutputInfo: this.videoOutputInfo,
 			generalCapabilities: this.generalCapabilities,
 			panTiltInfo: this.panTiltInfo,
+			overlayInfo: this.overlayInfo,
 		}
 	}
 
@@ -854,5 +858,33 @@ export class BolinCamera {
 	 */
 	currentGeneralCapabilities(): GeneralCapabilities | null {
 		return this.generalCapabilities
+	}
+
+	/**
+	 * Gets overlay information from the camera and stores it in state
+	 */
+	async getOverlayInfo(): Promise<OverlayInfo[]> {
+		const response = await this.sendRequest('/apiv2/general', 'ReqGetOverlayInfo')
+		this.overlayInfo = response.Content.OverlayInfo as OverlayInfo[]
+		this.updateVariablesOnStateChange()
+		return this.overlayInfo
+	}
+
+	/**
+	 * Sets overlay information on the camera
+	 * @param overlayInfo The overlay information array
+	 */
+	async setOverlayInfo(overlayInfo: Partial<OverlayInfo[]>): Promise<void> {
+		await this.sendRequest('/apiv2/general', 'ReqSetOverlayInfo', {
+			OverlayInfo: overlayInfo,
+		})
+		await this.getOverlayInfo()
+	}
+
+	/**
+	 * Gets the stored overlay information
+	 */
+	currentOverlayInfo(): OverlayInfo[] | null {
+		return this.overlayInfo
 	}
 }
