@@ -385,8 +385,8 @@ export function UpdateVariablesOnStateChange(
 
 	// Update gamma info variables if changed
 	if (currentState.gammaInfo) {
-		if (!previousState?.gammaInfo || previousState.gammaInfo.Level !== currentState.gammaInfo.Level) {
-			variables.gamma_level = currentState.gammaInfo.Level
+		if (!previousState?.gammaInfo || previousState.gammaInfo?.Level !== currentState.gammaInfo?.Level) {
+			variables.gamma_level = currentState.gammaInfo?.Level
 		}
 		if (!previousState?.gammaInfo || previousState.gammaInfo.Bright !== currentState.gammaInfo.Bright) {
 			variables.gamma_bright = currentState.gammaInfo.Bright

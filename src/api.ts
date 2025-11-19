@@ -112,7 +112,7 @@ export class BolinCamera {
 		} catch (error) {
 			this.authToken = null
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			throw new Error(`Login error: ${errorMessage}`)
+			throw new Error(`${errorMessage}`)
 		}
 	}
 
@@ -226,7 +226,12 @@ export class BolinCamera {
 		}
 		const data = (await response.json()) as ApiResponse
 		if (typeof data?.Content?.Status === 'number' && data.Content.Status !== 0) {
-			this.self.log('warn', `API request failed with status: ${JSON.stringify(data.Content)}`)
+			const errors = Array.isArray(data?.Content?.Errors) ? data.Content.Errors : []
+			if (errors.length > 0 && errors[0]?.ErrorCode === 109) {
+				this.self.log('debug', `API request failed with status: ${JSON.stringify(data.Content)}`)
+			} else {
+				this.self.log('warn', `API request failed with status: ${JSON.stringify(data.Content)}`)
+			}
 		}
 		return data
 	}
@@ -478,7 +483,7 @@ export class BolinCamera {
 
 		this.gammaInfo = {
 			...rawGammaInfo,
-			Level: gammaLevelMap[rawGammaInfo.Level] ?? 'Default',
+			Level: gammaLevelMap[rawGammaInfo?.Level] ?? 'Default',
 		}
 		this.updateVariablesOnStateChange()
 		return this.gammaInfo

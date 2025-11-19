@@ -81,7 +81,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			this.camera = null
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			this.updateStatus(InstanceStatus.ConnectionFailure)
-			this.log('error', `Login error: ${errorMessage}`)
+			this.log('error', `${errorMessage}`)
 		}
 	}
 
