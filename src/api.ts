@@ -49,6 +49,7 @@ export class BolinCamera {
 	private panTiltInfo: PanTiltInfo | null = null
 	private overlayInfo: OverlayInfo[] | null = null
 	private previousState: CameraState | null = null
+	private updateVariablesTimeout: NodeJS.Timeout | null = null
 	private self: ModuleInstance
 
 	constructor(config: ModuleConfig, password: string, self: ModuleInstance) {
@@ -137,6 +138,10 @@ export class BolinCamera {
 	 * Clears the authentication token and camera state
 	 */
 	clearAuth(): void {
+		if (this.updateVariablesTimeout) {
+			clearTimeout(this.updateVariablesTimeout)
+			this.updateVariablesTimeout = null
+		}
 		this.authToken = null
 		this.systemInfo = null
 		this.presets = null
@@ -178,15 +183,25 @@ export class BolinCamera {
 
 	/**
 	 * Updates variables when state changes, only updating values that have actually changed
+	 * Uses debouncing to batch multiple rapid updates into a single update (1 second delay)
 	 */
 	private updateVariablesOnStateChange(): void {
-		//lazy feedback check for now
-		this.self.checkFeedbacks()
-
-		if (!this.previousState) {
-			this.previousState = this.getState()
+		// Clear any existing timeout to reset the debounce timer
+		if (this.updateVariablesTimeout) {
+			clearTimeout(this.updateVariablesTimeout)
 		}
-		this.previousState = UpdateVariablesOnStateChange(this.self, this.getState(), this.previousState)
+
+		// Schedule the update to run after 1 second
+		// This batches multiple rapid calls within 1 second into a single update
+		this.updateVariablesTimeout = setTimeout(() => {
+			this.updateVariablesTimeout = null
+
+			//lazy feedback check for now
+			this.self.checkFeedbacks()
+
+			const currentState = this.getState()
+			this.previousState = UpdateVariablesOnStateChange(this.self, currentState, this.previousState)
+		}, 1000)
 	}
 
 	/**

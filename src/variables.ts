@@ -260,10 +260,9 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 export function UpdateVariablesOnStateChange(
 	self: ModuleInstance,
 	currentState: CameraState,
-	previousState: CameraState,
+	previousState: CameraState | null,
 ): CameraState {
 	const variables: Record<string, number | string | boolean> = {}
-
 	// Update PTZ position variables if changed
 	if (currentState.ptzPosition) {
 		if (!previousState?.ptzPosition || previousState.ptzPosition.PanPosition !== currentState.ptzPosition.PanPosition) {
@@ -298,10 +297,18 @@ export function UpdateVariablesOnStateChange(
 
 	// Update system info variables if changed
 	if (currentState.systemInfo) {
-		if (!previousState?.systemInfo || previousState.systemInfo.DeviceName !== currentState.systemInfo.DeviceName) {
+		if (
+			!previousState ||
+			!previousState.systemInfo ||
+			previousState.systemInfo.DeviceName !== currentState.systemInfo.DeviceName
+		) {
 			variables.device_name = currentState.systemInfo.DeviceName ?? ''
 		}
-		if (!previousState?.systemInfo || previousState.systemInfo.ModelName !== currentState.systemInfo.ModelName) {
+		if (
+			!previousState ||
+			!previousState.systemInfo ||
+			previousState.systemInfo.ModelName !== currentState.systemInfo.ModelName
+		) {
 			variables.model_name = currentState.systemInfo.ModelName ?? ''
 		}
 	}
