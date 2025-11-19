@@ -81,7 +81,7 @@ export class BolinCamera {
 				Version: '2.00.000',
 				Content: {
 					LoginInfo: {
-						UserName: this.config.username,
+						Username: this.config.username,
 						Salt: salt,
 						Sign: sign,
 					},
@@ -867,7 +867,6 @@ export class BolinCamera {
 		const response = await this.sendRequest('/apiv2/general', 'ReqGetOverlayInfo')
 		this.overlayInfo = response.Content.OverlayInfo as OverlayInfo[]
 		this.updateVariablesOnStateChange()
-		console.log('getOverlayInfo', this.overlayInfo)
 		return this.overlayInfo
 	}
 

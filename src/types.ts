@@ -17,7 +17,7 @@ export interface LoginRequest {
 	Version: string
 	Content: {
 		LoginInfo: {
-			UserName: string
+			Username: string
 			Salt: string
 			Sign: string
 		}
