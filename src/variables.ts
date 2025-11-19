@@ -2,7 +2,14 @@ import type { ModuleInstance } from './main.js'
 import type { CameraState } from './types.js'
 
 export function UpdateVariableDefinitions(self: ModuleInstance): void {
-	self.setVariableDefinitions([
+	const variables: { name: string; variableId: string }[] = []
+	for (let i = 1; i <= 8; i++) {
+		variables.push({
+			name: 'Overlay ' + i + ' Enabled',
+			variableId: 'overlay_' + i + '_enabled',
+		})
+	}
+	variables.push(
 		{
 			name: 'Pan Position',
 			variableId: 'pan_position',
@@ -245,7 +252,9 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 		},
 		{ name: 'Pan Direction', variableId: 'pan_direction' },
 		{ name: 'Tilt Direction', variableId: 'tilt_direction' },
-	])
+	)
+
+	self.setVariableDefinitions(variables)
 }
 
 export function UpdateVariablesOnStateChange(
@@ -563,6 +572,19 @@ export function UpdateVariablesOnStateChange(
 			previousState.panTiltInfo.TiltDirection !== currentState.panTiltInfo.TiltDirection
 		) {
 			variables.tilt_direction = currentState.panTiltInfo.TiltDirection === 1 ? 'Inverted' : 'Normal'
+		}
+	}
+
+	// Update overlay info variables if changed
+
+	if (currentState.overlayInfo) {
+		for (let i = 1; i <= 8; i++) {
+			if (
+				!previousState?.overlayInfo ||
+				previousState.overlayInfo[i - 1].Enable !== currentState.overlayInfo[i - 1].Enable
+			) {
+				variables[`overlay_${i}_enabled`] = currentState.overlayInfo[i - 1].Enable
+			}
 		}
 	}
 

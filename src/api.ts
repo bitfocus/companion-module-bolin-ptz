@@ -867,6 +867,7 @@ export class BolinCamera {
 		const response = await this.sendRequest('/apiv2/general', 'ReqGetOverlayInfo')
 		this.overlayInfo = response.Content.OverlayInfo as OverlayInfo[]
 		this.updateVariablesOnStateChange()
+		console.log('getOverlayInfo', this.overlayInfo)
 		return this.overlayInfo
 	}
 
@@ -874,9 +875,9 @@ export class BolinCamera {
 	 * Sets overlay information on the camera
 	 * @param overlayInfo The overlay information array
 	 */
-	async setOverlayInfo(overlayInfo: Partial<OverlayInfo[]>): Promise<void> {
+	async setOverlayInfo(overlayInfo: Partial<OverlayInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/general', 'ReqSetOverlayInfo', {
-			OverlayInfo: overlayInfo,
+			OverlayInfo: [overlayInfo],
 		})
 		await this.getOverlayInfo()
 	}

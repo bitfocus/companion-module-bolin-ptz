@@ -13,6 +13,7 @@ import type {
 	ExposureInfo,
 	PTZFPosition,
 	PanTiltInfo,
+	OverlayInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
@@ -940,6 +941,129 @@ export function UpdateActions(self: ModuleInstance): void {
 				TiltPosition: parseInt(action.options.tiltPosition as string),
 				PanTiltSpeed: parseInt(action.options.panTiltSpeed as string),
 			})
+		},
+	}
+
+	actions['overlayControl'] = {
+		name: 'Overlay Control',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Overlay',
+				tooltip: 'Overlays 5 (Logo) & 8 (Date) cannot accept text changes',
+				choices: [
+					{ label: 'Overlay 1', id: 1 },
+					{ label: 'Overlay 2', id: 2 },
+					{ label: 'Overlay 3', id: 3 },
+					{ label: 'Overlay 4', id: 4 },
+					{ label: 'Overlay 5', id: 5 },
+					{ label: 'Overlay 6', id: 6 },
+					{ label: 'Overlay 7', id: 7 },
+					{ label: 'Overlay 8', id: 8 },
+				],
+				default: 1,
+				id: 'overlay',
+			},
+			{
+				type: 'multidropdown',
+				label: 'Properties',
+				choices: [
+					{ label: 'Enabled', id: 'enable' },
+					{ label: 'Text', id: 'text' },
+					{ label: 'Text Color', id: 'textColor' },
+					{ label: 'Position (X)', id: 'positionX' },
+					{ label: 'Position (Y)', id: 'positionY' },
+				],
+				default: ['enable'],
+				id: 'props',
+			},
+			{
+				type: 'dropdown',
+				label: 'Mode',
+				choices: [
+					{ label: 'Toggle', id: 'toggle' },
+					{ label: 'Enable', id: 'true' },
+					{ label: 'Disable', id: 'false' },
+				],
+				default: 'OFF',
+				id: 'mode',
+				isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+			},
+			{
+				type: 'textinput',
+				label: 'Text',
+				default: 'Overlay',
+				id: 'text',
+				useVariables: true,
+				isVisibleExpression: `arrayIncludes($(options:props), 'text') && $(options:overlay) !== 5 && $(options:overlay) !== 8`,
+			},
+			{
+				type: 'dropdown',
+				label: 'Text Color',
+				choices: [
+					{ label: 'White', id: 'white' },
+					{ label: 'Black', id: 'black' },
+					{ label: 'Yellow', id: 'yellow' },
+					{ label: 'Red', id: 'red' },
+					{ label: 'Blue', id: 'blue' },
+				],
+				default: 'white',
+				id: 'textColor',
+				isVisibleExpression: `arrayIncludes($(options:props), 'textColor') && $(options:overlay) !== 5`,
+			},
+			{
+				type: 'textinput',
+				label: 'Position (X)',
+				tooltip: 'Origin is the top left corner',
+				default: '0',
+				id: 'positionX',
+				useVariables: true,
+				isVisibleExpression: `arrayIncludes($(options:props), 'positionX')`,
+			},
+			{
+				type: 'textinput',
+				label: 'Position (Y)',
+				tooltip: 'Origin is the top left corner',
+				default: '0',
+				id: 'positionY',
+				useVariables: true,
+				isVisibleExpression: `arrayIncludes($(options:props), 'positionY')`,
+			},
+		],
+		description: 'Set the overlay control',
+		callback: async (action) => {
+			if (!self.camera) return
+			const props = action.options.props as string[]
+
+			const overlayInfo: Partial<OverlayInfo> = {
+				Channel: action.options.overlay as number,
+			}
+
+			for (const prop of props) {
+				if (prop === 'enable') {
+					const enable =
+						action.options.mode === 'toggle'
+							? !self.camera.currentOverlayInfo()?.[(action.options.overlay as number) - 1]?.Enable
+							: action.options.mode === 'true'
+								? true
+								: false
+					overlayInfo.Enable = enable
+				}
+				if (prop === 'text') {
+					overlayInfo.Text = action.options.text as string
+				}
+				if (prop === 'textColor') {
+					overlayInfo.Color = action.options.textColor as string
+				}
+				if (prop === 'positionX') {
+					overlayInfo.PosX = parseInt(action.options.positionX as string)
+				}
+				if (prop === 'positionY') {
+					overlayInfo.PosY = parseInt(action.options.positionY as string)
+				}
+			}
+
+			await self.camera.setOverlayInfo(overlayInfo)
 		},
 	}
 	self.setActionDefinitions(actions)
