@@ -58,7 +58,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 
 				switch (comparison) {
 					case 'equal':
-						return currentValue === value
+						return currentValue == value
 					case 'greaterThan':
 						return currentValue > value
 					case 'lessThan':
@@ -69,6 +69,14 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 	}
 
 	createValueFeedback('gain', 'Gain', 'Gain', 50, self.camera?.currentExposureInfo()?.Gain ?? 0)
+
+	createValueFeedback(
+		'colorTemperature',
+		'Color Temperature',
+		'Color temperature',
+		5000,
+		self.camera?.currentWhiteBalanceInfo()?.ColorTemperature ?? 5500,
+	)
 
 	createToggleFeedback('flip', 'Flip', 'Flip enabled', () => {
 		return self.camera?.currentPictureInfo()?.Flip ?? false
@@ -104,6 +112,14 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 
 	createToggleFeedback('smartExposure', 'Smart Exposure', 'Smart exposure enabled', () => {
 		return self.camera?.currentExposureInfo()?.SmartExposure ?? false
+	})
+
+	createToggleFeedback('panDirectionInverted', 'Pan Direction Inverted', 'Pan direction inverted', () => {
+		return self.camera?.currentPTInfo()?.PanDirection === 1
+	})
+
+	createToggleFeedback('tiltDirectionInverted', 'Tilt Direction Inverted', 'Tilt direction inverted', () => {
+		return self.camera?.currentPTInfo()?.TiltDirection === 1
 	})
 
 	feedbacks['positionLimitEnabled'] = {

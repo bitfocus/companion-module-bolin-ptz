@@ -12,6 +12,7 @@ import type {
 	GammaInfo,
 	ExposureInfo,
 	PTZFPosition,
+	PanTiltInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 
@@ -577,6 +578,17 @@ export function UpdateActions(self: ModuleInstance): void {
 			await self.camera!.setWhiteBalanceInfo({ GTuning: value } as Partial<WhiteBalanceInfo>)
 		},
 	)
+	createValueAction(
+		'colorTemperature',
+		'Color Temperature',
+		() => self.camera?.currentWhiteBalanceInfo()?.ColorTemperature,
+		async (value) => {
+			await self.camera!.setWhiteBalanceInfo({ ColorTemperature: value } as Partial<WhiteBalanceInfo>)
+		},
+		5500,
+		100,
+	)
+
 	createToggleAction(
 		'flip',
 		'Flip',
@@ -824,6 +836,23 @@ export function UpdateActions(self: ModuleInstance): void {
 		() => self.camera?.currentExposureInfo()?.SmartExposure,
 		async (value) => {
 			await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
+		},
+	)
+
+	createToggleAction(
+		'panDirectionInverted',
+		'Pan Direction Invert',
+		() => self.camera?.currentPTInfo()?.PanDirection === 1,
+		async (value) => {
+			await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
+		},
+	)
+	createToggleAction(
+		'tiltDirectionInverted',
+		'Tilt Direction Invert',
+		() => self.camera?.currentPTInfo()?.TiltDirection === 1,
+		async (value) => {
+			await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
 		},
 	)
 

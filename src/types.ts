@@ -346,7 +346,7 @@ export interface WhiteBalanceInfo {
 	RTuning: number
 	GTuning: number
 	BTuning: number
-	ColorTemperature: ColorTemperature
+	ColorTemperature: number
 }
 
 /**
@@ -464,6 +464,21 @@ export interface PresetSpeed {
 }
 
 /**
+ * Pan/Tilt information
+ */
+export interface PanTiltInfo {
+	AdaptivePT: boolean
+	PTSpeed: number
+	PanDirection: number
+	TiltDirection: number
+	PresetMemory: number
+	PresetSpeed: number
+	PresetZoomSpeed: number
+	MotionlessPreset: boolean
+	ReloadPreset1: boolean
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -479,4 +494,5 @@ export interface CameraState {
 	exposureInfo: ExposureInfo | null
 	videoOutputInfo: VideoOutputInfo | null
 	generalCapabilities: GeneralCapabilities | null
+	panTiltInfo: PanTiltInfo | null
 }

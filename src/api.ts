@@ -24,6 +24,7 @@ import type {
 	MenuAction,
 	VideoOutputInfo,
 	GeneralCapabilities,
+	PanTiltInfo,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -44,6 +45,7 @@ export class BolinCamera {
 	private positionLimitations: PositionLimitations | null = null
 	private videoOutputInfo: VideoOutputInfo | null = null
 	private generalCapabilities: GeneralCapabilities | null = null
+	private panTiltInfo: PanTiltInfo | null = null
 	private previousState: CameraState | null = null
 	private self: ModuleInstance
 
@@ -145,6 +147,7 @@ export class BolinCamera {
 		this.positionLimitations = null
 		this.videoOutputInfo = null
 		this.generalCapabilities = null
+		this.panTiltInfo = null
 		this.previousState = null
 	}
 
@@ -165,6 +168,7 @@ export class BolinCamera {
 			exposureInfo: this.exposureInfo,
 			videoOutputInfo: this.videoOutputInfo,
 			generalCapabilities: this.generalCapabilities,
+			panTiltInfo: this.panTiltInfo,
 		}
 	}
 
@@ -520,15 +524,9 @@ export class BolinCamera {
 			10: 'ManualColorTemperature',
 		}
 
-		// Convert ColorTemperature: numeric value (2500-9000) to string with 'K' suffix
-		const colorTemp = rawWhiteBalanceInfo.ColorTemperature
-		const colorTemperatureStr: string =
-			colorTemp >= 2500 && colorTemp <= 9000 && colorTemp % 100 === 0 ? `${colorTemp}K` : '5500K' // Default fallback
-
 		this.whiteBalanceInfo = {
 			...rawWhiteBalanceInfo,
 			Mode: whiteBalanceModeMap[rawWhiteBalanceInfo.Mode] ?? 'Auto',
-			ColorTemperature: colorTemperatureStr as WhiteBalanceInfo['ColorTemperature'],
 		}
 		this.updateVariablesOnStateChange()
 		return this.whiteBalanceInfo
@@ -786,6 +784,34 @@ export class BolinCamera {
 				Action: action,
 			},
 		})
+	}
+
+	/**
+	 * Gets pan/tilt information from the camera and stores it in state
+	 */
+	async getPTInfo(): Promise<PanTiltInfo> {
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo', undefined, '2.0.000')
+		this.panTiltInfo = response.Content.PanTiltInfo as PanTiltInfo
+		this.updateVariablesOnStateChange()
+		return this.panTiltInfo
+	}
+
+	/**
+	 * Sets pan/tilt information on the camera
+	 * @param panTiltInfo The pan/tilt information parameters (all fields optional)
+	 */
+	async setPTInfo(panTiltInfo: Partial<PanTiltInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetPanTiltInfo', {
+			PanTiltInfo: panTiltInfo,
+		})
+		await this.getPTInfo()
+	}
+
+	/**
+	 * Gets the stored pan/tilt information
+	 */
+	currentPTInfo(): PanTiltInfo | null {
+		return this.panTiltInfo
 	}
 
 	/**

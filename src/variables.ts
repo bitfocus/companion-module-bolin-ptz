@@ -243,6 +243,8 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			name: 'SDI Color Space',
 			variableId: 'sdi_color_space',
 		},
+		{ name: 'Pan Direction', variableId: 'pan_direction' },
+		{ name: 'Tilt Direction', variableId: 'tilt_direction' },
 	])
 }
 
@@ -545,6 +547,22 @@ export function UpdateVariablesOnStateChange(
 			previousState.videoOutputInfo.SDIColorSpace !== currentState.videoOutputInfo.SDIColorSpace
 		) {
 			variables.sdi_color_space = currentState.videoOutputInfo.SDIColorSpace
+		}
+	}
+
+	// Update pan/tilt info variables if changed
+	if (currentState.panTiltInfo) {
+		if (
+			!previousState?.panTiltInfo ||
+			previousState.panTiltInfo.PanDirection !== currentState.panTiltInfo.PanDirection
+		) {
+			variables.pan_direction = currentState.panTiltInfo.PanDirection === 1 ? 'Inverted' : 'Normal'
+		}
+		if (
+			!previousState?.panTiltInfo ||
+			previousState.panTiltInfo.TiltDirection !== currentState.panTiltInfo.TiltDirection
+		) {
+			variables.tilt_direction = currentState.panTiltInfo.TiltDirection === 1 ? 'Inverted' : 'Normal'
 		}
 	}
 
