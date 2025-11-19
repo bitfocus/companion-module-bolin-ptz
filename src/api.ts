@@ -243,9 +243,9 @@ export class BolinCamera {
 		if (typeof data?.Content?.Status === 'number' && data.Content.Status !== 0) {
 			const errors = Array.isArray(data?.Content?.Errors) ? data.Content.Errors : []
 			if (errors.length > 0 && errors[0]?.ErrorCode === 109) {
-				this.self.log('debug', `API request failed with status: ${JSON.stringify(data.Content)}`)
+				this.self.log('debug', `API request "${cmd}" failed with status: ${JSON.stringify(data.Content)}`)
 			} else {
-				this.self.log('warn', `API request failed with status: ${JSON.stringify(data.Content)}`)
+				this.self.log('warn', `API request "${cmd}" failed with status: ${JSON.stringify(data.Content)}`)
 			}
 		}
 		return data
