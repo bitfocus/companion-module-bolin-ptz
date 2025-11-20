@@ -606,32 +606,6 @@ export function UpdateActions(self: ModuleInstance): void {
 		{
 			capabilities: ['VideoOutputInfo'],
 			createActions: () => {
-				actions['osdMenuControl'] = {
-					name: 'OSD Menu Control',
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Action',
-							id: 'command',
-							default: 'ON',
-							choices: [
-								{ label: 'ON', id: 'ON' },
-								{ label: 'OFF / Back', id: 'OFF' },
-								{ label: 'Up', id: 'Up' },
-								{ label: 'Down', id: 'Down' },
-								{ label: 'Left', id: 'Left' },
-								{ label: 'Right', id: 'Right' },
-								{ label: 'OK', id: 'OK' },
-							],
-						},
-					],
-					description: 'Set the OSD menu',
-					callback: async (action) => {
-						if (!self.camera) return
-						await self.camera.setOSDMenu(action.options.command as MenuAction)
-					},
-				}
-
 				actions['setHDMIResolution'] = {
 					name: 'Set HDMI Resolution',
 					options: [
