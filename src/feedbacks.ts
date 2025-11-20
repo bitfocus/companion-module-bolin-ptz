@@ -5,6 +5,14 @@ import { CompanionFeedbackDefinitions } from '@companion-module/base'
 export function UpdateFeedbacks(self: ModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
 
+	// Only check capabilities if they've been loaded, otherwise create all feedbacks
+	const capabilitiesLoaded = self.camera?.currentCameraCapabilities() !== null
+
+	const hasCapability = (cap: string): boolean => {
+		if (!capabilitiesLoaded) return true
+		return self.camera?.hasCapability(cap) ?? false
+	}
+
 	function createToggleFeedback(feedbackID: string, name: string, description: string, callback: () => boolean): void {
 		feedbacks[feedbackID] = {
 			name: name,
@@ -68,110 +76,160 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		}
 	}
 
-	createValueFeedback('gain', 'Gain', 'Gain', 50, self.camera?.currentExposureInfo()?.Gain ?? 0)
-
-	createValueFeedback(
-		'colorTemperature',
-		'Color Temperature',
-		'Color temperature',
-		5000,
-		self.camera?.currentWhiteBalanceInfo()?.ColorTemperature ?? 5500,
-	)
-
-	feedbacks['overlayEnabled'] = {
-		name: 'Overlay Enabled',
-		description: 'Overlay enabled',
-		type: 'boolean',
-		defaultStyle: {
-			bgcolor: 0x009900,
-		},
-		options: [
-			{
-				type: 'textinput',
-				label: 'Overlay Number',
-				id: 'channel',
-				default: '1',
-				useVariables: true,
+	// Mapping of capability names to their corresponding feedback creation functions
+	const feedbackMappings: Array<{
+		capabilities: string[]
+		createFeedbacks: () => void
+	}> = [
+		{
+			capabilities: ['ExposureInfo', 'Exposure'],
+			createFeedbacks: () => {
+				createValueFeedback('gain', 'Gain', 'Gain', 50, self.camera?.currentExposureInfo()?.Gain ?? 0)
+				createToggleFeedback('smartExposure', 'Smart Exposure', 'Smart exposure enabled', () => {
+					return self.camera?.currentExposureInfo()?.SmartExposure ?? false
+				})
 			},
-		],
-		callback: (feedback: any) => {
-			const channel = Number(feedback.options.channel)
-			const overlayInfo = self.camera?.currentOverlayInfo()
-			if (!overlayInfo) return false
-			const overlay = overlayInfo.find((o) => o.Channel === channel)
-			return overlay?.Enable ?? false
 		},
+		{
+			capabilities: ['WhiteBalanceInfo', 'WhiteBalance'],
+			createFeedbacks: () => {
+				createValueFeedback(
+					'colorTemperature',
+					'Color Temperature',
+					'Color temperature',
+					5000,
+					self.camera?.currentWhiteBalanceInfo()?.ColorTemperature ?? 5500,
+				)
+			},
+		},
+		{
+			capabilities: ['OverlayInfo'],
+			createFeedbacks: () => {
+				feedbacks['overlayEnabled'] = {
+					name: 'Overlay Enabled',
+					description: 'Overlay enabled',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'textinput',
+							label: 'Overlay Number',
+							id: 'channel',
+							default: '1',
+							useVariables: true,
+						},
+					],
+					callback: (feedback: any) => {
+						const channel = Number(feedback.options.channel)
+						const overlayInfo = self.camera?.currentOverlayInfo()
+						if (!overlayInfo) return false
+						const overlay = overlayInfo.find((o) => o.Channel === channel)
+						return overlay?.Enable ?? false
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['PictureInfo', 'Picture'],
+			createFeedbacks: () => {
+				createToggleFeedback('flip', 'Flip', 'Flip enabled', () => {
+					return self.camera?.currentPictureInfo()?.Flip ?? false
+				})
+
+				createToggleFeedback('mirror', 'Mirror', 'Mirror enabled', () => {
+					return self.camera?.currentPictureInfo()?.Mirror ?? false
+				})
+
+				createToggleFeedback('hlcMode', 'HLC Mode', 'HLC mode enabled', () => {
+					return self.camera?.currentPictureInfo()?.HLCMode ?? false
+				})
+
+				createToggleFeedback('blcMode', 'BLC Mode', 'BLC mode enabled', () => {
+					return self.camera?.currentPictureInfo()?.BLC ?? false
+				})
+			},
+		},
+		{
+			capabilities: ['LensInfo', 'Lens'],
+			createFeedbacks: () => {
+				createToggleFeedback('smart', 'Smart Focus', 'Smart focus enabled', () => {
+					return self.camera?.currentLensInfo()?.SmartFocus ?? false
+				})
+
+				createToggleFeedback('digitalZoom', 'Digital Zoom', 'Digital zoom enabled', () => {
+					return self.camera?.currentLensInfo()?.DigitalZoom ?? false
+				})
+
+				createToggleFeedback('zoomRatioOSD', 'Zoom Ratio OSD', 'Zoom ratio OSD enabled', () => {
+					return self.camera?.currentLensInfo()?.ZoomRatioOSD ?? false
+				})
+			},
+		},
+		{
+			capabilities: ['GammaInfo'],
+			createFeedbacks: () => {
+				createToggleFeedback('wdr', 'WDR', 'WDR enabled', () => {
+					return self.camera?.currentGammaInfo()?.WDR ?? false
+				})
+			},
+		},
+		{
+			capabilities: ['PanTiltInfo'],
+			createFeedbacks: () => {
+				createToggleFeedback('panDirectionInverted', 'Pan Direction Inverted', 'Pan direction inverted', () => {
+					return self.camera?.currentPTInfo()?.PanDirection === 1
+				})
+
+				createToggleFeedback('tiltDirectionInverted', 'Tilt Direction Inverted', 'Tilt direction inverted', () => {
+					return self.camera?.currentPTInfo()?.TiltDirection === 1
+				})
+			},
+		},
+		{
+			capabilities: ['PositionLimitations'],
+			createFeedbacks: () => {
+				feedbacks['positionLimitEnabled'] = {
+					name: 'Position Limit Enabled',
+					description: 'Locked position',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Direction',
+							choices: [
+								{ label: 'Up', id: 'UpLimit' },
+								{ label: 'Down', id: 'DownLimit' },
+								{ label: 'Left', id: 'LeftLimit' },
+								{ label: 'Right', id: 'RightLimit' },
+							],
+							default: 'UpLimit',
+							id: 'direction',
+						},
+					],
+					callback: (feedback: any) => {
+						const direction = feedback.options.direction as keyof PositionLimitations
+						return self.camera?.getState().positionLimitations?.[direction] ?? false
+					},
+				}
+			},
+		},
+	]
+
+	// Filter and create feedbacks based on capabilities
+	for (const mapping of feedbackMappings) {
+		if (
+			!capabilitiesLoaded ||
+			mapping.capabilities.length === 0 ||
+			mapping.capabilities.some((cap) => hasCapability(cap))
+		) {
+			mapping.createFeedbacks()
+		}
 	}
 
-	createToggleFeedback('flip', 'Flip', 'Flip enabled', () => {
-		return self.camera?.currentPictureInfo()?.Flip ?? false
-	})
-
-	createToggleFeedback('mirror', 'Mirror', 'Mirror enabled', () => {
-		return self.camera?.currentPictureInfo()?.Mirror ?? false
-	})
-
-	createToggleFeedback('hlcMode', 'HLC Mode', 'HLC mode enabled', () => {
-		return self.camera?.currentPictureInfo()?.HLCMode ?? false
-	})
-
-	createToggleFeedback('blcMode', 'BLC Mode', 'BLC mode enabled', () => {
-		return self.camera?.currentPictureInfo()?.BLC ?? false
-	})
-
-	createToggleFeedback('smart', 'Smart Focus', 'Smart focus enabled', () => {
-		return self.camera?.currentLensInfo()?.SmartFocus ?? false
-	})
-
-	createToggleFeedback('digitalZoom', 'Digital Zoom', 'Digital zoom enabled', () => {
-		return self.camera?.currentLensInfo()?.DigitalZoom ?? false
-	})
-
-	createToggleFeedback('zoomRatioOSD', 'Zoom Ratio OSD', 'Zoom ratio OSD enabled', () => {
-		return self.camera?.currentLensInfo()?.ZoomRatioOSD ?? false
-	})
-
-	createToggleFeedback('wdr', 'WDR', 'WDR enabled', () => {
-		return self.camera?.currentGammaInfo()?.WDR ?? false
-	})
-
-	createToggleFeedback('smartExposure', 'Smart Exposure', 'Smart exposure enabled', () => {
-		return self.camera?.currentExposureInfo()?.SmartExposure ?? false
-	})
-
-	createToggleFeedback('panDirectionInverted', 'Pan Direction Inverted', 'Pan direction inverted', () => {
-		return self.camera?.currentPTInfo()?.PanDirection === 1
-	})
-
-	createToggleFeedback('tiltDirectionInverted', 'Tilt Direction Inverted', 'Tilt direction inverted', () => {
-		return self.camera?.currentPTInfo()?.TiltDirection === 1
-	})
-
-	feedbacks['positionLimitEnabled'] = {
-		name: 'Position Limit Enabled',
-		description: 'Locked position',
-		type: 'boolean',
-		defaultStyle: {
-			bgcolor: 0x009900,
-		},
-		options: [
-			{
-				type: 'dropdown',
-				label: 'Direction',
-				choices: [
-					{ label: 'Up', id: 'UpLimit' },
-					{ label: 'Down', id: 'DownLimit' },
-					{ label: 'Left', id: 'LeftLimit' },
-					{ label: 'Right', id: 'RightLimit' },
-				],
-				default: 'UpLimit',
-				id: 'direction',
-			},
-		],
-		callback: (feedback: any) => {
-			const direction = feedback.options.direction as keyof PositionLimitations
-			return self.camera?.getState().positionLimitations?.[direction] ?? false
-		},
-	}
 	self.setFeedbackDefinitions(feedbacks)
 }

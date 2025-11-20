@@ -497,6 +497,18 @@ export interface OverlayInfo {
 }
 
 /**
+ * Camera capabilities - stores object names from capability endpoints
+ */
+export interface CameraCapabilities {
+	systemCapabilities?: string[]
+	ptzfCapabilities?: string[]
+	imageCapabilities?: string[]
+	avStreamCapabilities?: string[]
+	networkCapabilities?: string[]
+	generalCapabilities?: string[]
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -514,4 +526,5 @@ export interface CameraState {
 	generalCapabilities: GeneralCapabilities | null
 	panTiltInfo: PanTiltInfo | null
 	overlayInfo: OverlayInfo[] | null
+	cameraCapabilities: CameraCapabilities | null
 }

@@ -3,256 +3,147 @@ import type { CameraState } from './types.js'
 
 export function UpdateVariableDefinitions(self: ModuleInstance): void {
 	const variables: { name: string; variableId: string }[] = []
-	for (let i = 1; i <= 8; i++) {
-		variables.push({
-			name: 'Overlay ' + i + ' Enabled',
-			variableId: 'overlay_' + i + '_enabled',
-		})
+
+	// Only check capabilities if they've been loaded, otherwise define all variables
+	const capabilitiesLoaded = self.camera?.currentCameraCapabilities() !== null
+
+	// Mapping of capability names to their corresponding variable definitions
+	const variableMappings: Array<{
+		capabilities: string[]
+		variables: Array<{ name: string; variableId: string }>
+	}> = [
+		{
+			capabilities: ['OverlayInfo'],
+			variables: Array.from({ length: 8 }, (_, i) => ({
+				name: `Overlay ${i + 1} Enabled`,
+				variableId: `overlay_${i + 1}_enabled`,
+			})),
+		},
+		{
+			capabilities: ['PTZFPosition'],
+			variables: [
+				{ name: 'Pan Position', variableId: 'pan_position' },
+				{ name: 'Tilt Position', variableId: 'tilt_position' },
+				{ name: 'Zoom Position', variableId: 'zoom_position' },
+			],
+		},
+		{
+			capabilities: ['SystemInfo'],
+			variables: [
+				{ name: 'Device Name', variableId: 'device_name' },
+				{ name: 'Model Name', variableId: 'model_name' },
+			],
+		},
+		{
+			capabilities: ['LensInfo', 'Lens'],
+			variables: [
+				{ name: 'Focus Mode', variableId: 'focus_mode' },
+				{ name: 'Focus Area', variableId: 'focus_area' },
+				{ name: 'Near Limit', variableId: 'near_limit' },
+				{ name: 'AF Sensitivity', variableId: 'af_sensitivity' },
+				{ name: 'Smart Focus', variableId: 'smart_focus' },
+				{ name: 'Digital Zoom', variableId: 'digital_zoom' },
+				{ name: 'Zoom Ratio OSD', variableId: 'zoom_ratio_osd' },
+				{ name: 'MF Speed', variableId: 'mf_speed' },
+			],
+		},
+		{
+			capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
+			variables: [
+				{ name: 'Preset Zoom Speed', variableId: 'preset_zoom_speed' },
+				{ name: 'Preset Speed', variableId: 'preset_speed' },
+			],
+		},
+		{
+			capabilities: ['PictureInfo', 'Picture'],
+			variables: [
+				{ name: '2DNR', variableId: '2dnr' },
+				{ name: '3DNR', variableId: '3dnr' },
+				{ name: 'Sharpness', variableId: 'sharpness' },
+				{ name: 'Contrast', variableId: 'contrast' },
+				{ name: 'Saturation', variableId: 'saturation' },
+				{ name: 'Hue', variableId: 'hue' },
+				{ name: 'DeFlicker', variableId: 'deflicker' },
+				{ name: 'Scene', variableId: 'scene' },
+				{ name: 'Defog Mode', variableId: 'defog_mode' },
+				{ name: 'Defog Level', variableId: 'defog_level' },
+				{ name: 'Effect', variableId: 'effect' },
+				{ name: 'Flip', variableId: 'flip' },
+				{ name: 'Mirror', variableId: 'mirror' },
+				{ name: 'HLC Mode', variableId: 'hlc_mode' },
+				{ name: 'BLC', variableId: 'blc' },
+			],
+		},
+		{
+			capabilities: ['GammaInfo'],
+			variables: [
+				{ name: 'Gamma Level', variableId: 'gamma_level' },
+				{ name: 'Gamma Bright', variableId: 'gamma_bright' },
+				{ name: 'WDR', variableId: 'wdr' },
+				{ name: 'WDR Level', variableId: 'wdr_level' },
+			],
+		},
+		{
+			capabilities: ['WhiteBalanceInfo', 'WhiteBalance'],
+			variables: [
+				{ name: 'White Balance - Mode', variableId: 'wb_mode' },
+				{ name: 'White Balance - Sensitivity', variableId: 'wb_sensitivity' },
+				{ name: 'White Balance - Red Gain', variableId: 'wb_r_gain' },
+				{ name: 'White Balance - Blue Gain', variableId: 'wb_b_gain' },
+				{ name: 'White Balance - Red Tuning', variableId: 'wb_r_tuning' },
+				{ name: 'White Balance - Green Tuning', variableId: 'wb_g_tuning' },
+				{ name: 'White Balance - Blue Tuning', variableId: 'wb_b_tuning' },
+				{ name: 'White Balance - Color Temperature', variableId: 'wb_color_temperature' },
+			],
+		},
+		{
+			capabilities: ['ExposureInfo', 'Exposure'],
+			variables: [
+				{ name: 'Exposure Mode', variableId: 'exposure_mode' },
+				{ name: 'Gain', variableId: 'gain' },
+				{ name: 'Gain Limit', variableId: 'gain_limit' },
+				{ name: 'Exposure Compensation Level', variableId: 'ex_comp_level' },
+				{ name: 'Smart Exposure', variableId: 'smart_exposure' },
+				{ name: 'Shutter Speed', variableId: 'shutter_speed' },
+				{ name: 'Iris', variableId: 'iris' },
+			],
+		},
+		{
+			capabilities: ['PositionLimitations'],
+			variables: [
+				{ name: 'Position Limit - Down', variableId: 'position_limit_down' },
+				{ name: 'Position Limit - Up', variableId: 'position_limit_up' },
+				{ name: 'Position Limit - Left', variableId: 'position_limit_left' },
+				{ name: 'Position Limit - Right', variableId: 'position_limit_right' },
+			],
+		},
+		{
+			capabilities: ['VideoOutputInfo'],
+			variables: [
+				{ name: 'System Format', variableId: 'system_format' },
+				{ name: 'HDMI Resolution', variableId: 'hdmi_resolution' },
+				{ name: 'HDMI Color Space', variableId: 'hdmi_color_space' },
+				{ name: 'HDMI Bit Depth', variableId: 'hdmi_bit_depth' },
+				{ name: 'SDI Resolution', variableId: 'sdi_resolution' },
+				{ name: 'SDI Bit Depth', variableId: 'sdi_bit_depth' },
+				{ name: 'SDI Color Space', variableId: 'sdi_color_space' },
+			],
+		},
+		{
+			capabilities: ['PanTiltInfo'],
+			variables: [
+				{ name: 'Pan Direction', variableId: 'pan_direction' },
+				{ name: 'Tilt Direction', variableId: 'tilt_direction' },
+			],
+		},
+	]
+
+	// Filter and collect variables based on capabilities
+	for (const mapping of variableMappings) {
+		if (!capabilitiesLoaded || mapping.capabilities.some((cap) => self.camera?.hasCapability(cap))) {
+			variables.push(...mapping.variables)
+		}
 	}
-	variables.push(
-		{
-			name: 'Pan Position',
-			variableId: 'pan_position',
-		},
-		{
-			name: 'Tilt Position',
-			variableId: 'tilt_position',
-		},
-		{
-			name: 'Zoom Position',
-			variableId: 'zoom_position',
-		},
-		{
-			name: 'Device Name',
-			variableId: 'device_name',
-		},
-		{
-			name: 'Model Name',
-			variableId: 'model_name',
-		},
-		{
-			name: 'Focus Mode',
-			variableId: 'focus_mode',
-		},
-		{
-			name: 'Focus Area',
-			variableId: 'focus_area',
-		},
-		{
-			name: 'Near Limit',
-			variableId: 'near_limit',
-		},
-		{
-			name: 'AF Sensitivity',
-			variableId: 'af_sensitivity',
-		},
-		{
-			name: 'Smart Focus',
-			variableId: 'smart_focus',
-		},
-		{
-			name: 'Digital Zoom',
-			variableId: 'digital_zoom',
-		},
-		{
-			name: 'Zoom Ratio OSD',
-			variableId: 'zoom_ratio_osd',
-		},
-		{
-			name: 'MF Speed',
-			variableId: 'mf_speed',
-		},
-		{
-			name: 'Preset Zoom Speed',
-			variableId: 'preset_zoom_speed',
-		},
-		{
-			name: 'Preset Speed',
-			variableId: 'preset_speed',
-		},
-		{
-			name: '2DNR',
-			variableId: '2dnr',
-		},
-		{
-			name: '3DNR',
-			variableId: '3dnr',
-		},
-		{
-			name: 'Sharpness',
-			variableId: 'sharpness',
-		},
-		{
-			name: 'Contrast',
-			variableId: 'contrast',
-		},
-		{
-			name: 'Saturation',
-			variableId: 'saturation',
-		},
-		{
-			name: 'Hue',
-			variableId: 'hue',
-		},
-		{
-			name: 'DeFlicker',
-			variableId: 'deflicker',
-		},
-		{
-			name: 'Scene',
-			variableId: 'scene',
-		},
-		{
-			name: 'Defog Mode',
-			variableId: 'defog_mode',
-		},
-		{
-			name: 'Defog Level',
-			variableId: 'defog_level',
-		},
-		{
-			name: 'Effect',
-			variableId: 'effect',
-		},
-		{
-			name: 'Flip',
-			variableId: 'flip',
-		},
-		{
-			name: 'Mirror',
-			variableId: 'mirror',
-		},
-		{
-			name: 'HLC Mode',
-			variableId: 'hlc_mode',
-		},
-		{
-			name: 'BLC',
-			variableId: 'blc',
-		},
-		{
-			name: 'Gamma Level',
-			variableId: 'gamma_level',
-		},
-		{
-			name: 'Gamma Bright',
-			variableId: 'gamma_bright',
-		},
-		{
-			name: 'WDR',
-			variableId: 'wdr',
-		},
-		{
-			name: 'WDR Level',
-			variableId: 'wdr_level',
-		},
-		{
-			name: 'White Balance - Mode',
-			variableId: 'wb_mode',
-		},
-		{
-			name: 'White Balance - Sensitivity',
-			variableId: 'wb_sensitivity',
-		},
-		{
-			name: 'White Balance - Red Gain',
-			variableId: 'wb_r_gain',
-		},
-		{
-			name: 'White Balance - Blue Gain',
-			variableId: 'wb_b_gain',
-		},
-		{
-			name: 'White Balance - Red Tuning',
-			variableId: 'wb_r_tuning',
-		},
-		{
-			name: 'White Balance - Green Tuning',
-			variableId: 'wb_g_tuning',
-		},
-		{
-			name: 'White Balance - Blue Tuning',
-			variableId: 'wb_b_tuning',
-		},
-		{
-			name: 'White Balance - Color Temperature',
-			variableId: 'wb_color_temperature',
-		},
-		{
-			name: 'Exposure Mode',
-			variableId: 'exposure_mode',
-		},
-		{
-			name: 'Gain',
-			variableId: 'gain',
-		},
-		{
-			name: 'Gain Limit',
-			variableId: 'gain_limit',
-		},
-		{
-			name: 'Exposure Compensation Level',
-			variableId: 'ex_comp_level',
-		},
-		{
-			name: 'Smart Exposure',
-			variableId: 'smart_exposure',
-		},
-		{
-			name: 'Shutter Speed',
-			variableId: 'shutter_speed',
-		},
-		{
-			name: 'Iris',
-			variableId: 'iris',
-		},
-		{
-			name: 'Position Limit - Down',
-			variableId: 'position_limit_down',
-		},
-		{
-			name: 'Position Limit - Up',
-			variableId: 'position_limit_up',
-		},
-		{
-			name: 'Position Limit - Left',
-			variableId: 'position_limit_left',
-		},
-		{
-			name: 'Position Limit - Right',
-			variableId: 'position_limit_right',
-		},
-		{
-			name: 'System Format',
-			variableId: 'system_format',
-		},
-		{
-			name: 'HDMI Resolution',
-			variableId: 'hdmi_resolution',
-		},
-		{
-			name: 'HDMI Color Space',
-			variableId: 'hdmi_color_space',
-		},
-		{
-			name: 'HDMI Bit Depth',
-			variableId: 'hdmi_bit_depth',
-		},
-		{
-			name: 'SDI Resolution',
-			variableId: 'sdi_resolution',
-		},
-		{
-			name: 'SDI Bit Depth',
-			variableId: 'sdi_bit_depth',
-		},
-		{
-			name: 'SDI Color Space',
-			variableId: 'sdi_color_space',
-		},
-		{ name: 'Pan Direction', variableId: 'pan_direction' },
-		{ name: 'Tilt Direction', variableId: 'tilt_direction' },
-	)
 
 	self.setVariableDefinitions(variables)
 }
@@ -598,7 +489,6 @@ export function UpdateVariablesOnStateChange(
 	// Only update variables if something changed
 	if (Object.keys(variables).length > 0) {
 		self.setVariableValues(variables)
-		console.log('Updated variables: ' + JSON.stringify(variables))
 	}
 
 	// Store current state as previous for next comparison

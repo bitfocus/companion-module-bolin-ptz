@@ -26,6 +26,7 @@ import type {
 	GeneralCapabilities,
 	PanTiltInfo,
 	OverlayInfo,
+	CameraCapabilities,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -48,6 +49,7 @@ export class BolinCamera {
 	private generalCapabilities: GeneralCapabilities | null = null
 	private panTiltInfo: PanTiltInfo | null = null
 	private overlayInfo: OverlayInfo[] | null = null
+	private cameraCapabilities: CameraCapabilities | null = null
 	private previousState: CameraState | null = null
 	private updateVariablesTimeout: NodeJS.Timeout | null = null
 	private self: ModuleInstance
@@ -156,6 +158,7 @@ export class BolinCamera {
 		this.generalCapabilities = null
 		this.panTiltInfo = null
 		this.overlayInfo = null
+		this.cameraCapabilities = null
 		this.previousState = null
 	}
 
@@ -178,6 +181,7 @@ export class BolinCamera {
 			generalCapabilities: this.generalCapabilities,
 			panTiltInfo: this.panTiltInfo,
 			overlayInfo: this.overlayInfo,
+			cameraCapabilities: this.cameraCapabilities,
 		}
 	}
 
@@ -201,7 +205,7 @@ export class BolinCamera {
 
 			const currentState = this.getState()
 			this.previousState = UpdateVariablesOnStateChange(this.self, currentState, this.previousState)
-		}, 1000)
+		}, 500)
 	}
 
 	/**
@@ -906,5 +910,124 @@ export class BolinCamera {
 	 */
 	currentOverlayInfo(): OverlayInfo[] | null {
 		return this.overlayInfo
+	}
+
+	/**
+	 * Extracts object names from a Content object
+	 */
+	private extractObjectNames(content: Record<string, unknown>): string[] {
+		const names: string[] = []
+		for (const key in content) {
+			// Skip Status and Errors as they're not capability objects
+			if (key !== 'Status' && key !== 'Errors' && typeof content[key] === 'object' && content[key] !== null) {
+				names.push(key)
+			}
+		}
+		return names
+	}
+
+	/**
+	 * Gets camera capabilities from all capability endpoints and stores object names
+	 */
+	async getCameraCapabilities(): Promise<CameraCapabilities> {
+		const capabilities: CameraCapabilities = {}
+
+		try {
+			// ReqGetSystemCapabilities
+			const systemResponse = await this.sendRequest('/apiv2/system', 'ReqGetSystemCapabilities')
+			capabilities.systemCapabilities = this.extractObjectNames(systemResponse.Content)
+		} catch (error) {
+			this.self.log(
+				'debug',
+				`Failed to get system capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+
+		try {
+			// ReqGetPTZFCapabilities
+			const ptzfResponse = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFCapabilities')
+			capabilities.ptzfCapabilities = this.extractObjectNames(ptzfResponse.Content)
+		} catch (error) {
+			this.self.log(
+				'debug',
+				`Failed to get PTZF capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+
+		try {
+			// ReqGetImageCapabilities
+			const imageResponse = await this.sendRequest('/apiv2/image', 'ReqGetImageCapabilities')
+			capabilities.imageCapabilities = this.extractObjectNames(imageResponse.Content)
+		} catch (error) {
+			this.self.log(
+				'debug',
+				`Failed to get image capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+
+		try {
+			// ReqGetAVStreamCapabilities
+			const avStreamResponse = await this.sendRequest('/apiv2/avstream', 'ReqGetAVStreamCapabilities')
+			capabilities.avStreamCapabilities = this.extractObjectNames(avStreamResponse.Content)
+		} catch (error) {
+			this.self.log(
+				'debug',
+				`Failed to get AV stream capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+
+		try {
+			// ReqGetNetworkCapabilities
+			const networkResponse = await this.sendRequest('/apiv2/network', 'ReqGetNetworkCapabilities')
+			capabilities.networkCapabilities = this.extractObjectNames(networkResponse.Content)
+		} catch (error) {
+			this.self.log(
+				'debug',
+				`Failed to get network capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+
+		try {
+			// ReqGetGeneralCapabilities (already exists, but we'll extract object names)
+			const generalResponse = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities')
+			capabilities.generalCapabilities = this.extractObjectNames(generalResponse.Content)
+		} catch (error) {
+			this.self.log(
+				'debug',
+				`Failed to get general capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+
+		this.cameraCapabilities = capabilities
+		return capabilities
+	}
+
+	/**
+	 * Gets the stored camera capabilities
+	 */
+	currentCameraCapabilities(): CameraCapabilities | null {
+		return this.cameraCapabilities
+	}
+
+	/**
+	 * Checks if a specific capability is present in any of the capability categories
+	 * @param capabilityName The name of the capability to check for
+	 * @returns true if the capability is found in any category, false otherwise
+	 */
+	hasCapability(capabilityName: string): boolean {
+		if (!this.cameraCapabilities) {
+			return false
+		}
+
+		const categories = [
+			this.cameraCapabilities.systemCapabilities,
+			this.cameraCapabilities.ptzfCapabilities,
+			this.cameraCapabilities.imageCapabilities,
+			this.cameraCapabilities.avStreamCapabilities,
+			this.cameraCapabilities.networkCapabilities,
+			this.cameraCapabilities.generalCapabilities,
+		]
+
+		return categories.some((category) => category?.includes(capabilityName) ?? false)
 	}
 }
