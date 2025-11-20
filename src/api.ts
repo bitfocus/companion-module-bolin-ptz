@@ -913,14 +913,25 @@ export class BolinCamera {
 	}
 
 	/**
-	 * Extracts object names from a Content object
+	 * Extracts object names from a Content object, including nested objects
+	 * @param content The content object to extract names from
+	 * @param prefix Optional prefix for nested object names (e.g., "VideoOutputInfo")
+	 * @returns Array of object names, with nested objects prefixed (e.g., "VideoOutputInfo.SystemFormat")
 	 */
-	private extractObjectNames(content: Record<string, unknown>): string[] {
+	private extractObjectNames(content: Record<string, unknown>, prefix?: string): string[] {
 		const names: string[] = []
 		for (const key in content) {
 			// Skip Status and Errors as they're not capability objects
 			if (key !== 'Status' && key !== 'Errors' && typeof content[key] === 'object' && content[key] !== null) {
-				names.push(key)
+				const fullName = prefix ? `${prefix}.${key}` : key
+				names.push(fullName)
+
+				// Recursively extract nested object names
+				const nestedContent = content[key] as Record<string, unknown>
+				if (nestedContent && !Array.isArray(nestedContent)) {
+					const nestedNames = this.extractObjectNames(nestedContent, fullName)
+					names.push(...nestedNames)
+				}
 			}
 		}
 		return names
