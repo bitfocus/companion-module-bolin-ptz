@@ -237,9 +237,9 @@ export class BolinCamera {
 			},
 			body: JSON.stringify(requestBody),
 		})
-
-		this.self.log('debug', `Sending request to ${url} with body: ${JSON.stringify(requestBody)}`)
-
+		if (!requestBody.Cmd.includes('Get')) {
+			this.self.log('debug', `Sending request to ${url} with body: ${JSON.stringify(requestBody)}`)
+		}
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`)
 		}
