@@ -619,7 +619,9 @@ export function UpdateActions(self: ModuleInstance): void {
 										'VideoOutputInfo'
 									]?.['HDMIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
 								[],
-							default: '1920x1080P60',
+							default:
+								self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.[0]?.Value ??
+								'1920x1080P60',
 							id: 'resolution',
 						},
 					],
