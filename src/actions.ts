@@ -606,30 +606,95 @@ export function UpdateActions(self: ModuleInstance): void {
 		{
 			capabilities: ['VideoOutputInfo'],
 			createActions: () => {
-				actions['setHDMIResolution'] = {
-					name: 'Set HDMI Resolution',
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Resolution',
-							choices:
-								self.camera
-									?.currentGeneralCapabilities()
-									?.[
-										'VideoOutputInfo'
-									]?.['HDMIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
-								[],
-							default:
-								self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.[0]?.Value ??
-								'1920x1080P60',
-							id: 'resolution',
+				if (self.camera?.hasCapability('VideoOutputInfo.SystemFormat')) {
+					actions['setSystemFormat'] = {
+						name: 'Set System Format',
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Format',
+								choices:
+									self.camera
+										?.currentGeneralCapabilities()
+										?.[
+											'VideoOutputInfo'
+										]?.['SystemFormat']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
+									[],
+								default:
+									self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['SystemFormat']?.Data?.[0]?.Value ??
+									'1920x1080P60',
+								id: 'format',
+							},
+						],
+						description: 'Set the system format',
+						callback: async (action) => {
+							if (!self.camera) return
+							const currentFormat = self.camera?.currentVideoOutputInfo()
+							if (!currentFormat) return
+							currentFormat.SystemFormat = action.options.format as string
+							await self.camera.setVideoOutput(currentFormat)
 						},
-					],
-					description: 'Set the HDMI resolution',
-					callback: async (action) => {
-						if (!self.camera) return
-						await self.camera.setVideoOutput({ HDMIResolution: action.options.resolution as string })
-					},
+					}
+				}
+				if (self.camera?.hasCapability('VideoOutputInfo.HDMIResolution')) {
+					actions['setHDMIResolution'] = {
+						name: 'Set HDMI Resolution',
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Resolution',
+								choices:
+									self.camera
+										?.currentGeneralCapabilities()
+										?.[
+											'VideoOutputInfo'
+										]?.['HDMIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
+									[],
+								default:
+									self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.[0]
+										?.Value ?? '1920x1080P60',
+								id: 'resolution',
+							},
+						],
+						description: 'Set the HDMI resolution',
+						callback: async (action) => {
+							if (!self.camera) return
+							const currentFormat = self.camera?.currentVideoOutputInfo()
+							if (!currentFormat) return
+							currentFormat.HDMIResolution = action.options.resolution as string
+							await self.camera.setVideoOutput(currentFormat)
+						},
+					}
+				}
+				if (self.camera?.hasCapability('VideoOutputInfo.SDIResolution')) {
+					actions['setSDIResolution'] = {
+						name: 'Set SDI Resolution',
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Resolution',
+								choices:
+									self.camera
+										?.currentGeneralCapabilities()
+										?.[
+											'VideoOutputInfo'
+										]?.['SDIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
+									[],
+								default:
+									self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['SDIResolution']?.Data?.[0]?.Value ??
+									'1920x1080P60',
+								id: 'resolution',
+							},
+						],
+						description: 'Set the SDI resolution',
+						callback: async (action) => {
+							if (!self.camera) return
+							const currentFormat = self.camera?.currentVideoOutputInfo()
+							if (!currentFormat) return
+							currentFormat.SDIResolution = action.options.resolution as string
+							await self.camera.setVideoOutput(currentFormat)
+						},
+					}
 				}
 			},
 		},
@@ -744,7 +809,6 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera!.setPictureInfo({ HLCMode: value } as Partial<PictureInfo>)
 					},
 				)
-
 				createToggleAction(
 					'blcMode',
 					'BLC',
