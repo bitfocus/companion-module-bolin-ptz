@@ -170,7 +170,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['GammaInfo'],
 			createFeedbacks: () => {
-				createToggleFeedback('wdr', 'WDR', 'WDR enabled', () => {
+				createToggleFeedback('wdr', 'Gamma - WDR', 'Gamma - WDR enabled', () => {
 					return self.camera?.currentGammaInfo()?.WDR ?? false
 				})
 			},

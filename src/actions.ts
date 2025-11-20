@@ -1016,7 +1016,7 @@ export function UpdateActions(self: ModuleInstance): void {
 
 				createToggleAction(
 					'wdr',
-					'WDR',
+					'Gamma - WDR',
 					() => self.camera?.currentGammaInfo()?.WDR,
 					async (value) => {
 						await self.camera!.setGammaInfo({ WDR: value } as Partial<GammaInfo>)

@@ -77,10 +77,10 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 		{
 			capabilities: ['GammaInfo'],
 			variables: [
-				{ name: 'Gamma Level', variableId: 'gamma_level' },
-				{ name: 'Gamma Bright', variableId: 'gamma_bright' },
-				{ name: 'WDR', variableId: 'wdr' },
-				{ name: 'WDR Level', variableId: 'wdr_level' },
+				{ name: 'Gamma - Level', variableId: 'gamma_level' },
+				{ name: 'Gamma - Bright', variableId: 'gamma_bright' },
+				{ name: 'Gamma - WDR', variableId: 'wdr' },
+				{ name: 'Gamma - WDR Level', variableId: 'wdr_level' },
 			],
 		},
 		{

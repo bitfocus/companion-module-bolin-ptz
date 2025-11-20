@@ -571,12 +571,14 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetWhiteBalanceInfo', {
 			WhiteBalanceInfo: whiteBalanceInfo,
 		})
+		await this.getWhiteBalanceInfo()
 	}
 
 	async setPictureInfo(pictureInfo: Partial<PictureInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetPictureInfo', {
 			PictureInfo: pictureInfo,
 		})
+		await this.getPictureInfo()
 	}
 
 	/**
