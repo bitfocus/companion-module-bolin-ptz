@@ -572,6 +572,7 @@ export class BolinCamera {
 			WhiteBalanceInfo: whiteBalanceInfo,
 		})
 		await this.getWhiteBalanceInfo()
+		this.self.checkFeedbacks('whiteBalanceMode')
 	}
 
 	async setPictureInfo(pictureInfo: Partial<PictureInfo>): Promise<void> {

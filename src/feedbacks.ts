@@ -100,6 +100,36 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 					5000,
 					self.camera?.currentWhiteBalanceInfo()?.ColorTemperature ?? 5500,
 				)
+				feedbacks['whiteBalanceMode'] = {
+					name: 'White Balance Mode',
+					description: 'White balance mode',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							id: 'mode',
+							choices: [
+								{ label: 'Auto', id: 'Auto' },
+								{ label: 'Indoor', id: 'Indoor' },
+								{ label: 'Outdoor', id: 'Outdoor' },
+								{ label: 'OPW', id: 'OPW' },
+								{ label: 'ATW', id: 'ATW' },
+								{ label: 'User', id: 'User' },
+								{ label: 'SVL', id: 'SVL' },
+								{ label: 'ManualColorTemperature', id: 'ManualColorTemperature' },
+							],
+							default: 'Auto',
+						},
+					],
+					callback: (feedback: any) => {
+						const mode = feedback.options.mode as number
+						return self.camera?.currentWhiteBalanceInfo()?.Mode === mode.toString()
+					},
+				}
 			},
 		},
 		{
@@ -156,6 +186,10 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			createFeedbacks: () => {
 				createToggleFeedback('smart', 'Smart Focus', 'Smart focus enabled', () => {
 					return self.camera?.currentLensInfo()?.SmartFocus ?? false
+				})
+
+				createToggleFeedback('focusMode', 'Auto Focus Enabled', 'Focus mode', () => {
+					return self.camera?.currentLensInfo()?.FocusMode === 'Auto' ? true : false
 				})
 
 				createToggleFeedback('digitalZoom', 'Digital Zoom', 'Digital zoom enabled', () => {

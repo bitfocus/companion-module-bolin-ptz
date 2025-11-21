@@ -233,6 +233,74 @@ export function UpdatePresets(self: ModuleInstance): void {
 		],
 		feedbacks: [],
 	}
+	presets[`presetFocusAuto`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Focus Auto',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO\\nFOCUS`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'focusMode',
+						options: {
+							mode: 'Auto',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'focusMode',
+				options: {},
+				style: {
+					bgcolor: 0x009900,
+				},
+			},
+		],
+	}
+	presets[`presetFocusManual`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Focus Manual',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `MANUAL\\nFOCUS`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'focusMode',
+						options: {
+							mode: 'Manual',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'focusMode',
+				isInverted: true,
+				options: {},
+				style: {
+					bgcolor: 0x009900,
+				},
+			},
+		],
+	}
+
 	presets['ptzControlHeaderpositionLimit'] = {
 		category: 'PTZ Control',
 		name: 'Position Limits',
@@ -354,6 +422,138 @@ export function UpdatePresets(self: ModuleInstance): void {
 			],
 			feedbacks: [],
 		}
+	}
+
+	presets['presetWhiteBalanceHeader'] = {
+		category: 'White Balance',
+		name: 'White Balance Modes',
+		type: 'text',
+		text: '',
+	}
+
+	const whiteBalanceModes = {
+		Auto: 0,
+		Indoor: 1,
+		Outdoor: 2,
+		OPW: 3,
+		ATW: 4,
+		User: 5,
+		SVL: 8,
+		ManualColorTemperature: 10,
+	}
+	for (const [key, value] of Object.entries(whiteBalanceModes)) {
+		presets[`presetWhiteBalance${key}`] = {
+			type: 'button',
+			category: 'White Balance',
+			name: 'White Balance ' + key,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `WHITE\\nBALANCE\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'whiteBalanceMode',
+							options: {
+								mode: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'whiteBalanceMode',
+					options: {
+						mode: key,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	presets['presetWhiteBalanceColorTemperatureHeader'] = {
+		category: 'White Balance',
+		name: 'White Balance Color Temperature',
+		type: 'text',
+		text: '',
+	}
+	presets['presetWhiteBalanceColorTemperatureIncrease'] = {
+		type: 'button',
+		category: 'White Balance',
+		name: 'White Balance Color Temperature',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `INCREASE\\nCOLOR\\nTEMP`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'colorTemperature',
+						options: {
+							adjustment: 'increase',
+							value: 100,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetWhiteBalanceColorTemperatureValue'] = {
+		type: 'button',
+		category: 'White Balance',
+		name: 'White Balance Color Temperature',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `WB\\nTEMP\\n$(bolin-ptz:wb_color_temperature)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetWhiteBalanceColorTemperatureDecrease'] = {
+		type: 'button',
+		category: 'White Balance',
+		name: 'White Balance Color Temperature',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `DECREASE\\nCOLOR\\nTEMP`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'colorTemperature',
+						options: {
+							adjustment: 'decrease',
+							value: 100,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
 	}
 	self.setPresetDefinitions(presets)
 }

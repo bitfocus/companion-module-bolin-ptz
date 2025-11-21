@@ -708,16 +708,16 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Mode',
 							choices: [
-								{ label: 'Auto', id: 1 },
-								{ label: 'Indoor', id: 2 },
-								{ label: 'Outdoor', id: 3 },
-								{ label: 'OPW', id: 4 },
-								{ label: 'ATW', id: 'ATW' },
-								{ label: 'User', id: 'User' },
-								{ label: 'SVL', id: 'SVL' },
-								{ label: 'ManualColorTemperature', id: 'ManualColorTemperature' },
+								{ label: 'Auto', id: 0 },
+								{ label: 'Indoor', id: 1 },
+								{ label: 'Outdoor', id: 2 },
+								{ label: 'OPW', id: 3 },
+								{ label: 'ATW', id: 4 },
+								{ label: 'User', id: 5 },
+								{ label: 'SVL', id: 8 },
+								{ label: 'ManualColorTemperature', id: 10 },
 							],
-							default: 'Auto',
+							default: 0,
 							id: 'mode',
 						},
 					],
@@ -729,7 +729,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				}
 				createValueAction(
 					'rGain',
-					'Red Gain',
+					'White Balance - Red Gain',
 					() => self.camera?.currentWhiteBalanceInfo()?.RGain,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ RGain: value } as Partial<WhiteBalanceInfo>)
@@ -737,7 +737,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				)
 				createValueAction(
 					'bGain',
-					'Blue Gain',
+					'White Balance - Blue Gain',
 					() => self.camera?.currentWhiteBalanceInfo()?.BGain,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ BGain: value } as Partial<WhiteBalanceInfo>)
@@ -745,7 +745,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				)
 				createValueAction(
 					'rTuning',
-					'Red Tuning',
+					'White Balance - Red Tuning',
 					() => self.camera?.currentWhiteBalanceInfo()?.RTuning,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ RTuning: value } as Partial<WhiteBalanceInfo>)
@@ -753,7 +753,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				)
 				createValueAction(
 					'bTuning',
-					'Blue Tuning',
+					'White Balance - Blue Tuning',
 					() => self.camera?.currentWhiteBalanceInfo()?.BTuning,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ BTuning: value } as Partial<WhiteBalanceInfo>)
@@ -762,7 +762,7 @@ export function UpdateActions(self: ModuleInstance): void {
 
 				createValueAction(
 					'gTuning',
-					'Green Tuning',
+					'White Balance - Green Tuning',
 					() => self.camera?.currentWhiteBalanceInfo()?.GTuning,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ GTuning: value } as Partial<WhiteBalanceInfo>)
@@ -770,7 +770,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				)
 				createValueAction(
 					'colorTemperature',
-					'Color Temperature',
+					'White Balance - Color Temperature',
 					() => self.camera?.currentWhiteBalanceInfo()?.ColorTemperature,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ ColorTemperature: value } as Partial<WhiteBalanceInfo>)
