@@ -2,6 +2,7 @@ import type { ModuleInstance } from './main.js'
 import type { PositionLimitations } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
+import { sortIrisChoices, sortShutterSpeedChoices } from './utils.js'
 
 export function UpdateFeedbacks(self: ModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
@@ -89,6 +90,89 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				createToggleFeedback('smartExposure', 'Smart Exposure', 'Smart exposure enabled', () => {
 					return self.camera?.getState().exposureInfo?.SmartExposure ?? false
 				})
+
+				// Shutter Speed feedback - uses dynamic map from capabilities
+				const shutterSpeedMap = self.camera?.getShutterSpeedMapForActions() ?? {}
+				const shutterSpeedChoices = sortShutterSpeedChoices(
+					Object.entries(shutterSpeedMap).map(([_value, label]) => ({
+						label: label,
+						id: label,
+					})),
+				)
+
+				if (shutterSpeedChoices.length > 0) {
+					feedbacks['shutterSpeed'] = {
+						name: 'Shutter Speed',
+						description: 'Shutter speed matches selected value',
+						type: 'boolean',
+						defaultStyle: {
+							bgcolor: 0x009900,
+						},
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Shutter Speed',
+								id: 'speed',
+								choices: shutterSpeedChoices,
+								default: shutterSpeedChoices[0]?.id ?? '1/60',
+							},
+						],
+						callback: (feedback: CompanionFeedbackBooleanEvent) => {
+							const selectedSpeed = feedback.options.speed as string
+							return self.camera?.getState().exposureInfo?.ShutterSpeed === selectedSpeed
+						},
+					}
+				}
+
+				// Iris feedback - uses dynamic map from capabilities (enum) or range
+				const irisMap = self.camera?.getIrisMapForActions() ?? {}
+				const irisRange = self.camera?.getIrisRangeForActions()
+
+				if (Object.keys(irisMap).length > 0) {
+					// Enum type - create dropdown
+					// Note: irisMap is already filtered to common f-stops at build time
+					const irisChoices = sortIrisChoices(
+						Object.entries(irisMap).map(([_value, label]) => ({
+							label: label,
+							id: label,
+						})),
+					)
+
+					feedbacks['iris'] = {
+						name: 'Iris',
+						description: 'Iris matches selected value',
+						type: 'boolean',
+						defaultStyle: {
+							bgcolor: 0x009900,
+						},
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Iris',
+								id: 'iris',
+								choices: irisChoices,
+								default: irisChoices[0]?.id ?? 'F1.6',
+							},
+						],
+						callback: (feedback: CompanionFeedbackBooleanEvent) => {
+							const selectedIris = feedback.options.iris as string
+							const currentIris = self.camera?.getState().exposureInfo?.Iris
+							if (currentIris === undefined) return false
+							// Look up the current numeric value in the map
+							const currentIrisLabel = irisMap[currentIris]
+							return currentIrisLabel === selectedIris
+						},
+					}
+				} else if (irisRange) {
+					// Range type - create value feedback with comparison
+					createValueFeedback(
+						'iris',
+						'Iris',
+						'Iris value',
+						irisRange.min + Math.floor((irisRange.max - irisRange.min) / 2),
+						self.camera?.getState().exposureInfo?.Iris ?? irisRange.min,
+					)
+				}
 			},
 		},
 		{

@@ -1,6 +1,7 @@
 import { CompanionPresetDefinitions } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
 import { graphics } from 'companion-module-utils'
+import { sortIrisChoices } from './utils.js'
 
 export function UpdatePresets(self: ModuleInstance): void {
 	const presets: CompanionPresetDefinitions = {}
@@ -555,5 +556,279 @@ export function UpdatePresets(self: ModuleInstance): void {
 		],
 		feedbacks: [],
 	}
+	presets['irisAdjustmentsHeader'] = {
+		category: 'Iris',
+		name: 'Iris Adjustments',
+		type: 'text',
+		text: '',
+	}
+	presets['presetIrisIncrease'] = {
+		type: 'button',
+		category: 'Iris',
+		name: 'Iris Increase',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `INCREASE\\nIRIS`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'iris',
+						options: {
+							adjustment: 'increase',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetIrisValue'] = {
+		type: 'button',
+		category: 'Iris',
+		name: 'Iris Value',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `IRIS\\n$(bolin-ptz:iris)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetIrisDecrease'] = {
+		type: 'button',
+		category: 'Iris',
+		name: 'Iris Decrease',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `DECREASE\\nIRIS`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'iris',
+						options: {
+							adjustment: 'decrease',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['irisSetValueHeader'] = {
+		category: 'Iris',
+		name: 'Iris Set Value',
+		type: 'text',
+		text: '',
+	}
+	// Create presets for each common iris value
+	const irisMap = self.camera?.getIrisMapForActions() ?? {}
+	if (Object.keys(irisMap).length > 0) {
+		const irisEntries = sortIrisChoices(
+			Object.entries(irisMap).map(([value, label]) => ({
+				value: Number.parseInt(value, 10),
+				label: label,
+			})),
+		)
+
+		for (const { value, label } of irisEntries) {
+			// Create a safe key for the preset ID (replace special characters)
+			const safeLabel = label.replace(/[^a-zA-Z0-9]/g, '_')
+			const presetKey = `presetIris_${safeLabel}`
+
+			presets[presetKey] = {
+				type: 'button',
+				category: 'Iris',
+				name: `Iris ${label}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: label,
+					size: '14',
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'iris',
+								options: {
+									adjustment: 'set',
+									iris: value,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'iris',
+						options: {
+							iris: label,
+						},
+						style: {
+							bgcolor: 0x009900,
+						},
+					},
+				],
+			}
+		}
+	}
+
+	presets['shutterSpeedHeader'] = {
+		category: 'Shutter Speed',
+		name: 'Shutter Speed Adjustments',
+		type: 'text',
+		text: '',
+	}
+	presets['presetShutterSpeedIncrease'] = {
+		type: 'button',
+		category: 'Shutter Speed',
+		name: 'Shutter Speed Increase',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `INCREASE\\nSHUTTER\\nSPEED`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'shutterSpeed',
+						options: {
+							adjustment: 'increase',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetShutterSpeedValue'] = {
+		type: 'button',
+		category: 'Shutter Speed',
+		name: 'Shutter Speed Value',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `SHUTTER\\nSPEED\\n$(bolin-ptz:shutter_speed)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetShutterSpeedDecrease'] = {
+		type: 'button',
+		category: 'Shutter Speed',
+		name: 'Shutter Speed Decrease',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `DECREASE\\nSHUTTER\\nSPEED`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'shutterSpeed',
+						options: {
+							adjustment: 'decrease',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['shutterSpeedSetValueHeader'] = {
+		category: 'Shutter Speed',
+		name: 'Shutter Speed Set Value',
+		type: 'text',
+		text: '',
+	}
+
+	// Create presets for each shutter speed value
+	const shutterSpeedMap = self.camera?.getShutterSpeedMapForActions() ?? {}
+	if (Object.keys(shutterSpeedMap).length > 0) {
+		const shutterSpeedEntries = Object.entries(shutterSpeedMap)
+			.map(([value, label]) => ({
+				value: Number.parseInt(value, 10),
+				label: label,
+			}))
+			.sort((a, b) => {
+				// Sort by numeric value from label (e.g., "1/60" -> 60, "1/1000" -> 1000)
+				const aNum = Number.parseInt(a.label.split('/')[1] || '0', 10)
+				const bNum = Number.parseInt(b.label.split('/')[1] || '0', 10)
+				return aNum - bNum
+			})
+
+		for (const { value, label } of shutterSpeedEntries) {
+			// Create a safe key for the preset ID (replace special characters)
+			const safeLabel = label.replace(/[^a-zA-Z0-9]/g, '_')
+			const presetKey = `presetShutterSpeed_${safeLabel}`
+
+			presets[presetKey] = {
+				type: 'button',
+				category: 'Shutter Speed',
+				name: `Shutter Speed ${label}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: label,
+					size: '14',
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'shutterSpeed',
+								options: {
+									adjustment: 'set',
+									speed: value,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'shutterSpeed',
+						options: {
+							speed: label,
+						},
+						style: {
+							bgcolor: 0x009900,
+						},
+					},
+				],
+			}
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }

@@ -387,7 +387,10 @@ export function UpdateVariablesOnStateChange(
 			variables.shutter_speed = currentState.exposureInfo.ShutterSpeed
 		}
 		if (!previousState?.exposureInfo || previousState.exposureInfo.Iris !== currentState.exposureInfo.Iris) {
-			variables.iris = currentState.exposureInfo.Iris
+			// Look up iris value in the iris map if available (for enum types)
+			const irisMap = self.camera?.getIrisMapForActions() ?? {}
+			const irisValue = currentState.exposureInfo.Iris
+			variables.iris = irisMap[irisValue] ?? (irisValue !== undefined ? irisValue.toString() : '')
 		}
 	}
 

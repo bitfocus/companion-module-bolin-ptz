@@ -16,6 +16,12 @@ import type {
 	OverlayInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
+import {
+	sortIrisChoices,
+	getAdjacentIrisValue,
+	sortShutterSpeedChoices,
+	getAdjacentShutterSpeedValue,
+} from './utils.js'
 
 export function UpdateActions(self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {}
@@ -255,6 +261,27 @@ export function UpdateActions(self: ModuleInstance): void {
 						})
 					},
 				}
+			},
+		},
+		{
+			capabilities: ['PanTiltInfo'],
+			createActions: () => {
+				createToggleAction(
+					'panDirectionInverted',
+					'Pan Direction Invert',
+					() => self.camera?.getState().panTiltInfo?.PanDirection === 1,
+					async (value) => {
+						await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
+					},
+				)
+				createToggleAction(
+					'tiltDirectionInverted',
+					'Tilt Direction Invert',
+					() => self.camera?.getState().panTiltInfo?.TiltDirection === 1,
+					async (value) => {
+						await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
+					},
+				)
 			},
 		},
 		{
@@ -1055,23 +1082,127 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
 					},
 				)
+			},
+		},
+		{
+			capabilities: ['ExposureInfo', 'Exposure'],
+			createActions: () => {
+				// Shutter Speed action - uses dynamic map from capabilities
 
-				createToggleAction(
-					'panDirectionInverted',
-					'Pan Direction Invert',
-					() => self.camera?.getState().panTiltInfo?.PanDirection === 1,
-					async (value) => {
-						await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
-					},
+				const shutterSpeedMap = self.camera?.getShutterSpeedMapForActions() ?? {}
+				const shutterSpeedChoices = sortShutterSpeedChoices(
+					Object.entries(shutterSpeedMap).map(([value, label]) => ({
+						label: label,
+						id: Number.parseInt(value, 10),
+					})),
 				)
-				createToggleAction(
-					'tiltDirectionInverted',
-					'Tilt Direction Invert',
-					() => self.camera?.getState().panTiltInfo?.TiltDirection === 1,
-					async (value) => {
-						await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
-					},
-				)
+
+				if (shutterSpeedChoices.length > 0) {
+					actions['shutterSpeed'] = {
+						name: 'Shutter Speed',
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Adjustment',
+								choices: setChoices,
+								default: 'increase',
+								id: 'adjustment',
+							},
+							{
+								type: 'dropdown',
+								label: 'Shutter Speed',
+								choices: shutterSpeedChoices,
+								default: shutterSpeedChoices[0]?.id ?? 9,
+								id: 'speed',
+								isVisibleExpression: `$(options:adjustment) === 'set'`,
+							},
+						],
+						description: 'Set the shutter speed',
+						callback: async (action) => {
+							if (!self.camera || shutterSpeedChoices.length === 0) return
+							const adjustment = action.options.adjustment as string
+							const shutterSpeedMap = self.camera.getShutterSpeedMapForActions()
+							const currentShutterSpeed = self.camera.getState().exposureInfo?.ShutterSpeed
+
+							const shutterSpeedString =
+								adjustment === 'set'
+									? (shutterSpeedMap[action.options.speed as number] ?? '1/60')
+									: getAdjacentShutterSpeedValue(
+											shutterSpeedChoices,
+											shutterSpeedMap,
+											currentShutterSpeed,
+											adjustment as 'increase' | 'decrease',
+										)
+
+							// Send the string value - setExposureInfo will convert to numeric for API
+							await self.camera.setExposureInfo({ ShutterSpeed: shutterSpeedString } as Partial<ExposureInfo>)
+						},
+					}
+				}
+
+				const irisMap = self.camera?.getIrisMapForActions() ?? {}
+				const irisRange = self.camera?.getIrisRangeForActions()
+
+				// If it's an enum type, create dropdown action
+				// Note: irisMap is already filtered to common f-stops at build time
+				if (Object.keys(irisMap).length > 0) {
+					// Create sorted list of standard f-stop values for increase/decrease operations
+					const irisChoices = sortIrisChoices(
+						Object.entries(irisMap).map(([value, label]) => ({
+							label: label,
+							id: Number.parseInt(value, 10),
+						})),
+					)
+
+					actions['iris'] = {
+						name: 'Iris',
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Adjustment',
+								choices: setChoices,
+								default: 'increase',
+								id: 'adjustment',
+							},
+							{
+								type: 'dropdown',
+								label: 'Iris',
+								choices: irisChoices,
+								default: irisChoices[0]?.id ?? 0,
+								id: 'iris',
+								isVisibleExpression: `$(options:adjustment) === 'set'`,
+							},
+						],
+						description: 'Set the iris',
+						callback: async (action) => {
+							if (!self.camera || irisChoices.length === 0) return
+							const adjustment = action.options.adjustment as string
+							const currentIris = self.camera.getState().exposureInfo?.Iris
+
+							const irisValue =
+								adjustment === 'set'
+									? (action.options.iris as number)
+									: getAdjacentIrisValue(irisChoices, currentIris, adjustment as 'increase' | 'decrease')
+
+							// The API expects the numeric enum value directly
+							await self.camera.setExposureInfo({ Iris: irisValue } as Partial<ExposureInfo>)
+						},
+					}
+				} else if (irisRange) {
+					// If it's a range type, create value action
+					createValueAction(
+						'iris',
+						'Iris',
+						() => self.camera?.getState().exposureInfo?.Iris,
+						async (value) => {
+							// Clamp value to range
+							const clampedValue = Math.max(irisRange.min, Math.min(irisRange.max, value))
+							await self.camera!.setExposureInfo({ Iris: clampedValue } as Partial<ExposureInfo>)
+						},
+						irisRange.min + Math.floor((irisRange.max - irisRange.min) / 2),
+						1,
+					)
+				}
 			},
 		},
 		{

@@ -355,32 +355,6 @@ export interface WhiteBalanceInfo {
 export type ExposureMode = 'Auto' | 'Manual' | 'ShutterPri' | 'IrisPri'
 
 /**
- * Shutter speed enum
- */
-export type ShutterSpeed =
-	| '1/60'
-	| '1/90'
-	| '1/100'
-	| '1/125'
-	| '1/180'
-	| '1/195'
-	| '1/215'
-	| '1/230'
-	| '1/250'
-	| '1/350'
-	| '1/500'
-	| '1/725'
-	| '1/1000'
-	| '1/1500'
-	| '1/2000'
-	| '1/3000'
-	| '1/4000'
-	| '1/6000'
-	| '1/10000'
-	| '1/30000'
-	| '1/100000'
-
-/**
  * Exposure information
  */
 export interface ExposureInfo {
@@ -389,7 +363,7 @@ export interface ExposureInfo {
 	GainLimit: number
 	ExCompLevel: number
 	SmartExposure: boolean
-	ShutterSpeed: ShutterSpeed
+	ShutterSpeed: string // String value that varies by camera model, dynamically built from capabilities
 	Iris: number
 }
 

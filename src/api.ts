@@ -33,6 +33,7 @@ import type {
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
+import { buildIrisMapFromCapabilities, buildShutterSpeedMapFromCapabilities } from './utils.js'
 import {
 	AF_SENSITIVITY_MAP,
 	DE_FLICKER_MAP,
@@ -79,6 +80,9 @@ export class BolinCamera {
 	private previousState: CameraState | null = null
 	private updateVariablesTimeout: NodeJS.Timeout | null = null
 	private readonly self: ModuleInstance
+	private shutterSpeedMap: Record<number, string> | null = null
+	private irisMap: Record<number, string> | null = null
+	private irisRange: { min: number; max: number } | null = null
 
 	constructor(config: ModuleConfig, password: string, self: ModuleInstance) {
 		this.config = config
@@ -486,18 +490,33 @@ export class BolinCamera {
 			Iris: number
 		}
 
+		const shutterSpeedMap = this.getShutterSpeedMap()
+		const shutterSpeedValue = shutterSpeedMap[rawExposureInfo.ShutterSpeed] ?? '1/60'
 		this.state.exposureInfo = {
 			...rawExposureInfo,
 			Mode: safeEnumLookup(EXPOSURE_MODE_MAP, rawExposureInfo.Mode, 'Auto'),
-			ShutterSpeed: safeEnumLookup(SHUTTER_SPEED_MAP, rawExposureInfo.ShutterSpeed, '1/60'),
+			ShutterSpeed: shutterSpeedValue,
 		}
 		this.updateVariablesOnStateChange()
 		return this.state.exposureInfo
 	}
 
 	async setExposureInfo(exposureInfo: Partial<ExposureInfo>): Promise<void> {
+		// Prepare the request payload - API expects numeric ShutterSpeed
+		const requestPayload: Record<string, unknown> = { ...exposureInfo }
+
+		// If ShutterSpeed is provided as a string, convert it to the numeric enum value
+		if (exposureInfo.ShutterSpeed !== undefined && typeof exposureInfo.ShutterSpeed === 'string') {
+			const shutterSpeedMap = this.getShutterSpeedMap()
+			// Find the numeric key for this string value
+			const numericValue = Object.entries(shutterSpeedMap).find(([, value]) => value === exposureInfo.ShutterSpeed)?.[0]
+			if (numericValue !== undefined) {
+				requestPayload.ShutterSpeed = Number.parseInt(numericValue, 10)
+			}
+		}
+
 		await this.sendRequest('/apiv2/image', 'ReqSetExposureInfo', {
-			ExposureInfo: exposureInfo,
+			ExposureInfo: requestPayload,
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.exposureInfo) {
@@ -692,6 +711,90 @@ export class BolinCamera {
 		this.updateVariablesOnStateChange()
 	}
 	/**
+	 * Builds the shutter speed map from capabilities data
+	 * @param imageCapabilitiesContent Optional image capabilities content to extract from
+	 */
+	private buildShutterSpeedMap(imageCapabilitiesContent?: Record<string, unknown>): void {
+		// Check image capabilities first (passed as parameter or from state)
+		if (imageCapabilitiesContent) {
+			const map = buildShutterSpeedMapFromCapabilities(imageCapabilitiesContent)
+			if (map) {
+				this.shutterSpeedMap = map
+				return
+			}
+		}
+
+		// If not found, fall back to the static map
+		this.shutterSpeedMap = null
+	}
+
+	/**
+	 * Builds the iris map from capabilities data
+	 * Handles both enum and range types
+	 * Filters enum values to only common f-stops
+	 * @param imageCapabilitiesContent Optional image capabilities content to extract from
+	 */
+	private buildIrisMap(imageCapabilitiesContent?: Record<string, unknown>): void {
+		// Reset both map and range
+		this.irisMap = null
+		this.irisRange = null
+
+		// Check image capabilities first (passed as parameter or from state)
+		if (imageCapabilitiesContent) {
+			const result = buildIrisMapFromCapabilities(imageCapabilitiesContent)
+			this.irisMap = result.irisMap
+			this.irisRange = result.irisRange
+		}
+	}
+
+	/**
+	 * Gets the shutter speed map, building it from capabilities if available
+	 * Falls back to the static map if capabilities haven't been loaded
+	 */
+	private getShutterSpeedMap(): Record<number, string> {
+		if (this.shutterSpeedMap) {
+			return this.shutterSpeedMap
+		}
+		// Fall back to static map if capabilities not loaded
+		return SHUTTER_SPEED_MAP
+	}
+
+	/**
+	 * Gets the shutter speed map for use in actions/UI
+	 * Public method to access the dynamic shutter speed map
+	 */
+	getShutterSpeedMapForActions(): Record<number, string> {
+		return this.getShutterSpeedMap()
+	}
+
+	/**
+	 * Gets the iris map, building it from capabilities if available
+	 */
+	private getIrisMap(): Record<number, string> {
+		if (this.irisMap) {
+			return this.irisMap
+		}
+		// Return empty map if capabilities not loaded
+		return {}
+	}
+
+	/**
+	 * Gets the iris map for use in actions/UI
+	 * Public method to access the dynamic iris map
+	 */
+	getIrisMapForActions(): Record<number, string> {
+		return this.getIrisMap()
+	}
+
+	/**
+	 * Gets the iris range for use in actions/UI (if Iris is a range type)
+	 * Public method to access the iris range
+	 */
+	getIrisRangeForActions(): { min: number; max: number } | null {
+		return this.irisRange
+	}
+
+	/**
 	 * Gets general capabilities from the camera and stores it in state
 	 */
 	async getGeneralCapabilities(): Promise<GeneralCapabilities> {
@@ -784,6 +887,10 @@ export class BolinCamera {
 			// ReqGetImageCapabilities
 			const imageResponse = await this.sendRequest('/apiv2/image', 'ReqGetImageCapabilities')
 			capabilities.imageCapabilities = this.extractObjectNames(imageResponse.Content)
+			const imageContent = imageResponse.Content as Record<string, unknown>
+			// Build shutter speed and iris maps - extractEnumMap will search all levels recursively
+			this.buildShutterSpeedMap(imageContent)
+			this.buildIrisMap(imageContent)
 		} catch (error) {
 			this.self.log(
 				'debug',
@@ -825,6 +932,8 @@ export class BolinCamera {
 		}
 
 		this.cameraCapabilities = capabilities
+		// Trigger action update after maps are built so actions can use the dynamic maps
+		this.self.updateActions()
 		return capabilities
 	}
 
