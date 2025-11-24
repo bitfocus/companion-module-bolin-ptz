@@ -348,23 +348,34 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
-	const cameraPresets = self.camera?.getState().presets
-	if (!cameraPresets) return
+	const cameraPresets = self.camera?.getState().presets ?? []
+	// Create a map of preset numbers to preset info for quick lookup
+	const presetMap = new Map<number, { Name: string; Number: number }>()
+	for (const preset of cameraPresets) {
+		presetMap.set(preset.Number, preset)
+	}
+
 	presets['presetCallHeader'] = {
 		category: 'PTZ Presets',
 		name: 'Call Presets',
 		type: 'text',
 		text: '',
 	}
-	for (const preset of cameraPresets) {
-		presets[`presetCall${preset.Number.toString()}`] = {
+
+	// Always create presets for values 1-12, even if they don't exist on the camera
+	for (let presetNumber = 1; presetNumber <= 12; presetNumber++) {
+		const preset = presetMap.get(presetNumber)
+		const presetName = preset?.Name ?? `Preset ${presetNumber}`
+		const presetNumberStr = presetNumber.toString()
+
+		presets[`presetCall${presetNumberStr}`] = {
 			type: 'button',
 			category: 'PTZ Presets',
-			name: 'Call ' + preset.Name + ' (' + preset.Number + ')',
+			name: 'Call ' + presetName + ' (' + presetNumber + ')',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `CALL\\n${preset.Name}`,
+				text: `CALL\\n${presetName}`,
 				size: '14',
 			},
 			steps: [
@@ -374,10 +385,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 							actionId: 'presetControl',
 							options: {
 								command: 'Call',
-								preset: preset.Number,
-								customPreset: false,
-								customPresetNumber: preset.Number,
-								customPresetName: 'Preset $(options:customPresetNumber)',
+								preset: presetNumber,
+								customPreset: preset?.Name ? false : true,
+								customPresetNumber: presetNumber,
+								customPresetName: `Preset ${presetNumber}`,
 							},
 						},
 					],
@@ -387,21 +398,27 @@ export function UpdatePresets(self: ModuleInstance): void {
 			feedbacks: [],
 		}
 	}
+
 	presets['presetSaveHeader'] = {
 		category: 'PTZ Presets',
 		name: 'Save Presets',
 		type: 'text',
 		text: '',
 	}
-	for (const preset of cameraPresets) {
-		presets[`presetSave${preset.Number.toString()}`] = {
+
+	for (let presetNumber = 1; presetNumber <= 12; presetNumber++) {
+		const preset = presetMap.get(presetNumber)
+		const presetName = preset?.Name ?? `Preset ${presetNumber}`
+		const presetNumberStr = presetNumber.toString()
+
+		presets[`presetSave${presetNumberStr}`] = {
 			type: 'button',
 			category: 'PTZ Presets',
-			name: 'Save ' + preset.Name + ' (' + preset.Number + ')',
+			name: 'Save ' + presetName + ' (' + presetNumber + ')',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `SAVE\\n${preset.Name}`,
+				text: `SAVE\\n${presetName}`,
 				size: '14',
 			},
 			steps: [
@@ -411,9 +428,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 							actionId: 'presetControl',
 							options: {
 								command: 'Set',
-								preset: preset.Number,
-								customPreset: false,
-								customPresetNumber: preset.Number,
+								preset: presetNumber,
+								customPreset: preset?.Name ? false : true,
+								customPresetNumber: presetNumber,
 								customPresetName: 'Preset $(options:customPresetNumber)',
 							},
 						},
