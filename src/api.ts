@@ -669,7 +669,7 @@ export class BolinCamera {
 	 * Gets pan/tilt information from the camera and stores it in state
 	 */
 	async getPTInfo(): Promise<PanTiltInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo', undefined, '2.00.000')
 		this.state.panTiltInfo = response.Content.PanTiltInfo as PanTiltInfo
 		this.updateVariablesOnStateChange()
 		return this.state.panTiltInfo
@@ -856,79 +856,72 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Helper to get error message from error object
+	 */
+	private getErrorMessage(error: unknown): string {
+		return error instanceof Error ? error.message : 'Unknown error'
+	}
+
+	/**
+	 * Helper to fetch and extract capabilities with error handling
+	 */
+	private async fetchCapabilities(endpoint: string, cmd: string, capabilityName: string): Promise<string[] | null> {
+		try {
+			const response = await this.sendRequest(endpoint, cmd)
+			return this.extractObjectNames(response.Content)
+		} catch (error) {
+			this.self.log('debug', `Failed to get ${capabilityName}: ${this.getErrorMessage(error)}`)
+			return null
+		}
+	}
+
+	/**
 	 * Gets camera capabilities from all capability endpoints and stores object names
 	 */
 	async getCameraCapabilities(): Promise<CameraCapabilities> {
 		const capabilities: CameraCapabilities = {}
 
-		try {
-			// ReqGetSystemCapabilities
-			const systemResponse = await this.sendRequest('/apiv2/system', 'ReqGetSystemCapabilities')
-			capabilities.systemCapabilities = this.extractObjectNames(systemResponse.Content)
-		} catch (error) {
-			this.self.log(
-				'debug',
-				`Failed to get system capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
-		}
+		// Fetch all capabilities in parallel for better performance
+		const [
+			systemCapabilities,
+			ptzfCapabilities,
+			imageResponse,
+			avStreamCapabilities,
+			networkCapabilities,
+			generalCapabilities,
+		] = await Promise.allSettled([
+			this.fetchCapabilities('/apiv2/system', 'ReqGetSystemCapabilities', 'system capabilities'),
+			this.fetchCapabilities('/apiv2/ptzctrl', 'ReqGetPTZFCapabilities', 'PTZF capabilities'),
+			this.sendRequest('/apiv2/image', 'ReqGetImageCapabilities').catch((error) => {
+				this.self.log('debug', `Failed to get image capabilities: ${this.getErrorMessage(error)}`)
+				return null
+			}),
+			this.fetchCapabilities('/apiv2/avstream', 'ReqGetAVStreamCapabilities', 'AV stream capabilities'),
+			this.fetchCapabilities('/apiv2/network', 'ReqGetNetworkCapabilities', 'network capabilities'),
+			this.fetchCapabilities('/apiv2/general', 'ReqGetGeneralCapabilities', 'general capabilities'),
+		])
 
-		try {
-			// ReqGetPTZFCapabilities
-			const ptzfResponse = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFCapabilities')
-			capabilities.ptzfCapabilities = this.extractObjectNames(ptzfResponse.Content)
-		} catch (error) {
-			this.self.log(
-				'debug',
-				`Failed to get PTZF capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+		if (systemCapabilities.status === 'fulfilled' && systemCapabilities.value) {
+			capabilities.systemCapabilities = systemCapabilities.value
 		}
-
-		try {
-			// ReqGetImageCapabilities
-			const imageResponse = await this.sendRequest('/apiv2/image', 'ReqGetImageCapabilities')
-			capabilities.imageCapabilities = this.extractObjectNames(imageResponse.Content)
-			const imageContent = imageResponse.Content as Record<string, unknown>
+		if (ptzfCapabilities.status === 'fulfilled' && ptzfCapabilities.value) {
+			capabilities.ptzfCapabilities = ptzfCapabilities.value
+		}
+		if (imageResponse.status === 'fulfilled' && imageResponse.value) {
+			capabilities.imageCapabilities = this.extractObjectNames(imageResponse.value.Content)
+			const imageContent = imageResponse.value.Content as Record<string, unknown>
 			// Build shutter speed and iris maps - extractEnumMap will search all levels recursively
 			this.buildShutterSpeedMap(imageContent)
 			this.buildIrisMap(imageContent)
-		} catch (error) {
-			this.self.log(
-				'debug',
-				`Failed to get image capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
 		}
-
-		try {
-			// ReqGetAVStreamCapabilities
-			const avStreamResponse = await this.sendRequest('/apiv2/avstream', 'ReqGetAVStreamCapabilities')
-			capabilities.avStreamCapabilities = this.extractObjectNames(avStreamResponse.Content)
-		} catch (error) {
-			this.self.log(
-				'debug',
-				`Failed to get AV stream capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+		if (avStreamCapabilities.status === 'fulfilled' && avStreamCapabilities.value) {
+			capabilities.avStreamCapabilities = avStreamCapabilities.value
 		}
-
-		try {
-			// ReqGetNetworkCapabilities
-			const networkResponse = await this.sendRequest('/apiv2/network', 'ReqGetNetworkCapabilities')
-			capabilities.networkCapabilities = this.extractObjectNames(networkResponse.Content)
-		} catch (error) {
-			this.self.log(
-				'debug',
-				`Failed to get network capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+		if (networkCapabilities.status === 'fulfilled' && networkCapabilities.value) {
+			capabilities.networkCapabilities = networkCapabilities.value
 		}
-
-		try {
-			// ReqGetGeneralCapabilities (already exists, but we'll extract object names)
-			const generalResponse = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities')
-			capabilities.generalCapabilities = this.extractObjectNames(generalResponse.Content)
-		} catch (error) {
-			this.self.log(
-				'debug',
-				`Failed to get general capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+		if (generalCapabilities.status === 'fulfilled' && generalCapabilities.value) {
+			capabilities.generalCapabilities = generalCapabilities.value
 		}
 
 		this.cameraCapabilities = capabilities

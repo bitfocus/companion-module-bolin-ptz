@@ -23,6 +23,19 @@ import {
 	getAdjacentShutterSpeedValue,
 } from './utils.js'
 
+/**
+ * Helper function to safely parse an integer with validation
+ */
+function parseInteger(value: string | number | undefined, fieldName: string, self: ModuleInstance): number | null {
+	if (value === undefined) return null
+	const parsed = typeof value === 'number' ? value : parseInt(String(value), 10)
+	if (isNaN(parsed)) {
+		self.log('warn', `${fieldName} must be a number`)
+		return null
+	}
+	return parsed
+}
+
 export function UpdateActions(self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {}
 
@@ -115,7 +128,9 @@ export function UpdateActions(self: ModuleInstance): void {
 				} else if (action.options.adjustment === 'decrease') {
 					newValue = currentValue - step
 				} else {
-					newValue = parseInt(action.options.value as string)
+					const parsedValue = parseInteger(action.options.value as string, `${name} value`, self)
+					if (parsedValue === null) return
+					newValue = parsedValue
 				}
 
 				await setValue(newValue)
@@ -170,7 +185,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							label: 'Custom Preset Name',
 							default: 'Preset $(options:customPresetNumber)',
 							id: 'customPresetName',
-							isVisibleExpression: 'Preset $(options:customPreset) === true',
+							isVisibleExpression: '$(options:customPreset) === true',
 							useVariables: true,
 						},
 					],
@@ -329,7 +344,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							return
 						}
 						if (speed < 1 || speed > 8) {
-							self.log('warn', 'Speed must be between 1 and 5')
+							self.log('warn', 'Speed must be between 1 and 8')
 							return
 						}
 						const zoom: ZoomCommand = {
@@ -962,8 +977,13 @@ export function UpdateActions(self: ModuleInstance): void {
 								[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) - 1,
 							} as Partial<PictureInfo>)
 						} else {
+							const parsedValue = parseInt(action.options.value as string)
+							if (isNaN(parsedValue)) {
+								self.log('warn', 'Color matrix value must be a number')
+								return
+							}
 							await self.camera.setPictureInfo({
-								[matrixOption]: parseInt(action.options.value as string),
+								[matrixOption]: parsedValue,
 							} as Partial<PictureInfo>)
 						}
 					},
@@ -990,57 +1010,11 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
 					},
 				}
-				actions['deflicker'] = {
-					name: 'Deflicker',
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Mode',
-							choices: [
-								{ label: 'OFF', id: 0 },
-								{ label: '50HZ', id: 1 },
-								{ label: '60HZ', id: 2 },
-							],
-							default: 'OFF',
-							id: 'mode',
-						},
-					],
-					description: 'Set the deflicker',
-					callback: async (action) => {
-						if (!self.camera) return
-						await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
-					},
-				}
 			},
 		},
 		{
 			capabilities: ['GammaInfo'],
 			createActions: () => {
-				createToggleAction(
-					'smartFocus',
-					'Smart Focus',
-					() => self.camera?.getState().lensInfo?.SmartFocus,
-					async (value) => {
-						await self.camera!.setLensInfo({ SmartFocus: value } as Partial<LensInfo>)
-					},
-				)
-				createToggleAction(
-					'digitalZoom',
-					'Digital Zoom',
-					() => self.camera?.getState().lensInfo?.DigitalZoom,
-					async (value) => {
-						await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
-					},
-				)
-				createToggleAction(
-					'zoomRatioOSD',
-					'Zoom Ratio OSD',
-					() => self.camera?.getState().lensInfo?.ZoomRatioOSD,
-					async (value) => {
-						await self.camera!.setLensInfo({ ZoomRatioOSD: value } as Partial<LensInfo>)
-					},
-				)
-
 				createToggleAction(
 					'wdr',
 					'Gamma - WDR',
@@ -1250,12 +1224,29 @@ export function UpdateActions(self: ModuleInstance): void {
 					description: 'Set the PTZ position',
 					callback: async (action) => {
 						if (!self.camera) return
+						const panPosition = parseInt(action.options.panPosition as string)
+						const tiltPosition = parseInt(action.options.tiltPosition as string)
+						const zoomPosition = parseInt(action.options.zoomPosition as string)
+						const panTiltSpeed = parseInt(action.options.panTiltSpeed as string)
+						const zoomSpeed = parseInt(action.options.zoomSpeed as string)
+
+						if (
+							isNaN(panPosition) ||
+							isNaN(tiltPosition) ||
+							isNaN(zoomPosition) ||
+							isNaN(panTiltSpeed) ||
+							isNaN(zoomSpeed)
+						) {
+							self.log('warn', 'All PTZ position values must be numbers')
+							return
+						}
+
 						await self.camera.setPTZPosition({
-							PanPosition: parseInt(action.options.panPosition as string),
-							TiltPosition: parseInt(action.options.tiltPosition as string),
-							ZoomPosition: parseInt(action.options.zoomPosition as string),
-							PanTiltSpeed: parseInt(action.options.panTiltSpeed as string),
-							ZoomSpeed: parseInt(action.options.zoomSpeed as string),
+							PanPosition: panPosition,
+							TiltPosition: tiltPosition,
+							ZoomPosition: zoomPosition,
+							PanTiltSpeed: panTiltSpeed,
+							ZoomSpeed: zoomSpeed,
 						} as PTZFPosition)
 					},
 				}
@@ -1287,10 +1278,19 @@ export function UpdateActions(self: ModuleInstance): void {
 					description: 'Set the PTZ position',
 					callback: async (action) => {
 						if (!self.camera) return
+						const panPosition = parseInt(action.options.panPosition as string)
+						const tiltPosition = parseInt(action.options.tiltPosition as string)
+						const panTiltSpeed = parseInt(action.options.panTiltSpeed as string)
+
+						if (isNaN(panPosition) || isNaN(tiltPosition) || isNaN(panTiltSpeed)) {
+							self.log('warn', 'All PTZ position values must be numbers')
+							return
+						}
+
 						await self.camera.setPTZRelPosition({
-							PanPosition: parseInt(action.options.panPosition as string),
-							TiltPosition: parseInt(action.options.tiltPosition as string),
-							PanTiltSpeed: parseInt(action.options.panTiltSpeed as string),
+							PanPosition: panPosition,
+							TiltPosition: tiltPosition,
+							PanTiltSpeed: panTiltSpeed,
 						})
 					},
 				}
@@ -1411,10 +1411,20 @@ export function UpdateActions(self: ModuleInstance): void {
 								overlayInfo.Color = action.options.textColor as string
 							}
 							if (prop === 'positionX') {
-								overlayInfo.PosX = parseInt(action.options.positionX as string)
+								const posX = parseInt(action.options.positionX as string)
+								if (isNaN(posX)) {
+									self.log('warn', 'Position X must be a number')
+									return
+								}
+								overlayInfo.PosX = posX
 							}
 							if (prop === 'positionY') {
-								overlayInfo.PosY = parseInt(action.options.positionY as string)
+								const posY = parseInt(action.options.positionY as string)
+								if (isNaN(posY)) {
+									self.log('warn', 'Position Y must be a number')
+									return
+								}
+								overlayInfo.PosY = posY
 							}
 						}
 

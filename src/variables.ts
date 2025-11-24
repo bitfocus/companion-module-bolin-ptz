@@ -1,6 +1,49 @@
 import type { ModuleInstance } from './main.js'
 import type { CameraState } from './types.js'
 
+/**
+ * Helper function to check if a value has changed between previous and current state
+ */
+function hasChanged<T>(
+	previous: T | null | undefined,
+	current: T | null | undefined,
+	getValue: (state: T) => unknown,
+): boolean {
+	return !previous || !current || getValue(previous) !== getValue(current)
+}
+
+/**
+ * Helper function to update a variable if the value has changed
+ */
+function updateIfChanged<T>(
+	variables: Record<string, number | string | boolean>,
+	previous: T | null | undefined,
+	current: T | null | undefined,
+	getValue: (state: T) => unknown,
+	variableId: string,
+	defaultValue?: number | string | boolean,
+): void {
+	if (current && hasChanged(previous, current, getValue)) {
+		const value = getValue(current)
+		variables[variableId] = (value !== undefined && value !== null ? value : defaultValue) as number | string | boolean
+	}
+}
+
+/**
+ * Helper to update multiple fields from the same state object
+ */
+function updateFields<T>(
+	variables: Record<string, number | string | boolean>,
+	previous: T | null | undefined,
+	current: T | null | undefined,
+	fields: Array<{ getValue: (state: T) => unknown; variableId: string; defaultValue?: number | string | boolean }>,
+): void {
+	if (!current) return
+	for (const field of fields) {
+		updateIfChanged(variables, previous, current, field.getValue, field.variableId, field.defaultValue)
+	}
+}
+
 export function UpdateVariableDefinitions(self: ModuleInstance): void {
 	const variables: { name: string; variableId: string }[] = []
 
@@ -164,230 +207,122 @@ export function UpdateVariablesOnStateChange(
 	const variables: Record<string, number | string | boolean> = {}
 	// Update PTZ position variables if changed
 	if (currentState.ptzPosition) {
-		if (!previousState?.ptzPosition || previousState.ptzPosition.PanPosition !== currentState.ptzPosition.PanPosition) {
-			variables.pan_position = currentState.ptzPosition.PanPosition
-		}
-		if (
-			!previousState?.ptzPosition ||
-			previousState.ptzPosition.TiltPosition !== currentState.ptzPosition.TiltPosition
-		) {
-			variables.tilt_position = currentState.ptzPosition.TiltPosition
-		}
-		if (
-			!previousState?.ptzPosition ||
-			previousState.ptzPosition.ZoomPosition !== currentState.ptzPosition.ZoomPosition
-		) {
-			variables.zoom_position = currentState.ptzPosition.ZoomPosition
-		}
+		updateIfChanged(
+			variables,
+			previousState?.ptzPosition,
+			currentState.ptzPosition,
+			(p) => p.PanPosition,
+			'pan_position',
+		)
+		updateIfChanged(
+			variables,
+			previousState?.ptzPosition,
+			currentState.ptzPosition,
+			(p) => p.TiltPosition,
+			'tilt_position',
+		)
+		updateIfChanged(
+			variables,
+			previousState?.ptzPosition,
+			currentState.ptzPosition,
+			(p) => p.ZoomPosition,
+			'zoom_position',
+		)
 	}
 
 	// Update preset speed variables if changed
 	if (currentState.presetSpeed) {
-		if (
-			!previousState?.presetSpeed ||
-			previousState.presetSpeed.PresetZoomSpeed !== currentState.presetSpeed.PresetZoomSpeed
-		) {
-			variables.preset_zoom_speed = currentState.presetSpeed.PresetZoomSpeed
-		}
-		if (!previousState?.presetSpeed || previousState.presetSpeed.PresetSpeed !== currentState.presetSpeed.PresetSpeed) {
-			variables.preset_speed = currentState.presetSpeed.PresetSpeed
-		}
+		updateIfChanged(
+			variables,
+			previousState?.presetSpeed,
+			currentState.presetSpeed,
+			(p) => p.PresetZoomSpeed,
+			'preset_zoom_speed',
+		)
+		updateIfChanged(
+			variables,
+			previousState?.presetSpeed,
+			currentState.presetSpeed,
+			(p) => p.PresetSpeed,
+			'preset_speed',
+		)
 	}
 
 	// Update system info variables if changed
 	if (currentState.systemInfo) {
-		if (
-			!previousState ||
-			!previousState.systemInfo ||
-			previousState.systemInfo.DeviceName !== currentState.systemInfo.DeviceName
-		) {
-			variables.device_name = currentState.systemInfo.DeviceName ?? ''
+		updateIfChanged(variables, previousState?.systemInfo, currentState.systemInfo, (s) => s.DeviceName, 'device_name')
+		if (variables.device_name === undefined) {
+			variables.device_name = ''
 		}
-		if (
-			!previousState ||
-			!previousState.systemInfo ||
-			previousState.systemInfo.ModelName !== currentState.systemInfo.ModelName
-		) {
-			variables.model_name = currentState.systemInfo.ModelName ?? ''
+		updateIfChanged(variables, previousState?.systemInfo, currentState.systemInfo, (s) => s.ModelName, 'model_name')
+		if (variables.model_name === undefined) {
+			variables.model_name = ''
 		}
 	}
 
 	// Update lens info variables if changed
 	if (currentState.lensInfo) {
-		if (!previousState?.lensInfo || previousState.lensInfo.FocusMode !== currentState.lensInfo.FocusMode) {
-			variables.focus_mode = currentState.lensInfo.FocusMode
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.FocusArea !== currentState.lensInfo.FocusArea) {
-			variables.focus_area = currentState.lensInfo.FocusArea
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.NearLimit !== currentState.lensInfo.NearLimit) {
-			variables.near_limit = currentState.lensInfo.NearLimit
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.AFSensitivity !== currentState.lensInfo.AFSensitivity) {
-			variables.af_sensitivity = currentState.lensInfo.AFSensitivity
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.SmartFocus !== currentState.lensInfo.SmartFocus) {
-			variables.smart_focus = currentState.lensInfo.SmartFocus
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.DigitalZoom !== currentState.lensInfo.DigitalZoom) {
-			variables.digital_zoom = currentState.lensInfo.DigitalZoom
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.ZoomRatioOSD !== currentState.lensInfo.ZoomRatioOSD) {
-			variables.zoom_ratio_osd = currentState.lensInfo.ZoomRatioOSD
-		}
-		if (!previousState?.lensInfo || previousState.lensInfo.MFSpeed !== currentState.lensInfo.MFSpeed) {
-			variables.mf_speed = currentState.lensInfo.MFSpeed
-		}
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.FocusMode, 'focus_mode')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.FocusArea, 'focus_area')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.NearLimit, 'near_limit')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.AFSensitivity, 'af_sensitivity')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.SmartFocus, 'smart_focus')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.DigitalZoom, 'digital_zoom')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.ZoomRatioOSD, 'zoom_ratio_osd')
+		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.MFSpeed, 'mf_speed')
 	}
 
 	// Update picture info variables if changed
-	if (currentState.pictureInfo) {
-		if (!previousState?.pictureInfo || previousState.pictureInfo['2DNR'] !== currentState.pictureInfo['2DNR']) {
-			variables['2dnr'] = currentState.pictureInfo['2DNR']
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo['3DNR'] !== currentState.pictureInfo['3DNR']) {
-			variables['3dnr'] = currentState.pictureInfo['3DNR']
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Sharpness !== currentState.pictureInfo.Sharpness) {
-			variables.sharpness = currentState.pictureInfo.Sharpness
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Contrast !== currentState.pictureInfo.Contrast) {
-			variables.contrast = currentState.pictureInfo.Contrast
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Saturation !== currentState.pictureInfo.Saturation) {
-			variables.saturation = currentState.pictureInfo.Saturation
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Hue !== currentState.pictureInfo.Hue) {
-			variables.hue = currentState.pictureInfo.Hue
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.DeFlicker !== currentState.pictureInfo.DeFlicker) {
-			variables.deflicker = currentState.pictureInfo.DeFlicker
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Scene !== currentState.pictureInfo.Scene) {
-			variables.scene = currentState.pictureInfo.Scene
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.DefogMode !== currentState.pictureInfo.DefogMode) {
-			variables.defog_mode = currentState.pictureInfo.DefogMode
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.DefogLevel !== currentState.pictureInfo.DefogLevel) {
-			variables.defog_level = currentState.pictureInfo.DefogLevel
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Effect !== currentState.pictureInfo.Effect) {
-			variables.effect = currentState.pictureInfo.Effect
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Flip !== currentState.pictureInfo.Flip) {
-			variables.flip = currentState.pictureInfo.Flip
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.Mirror !== currentState.pictureInfo.Mirror) {
-			variables.mirror = currentState.pictureInfo.Mirror
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.HLCMode !== currentState.pictureInfo.HLCMode) {
-			variables.hlc_mode = currentState.pictureInfo.HLCMode
-		}
-		if (!previousState?.pictureInfo || previousState.pictureInfo.BLC !== currentState.pictureInfo.BLC) {
-			variables.blc = currentState.pictureInfo.BLC
-		}
-	}
+	updateFields(variables, previousState?.pictureInfo, currentState.pictureInfo, [
+		{ getValue: (p) => p['2DNR'], variableId: '2dnr' },
+		{ getValue: (p) => p['3DNR'], variableId: '3dnr' },
+		{ getValue: (p) => p.Sharpness, variableId: 'sharpness' },
+		{ getValue: (p) => p.Contrast, variableId: 'contrast' },
+		{ getValue: (p) => p.Saturation, variableId: 'saturation' },
+		{ getValue: (p) => p.Hue, variableId: 'hue' },
+		{ getValue: (p) => p.DeFlicker, variableId: 'deflicker' },
+		{ getValue: (p) => p.Scene, variableId: 'scene' },
+		{ getValue: (p) => p.DefogMode, variableId: 'defog_mode' },
+		{ getValue: (p) => p.DefogLevel, variableId: 'defog_level' },
+		{ getValue: (p) => p.Effect, variableId: 'effect' },
+		{ getValue: (p) => p.Flip, variableId: 'flip' },
+		{ getValue: (p) => p.Mirror, variableId: 'mirror' },
+		{ getValue: (p) => p.HLCMode, variableId: 'hlc_mode' },
+		{ getValue: (p) => p.BLC, variableId: 'blc' },
+	])
 
 	// Update gamma info variables if changed
-	if (currentState.gammaInfo) {
-		if (!previousState?.gammaInfo || previousState.gammaInfo?.Level !== currentState.gammaInfo?.Level) {
-			variables.gamma_level = currentState.gammaInfo?.Level
-		}
-		if (!previousState?.gammaInfo || previousState.gammaInfo.Bright !== currentState.gammaInfo.Bright) {
-			variables.gamma_bright = currentState.gammaInfo.Bright
-		}
-		if (!previousState?.gammaInfo || previousState.gammaInfo.WDR !== currentState.gammaInfo.WDR) {
-			variables.wdr = currentState.gammaInfo.WDR
-		}
-		if (!previousState?.gammaInfo || previousState.gammaInfo.WDRLevel !== currentState.gammaInfo.WDRLevel) {
-			variables.wdr_level = currentState.gammaInfo.WDRLevel
-		}
-	}
+	updateFields(variables, previousState?.gammaInfo, currentState.gammaInfo, [
+		{ getValue: (g) => g?.Level, variableId: 'gamma_level' },
+		{ getValue: (g) => g.Bright, variableId: 'gamma_bright' },
+		{ getValue: (g) => g.WDR, variableId: 'wdr' },
+		{ getValue: (g) => g.WDRLevel, variableId: 'wdr_level' },
+	])
 
 	// Update white balance info variables if changed
-	if (currentState.whiteBalanceInfo) {
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.Mode !== currentState.whiteBalanceInfo.Mode
-		) {
-			variables.wb_mode = currentState.whiteBalanceInfo.Mode || ''
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.WBSensitivity !== currentState.whiteBalanceInfo.WBSensitivity
-		) {
-			variables.wb_sensitivity = currentState.whiteBalanceInfo.WBSensitivity
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.RGain !== currentState.whiteBalanceInfo.RGain
-		) {
-			variables.wb_r_gain = currentState.whiteBalanceInfo.RGain
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.BGain !== currentState.whiteBalanceInfo.BGain
-		) {
-			variables.wb_b_gain = currentState.whiteBalanceInfo.BGain
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.RTuning !== currentState.whiteBalanceInfo.RTuning
-		) {
-			variables.wb_r_tuning = currentState.whiteBalanceInfo.RTuning
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.GTuning !== currentState.whiteBalanceInfo.GTuning
-		) {
-			variables.wb_g_tuning = currentState.whiteBalanceInfo.GTuning
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.BTuning !== currentState.whiteBalanceInfo.BTuning
-		) {
-			variables.wb_b_tuning = currentState.whiteBalanceInfo.BTuning
-		}
-		if (
-			!previousState?.whiteBalanceInfo ||
-			previousState.whiteBalanceInfo.ColorTemperature !== currentState.whiteBalanceInfo.ColorTemperature
-		) {
-			variables.wb_color_temperature = currentState.whiteBalanceInfo.ColorTemperature
-		}
-	}
+	updateFields(variables, previousState?.whiteBalanceInfo, currentState.whiteBalanceInfo, [
+		{ getValue: (w) => w.Mode || '', variableId: 'wb_mode', defaultValue: '' },
+		{ getValue: (w) => w.WBSensitivity, variableId: 'wb_sensitivity' },
+		{ getValue: (w) => w.RGain, variableId: 'wb_r_gain' },
+		{ getValue: (w) => w.BGain, variableId: 'wb_b_gain' },
+		{ getValue: (w) => w.RTuning, variableId: 'wb_r_tuning' },
+		{ getValue: (w) => w.GTuning, variableId: 'wb_g_tuning' },
+		{ getValue: (w) => w.BTuning, variableId: 'wb_b_tuning' },
+		{ getValue: (w) => w.ColorTemperature, variableId: 'wb_color_temperature' },
+	])
 
 	// Update exposure info variables if changed
 	if (currentState.exposureInfo) {
-		if (!previousState?.exposureInfo || previousState.exposureInfo.Mode !== currentState.exposureInfo.Mode) {
-			variables.exposure_mode = currentState.exposureInfo.Mode
-		}
-		if (!previousState?.exposureInfo || previousState.exposureInfo.Gain !== currentState.exposureInfo.Gain) {
-			variables.gain = currentState.exposureInfo.Gain
-		}
-		if (!previousState?.exposureInfo || previousState.exposureInfo.GainLimit !== currentState.exposureInfo.GainLimit) {
-			variables.gain_limit = currentState.exposureInfo.GainLimit
-		}
-		if (
-			!previousState?.exposureInfo ||
-			previousState.exposureInfo.ExCompLevel !== currentState.exposureInfo.ExCompLevel
-		) {
-			variables.ex_comp_level = currentState.exposureInfo.ExCompLevel
-		}
-		if (
-			!previousState?.exposureInfo ||
-			previousState.exposureInfo.SmartExposure !== currentState.exposureInfo.SmartExposure
-		) {
-			variables.smart_exposure = currentState.exposureInfo.SmartExposure
-		}
-		if (
-			!previousState?.exposureInfo ||
-			previousState.exposureInfo.ShutterSpeed !== currentState.exposureInfo.ShutterSpeed
-		) {
-			variables.shutter_speed = currentState.exposureInfo.ShutterSpeed
-		}
+		updateFields(variables, previousState?.exposureInfo, currentState.exposureInfo, [
+			{ getValue: (e) => e.Mode, variableId: 'exposure_mode' },
+			{ getValue: (e) => e.Gain, variableId: 'gain' },
+			{ getValue: (e) => e.GainLimit, variableId: 'gain_limit' },
+			{ getValue: (e) => e.ExCompLevel, variableId: 'ex_comp_level' },
+			{ getValue: (e) => e.SmartExposure, variableId: 'smart_exposure' },
+			{ getValue: (e) => e.ShutterSpeed, variableId: 'shutter_speed' },
+		])
+		// Special handling for Iris (needs map lookup)
 		if (!previousState?.exposureInfo || previousState.exposureInfo.Iris !== currentState.exposureInfo.Iris) {
-			// Look up iris value in the iris map if available (for enum types)
 			const irisMap = self.camera?.getIrisMapForActions() ?? {}
 			const irisValue = currentState.exposureInfo.Iris
 			variables.iris = irisMap[irisValue] ?? (irisValue !== undefined ? irisValue.toString() : '')
@@ -395,78 +330,23 @@ export function UpdateVariablesOnStateChange(
 	}
 
 	// Update position limitations variables if changed
-	if (currentState.positionLimitations) {
-		if (
-			!previousState?.positionLimitations ||
-			previousState.positionLimitations.DownLimit !== currentState.positionLimitations.DownLimit
-		) {
-			variables.position_limit_down = currentState.positionLimitations.DownLimit
-		}
-		if (
-			!previousState?.positionLimitations ||
-			previousState.positionLimitations.UpLimit !== currentState.positionLimitations.UpLimit
-		) {
-			variables.position_limit_up = currentState.positionLimitations.UpLimit
-		}
-		if (
-			!previousState?.positionLimitations ||
-			previousState.positionLimitations.LeftLimit !== currentState.positionLimitations.LeftLimit
-		) {
-			variables.position_limit_left = currentState.positionLimitations.LeftLimit
-		}
-		if (
-			!previousState?.positionLimitations ||
-			previousState.positionLimitations.RightLimit !== currentState.positionLimitations.RightLimit
-		) {
-			variables.position_limit_right = currentState.positionLimitations.RightLimit
-		}
-	}
+	updateFields(variables, previousState?.positionLimitations, currentState.positionLimitations, [
+		{ getValue: (p) => p.DownLimit, variableId: 'position_limit_down' },
+		{ getValue: (p) => p.UpLimit, variableId: 'position_limit_up' },
+		{ getValue: (p) => p.LeftLimit, variableId: 'position_limit_left' },
+		{ getValue: (p) => p.RightLimit, variableId: 'position_limit_right' },
+	])
 
 	// Update video output info variables if changed
-	if (currentState.videoOutputInfo) {
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.SystemFormat !== currentState.videoOutputInfo.SystemFormat
-		) {
-			variables.system_format = currentState.videoOutputInfo.SystemFormat ?? ''
-		}
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.HDMIResolution !== currentState.videoOutputInfo.HDMIResolution
-		) {
-			variables.hdmi_resolution = currentState.videoOutputInfo.HDMIResolution ?? ''
-		}
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.HDMIColorSpace !== currentState.videoOutputInfo.HDMIColorSpace
-		) {
-			variables.hdmi_color_space = currentState.videoOutputInfo.HDMIColorSpace
-		}
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.HDMIBitDepth !== currentState.videoOutputInfo.HDMIBitDepth
-		) {
-			variables.hdmi_bit_depth = currentState.videoOutputInfo.HDMIBitDepth
-		}
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.SDIResolution !== currentState.videoOutputInfo.SDIResolution
-		) {
-			variables.sdi_resolution = currentState.videoOutputInfo.SDIResolution
-		}
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.SDIBitDepth !== currentState.videoOutputInfo.SDIBitDepth
-		) {
-			variables.sdi_bit_depth = currentState.videoOutputInfo.SDIBitDepth
-		}
-		if (
-			!previousState?.videoOutputInfo ||
-			previousState.videoOutputInfo.SDIColorSpace !== currentState.videoOutputInfo.SDIColorSpace
-		) {
-			variables.sdi_color_space = currentState.videoOutputInfo.SDIColorSpace
-		}
-	}
+	updateFields(variables, previousState?.videoOutputInfo, currentState.videoOutputInfo, [
+		{ getValue: (v) => v.SystemFormat ?? '', variableId: 'system_format', defaultValue: '' },
+		{ getValue: (v) => v.HDMIResolution ?? '', variableId: 'hdmi_resolution', defaultValue: '' },
+		{ getValue: (v) => v.HDMIColorSpace, variableId: 'hdmi_color_space' },
+		{ getValue: (v) => v.HDMIBitDepth, variableId: 'hdmi_bit_depth' },
+		{ getValue: (v) => v.SDIResolution, variableId: 'sdi_resolution' },
+		{ getValue: (v) => v.SDIBitDepth, variableId: 'sdi_bit_depth' },
+		{ getValue: (v) => v.SDIColorSpace, variableId: 'sdi_color_space' },
+	])
 
 	// Update pan/tilt info variables if changed
 	if (currentState.panTiltInfo) {
@@ -488,11 +368,15 @@ export function UpdateVariablesOnStateChange(
 
 	if (currentState.overlayInfo) {
 		for (let i = 1; i <= 8; i++) {
+			const currentOverlay = currentState.overlayInfo[i - 1]
+			if (!currentOverlay) continue
+
 			if (
 				!previousState?.overlayInfo ||
-				previousState.overlayInfo[i - 1].Enable !== currentState.overlayInfo[i - 1].Enable
+				!previousState.overlayInfo[i - 1] ||
+				previousState.overlayInfo[i - 1].Enable !== currentOverlay.Enable
 			) {
-				variables[`overlay_${i}_enabled`] = currentState.overlayInfo[i - 1].Enable
+				variables[`overlay_${i}_enabled`] = currentOverlay.Enable
 			}
 		}
 	}
