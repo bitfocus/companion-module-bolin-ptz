@@ -21,7 +21,7 @@ export function UpdateActions(self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {}
 
 	// Only check capabilities if they've been loaded, otherwise create all actions
-	const capabilitiesLoaded = self.camera?.currentCameraCapabilities() !== null
+	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
 
 	const hasCapability = (cap: string): boolean => {
 		if (!capabilitiesLoaded) return true
@@ -144,7 +144,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Preset',
 							choices:
-								self.camera?.currentPresets()?.map((preset) => ({ label: preset.Name, id: preset.Number })) ?? [],
+								self.camera?.getState().presets?.map((preset) => ({ label: preset.Name, id: preset.Number })) ?? [],
 							default: 1,
 							id: 'preset',
 							isVisibleExpression: '$(options:customPreset) === false',
@@ -189,7 +189,7 @@ export function UpdateActions(self: ModuleInstance): void {
 								Number: customPresetNumber,
 							})
 						} else {
-							const presets = self.camera.currentPresets()
+							const presets = self.camera?.getState().presets
 							const preset = presets?.find((p) => p.Number === action.options.preset)
 							if (!preset) {
 								self.log('warn', 'Preset not found')
@@ -468,7 +468,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'smartFocus',
 					'Smart Focus',
-					() => self.camera?.currentLensInfo()?.SmartFocus,
+					() => self.camera?.getState().lensInfo?.SmartFocus,
 					async (value) => {
 						await self.camera!.setLensInfo({ SmartFocus: value } as Partial<LensInfo>)
 					},
@@ -476,7 +476,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'digitalZoom',
 					'Digital Zoom',
-					() => self.camera?.currentLensInfo()?.DigitalZoom,
+					() => self.camera?.getState().lensInfo?.DigitalZoom,
 					async (value) => {
 						await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
 					},
@@ -484,7 +484,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'zoomRatioOSD',
 					'Zoom Ratio OSD',
-					() => self.camera?.currentLensInfo()?.ZoomRatioOSD,
+					() => self.camera?.getState().lensInfo?.ZoomRatioOSD,
 					async (value) => {
 						await self.camera!.setLensInfo({ ZoomRatioOSD: value } as Partial<LensInfo>)
 					},
@@ -615,21 +615,21 @@ export function UpdateActions(self: ModuleInstance): void {
 								label: 'Format',
 								choices:
 									self.camera
-										?.currentGeneralCapabilities()
-										?.[
+										?.getState()
+										.generalCapabilities?.[
 											'VideoOutputInfo'
 										]?.['SystemFormat']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
 									[],
 								default:
-									self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['SystemFormat']?.Data?.[0]?.Value ??
-									'1920x1080P60',
+									self.camera?.getState().generalCapabilities?.['VideoOutputInfo']?.['SystemFormat']?.Data?.[0]
+										?.Value ?? '1920x1080P60',
 								id: 'format',
 							},
 						],
 						description: 'Set the system format',
 						callback: async (action) => {
 							if (!self.camera) return
-							const currentFormat = self.camera?.currentVideoOutputInfo()
+							const currentFormat = self.camera?.getState().videoOutputInfo
 							if (!currentFormat) return
 							currentFormat.SystemFormat = action.options.format as string
 							await self.camera.setVideoOutput(currentFormat)
@@ -645,13 +645,13 @@ export function UpdateActions(self: ModuleInstance): void {
 								label: 'Resolution',
 								choices:
 									self.camera
-										?.currentGeneralCapabilities()
-										?.[
+										?.getState()
+										.generalCapabilities?.[
 											'VideoOutputInfo'
 										]?.['HDMIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
 									[],
 								default:
-									self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.[0]
+									self.camera?.getState().generalCapabilities?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.[0]
 										?.Value ?? '1920x1080P60',
 								id: 'resolution',
 							},
@@ -659,7 +659,7 @@ export function UpdateActions(self: ModuleInstance): void {
 						description: 'Set the HDMI resolution',
 						callback: async (action) => {
 							if (!self.camera) return
-							const currentFormat = self.camera?.currentVideoOutputInfo()
+							const currentFormat = self.camera?.getState().videoOutputInfo
 							if (!currentFormat) return
 							currentFormat.HDMIResolution = action.options.resolution as string
 							await self.camera.setVideoOutput(currentFormat)
@@ -675,21 +675,21 @@ export function UpdateActions(self: ModuleInstance): void {
 								label: 'Resolution',
 								choices:
 									self.camera
-										?.currentGeneralCapabilities()
-										?.[
+										?.getState()
+										.generalCapabilities?.[
 											'VideoOutputInfo'
 										]?.['SDIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
 									[],
 								default:
-									self.camera?.currentGeneralCapabilities()?.['VideoOutputInfo']?.['SDIResolution']?.Data?.[0]?.Value ??
-									'1920x1080P60',
+									self.camera?.getState().generalCapabilities?.['VideoOutputInfo']?.['SDIResolution']?.Data?.[0]
+										?.Value ?? '1920x1080P60',
 								id: 'resolution',
 							},
 						],
 						description: 'Set the SDI resolution',
 						callback: async (action) => {
 							if (!self.camera) return
-							const currentFormat = self.camera?.currentVideoOutputInfo()
+							const currentFormat = self.camera?.getState().videoOutputInfo
 							if (!currentFormat) return
 							currentFormat.SDIResolution = action.options.resolution as string
 							await self.camera.setVideoOutput(currentFormat)
@@ -730,7 +730,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'rGain',
 					'White Balance - Red Gain',
-					() => self.camera?.currentWhiteBalanceInfo()?.RGain,
+					() => self.camera?.getState().whiteBalanceInfo?.RGain,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ RGain: value } as Partial<WhiteBalanceInfo>)
 					},
@@ -738,7 +738,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'bGain',
 					'White Balance - Blue Gain',
-					() => self.camera?.currentWhiteBalanceInfo()?.BGain,
+					() => self.camera?.getState().whiteBalanceInfo?.BGain,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ BGain: value } as Partial<WhiteBalanceInfo>)
 					},
@@ -746,7 +746,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'rTuning',
 					'White Balance - Red Tuning',
-					() => self.camera?.currentWhiteBalanceInfo()?.RTuning,
+					() => self.camera?.getState().whiteBalanceInfo?.RTuning,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ RTuning: value } as Partial<WhiteBalanceInfo>)
 					},
@@ -754,7 +754,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'bTuning',
 					'White Balance - Blue Tuning',
-					() => self.camera?.currentWhiteBalanceInfo()?.BTuning,
+					() => self.camera?.getState().whiteBalanceInfo?.BTuning,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ BTuning: value } as Partial<WhiteBalanceInfo>)
 					},
@@ -763,7 +763,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'gTuning',
 					'White Balance - Green Tuning',
-					() => self.camera?.currentWhiteBalanceInfo()?.GTuning,
+					() => self.camera?.getState().whiteBalanceInfo?.GTuning,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ GTuning: value } as Partial<WhiteBalanceInfo>)
 					},
@@ -771,7 +771,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'colorTemperature',
 					'White Balance - Color Temperature',
-					() => self.camera?.currentWhiteBalanceInfo()?.ColorTemperature,
+					() => self.camera?.getState().whiteBalanceInfo?.ColorTemperature,
 					async (value) => {
 						await self.camera!.setWhiteBalanceInfo({ ColorTemperature: value } as Partial<WhiteBalanceInfo>)
 					},
@@ -786,7 +786,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'flip',
 					'Flip',
-					() => self.camera?.currentPictureInfo()?.Flip,
+					() => self.camera?.getState().pictureInfo?.Flip,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Flip: value } as Partial<PictureInfo>)
 					},
@@ -795,7 +795,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'mirror',
 					'Mirror',
-					() => self.camera?.currentPictureInfo()?.Mirror,
+					() => self.camera?.getState().pictureInfo?.Mirror,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Mirror: value } as Partial<PictureInfo>)
 					},
@@ -804,7 +804,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'hlcMode',
 					'HLC Mode',
-					() => self.camera?.currentPictureInfo()?.HLCMode,
+					() => self.camera?.getState().pictureInfo?.HLCMode,
 					async (value) => {
 						await self.camera!.setPictureInfo({ HLCMode: value } as Partial<PictureInfo>)
 					},
@@ -812,7 +812,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'blcMode',
 					'BLC',
-					() => self.camera?.currentPictureInfo()?.BLC,
+					() => self.camera?.getState().pictureInfo?.BLC,
 					async (value) => {
 						await self.camera!.setPictureInfo({ BLC: value } as Partial<PictureInfo>)
 					},
@@ -821,7 +821,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'2dnr',
 					'2DNR',
-					() => self.camera?.currentPictureInfo()?.['2DNR'],
+					() => self.camera?.getState().pictureInfo?.['2DNR'],
 					async (value) => {
 						await self.camera!.setPictureInfo({ ['2DNR']: value } as Partial<PictureInfo>)
 					},
@@ -829,7 +829,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'3dnr',
 					'3DNR',
-					() => self.camera?.currentPictureInfo()?.['3DNR'],
+					() => self.camera?.getState().pictureInfo?.['3DNR'],
 					async (value) => {
 						await self.camera!.setPictureInfo({ ['3DNR']: value } as Partial<PictureInfo>)
 					},
@@ -838,7 +838,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'sharpness',
 					'Sharpness',
-					() => self.camera?.currentPictureInfo()?.Sharpness,
+					() => self.camera?.getState().pictureInfo?.Sharpness,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Sharpness: value } as Partial<PictureInfo>)
 					},
@@ -846,7 +846,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'hue',
 					'Hue',
-					() => self.camera?.currentPictureInfo()?.Hue,
+					() => self.camera?.getState().pictureInfo?.Hue,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Hue: value } as Partial<PictureInfo>)
 					},
@@ -854,7 +854,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'contrast',
 					'Contrast',
-					() => self.camera?.currentPictureInfo()?.Contrast,
+					() => self.camera?.getState().pictureInfo?.Contrast,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Contrast: value } as Partial<PictureInfo>)
 					},
@@ -862,7 +862,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'saturation',
 					'Saturation',
-					() => self.camera?.currentPictureInfo()?.Saturation,
+					() => self.camera?.getState().pictureInfo?.Saturation,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Saturation: value } as Partial<PictureInfo>)
 					},
@@ -871,7 +871,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'defogLevel',
 					'Defog Level',
-					() => self.camera?.currentPictureInfo()?.DefogLevel,
+					() => self.camera?.getState().pictureInfo?.DefogLevel,
 					async (value) => {
 						await self.camera!.setPictureInfo({ DefogLevel: value } as Partial<PictureInfo>)
 					},
@@ -928,11 +928,11 @@ export function UpdateActions(self: ModuleInstance): void {
 						const matrixOption = action.options.matrix as keyof PictureInfo
 						if (action.options.adjustment === 'increase') {
 							await self.camera.setPictureInfo({
-								[matrixOption]: ((self.camera.currentPictureInfo()?.[matrixOption] as number) ?? 0) + 1,
+								[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) + 1,
 							} as Partial<PictureInfo>)
 						} else if (action.options.adjustment === 'decrease') {
 							await self.camera.setPictureInfo({
-								[matrixOption]: ((self.camera.currentPictureInfo()?.[matrixOption] as number) ?? 0) - 1,
+								[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) - 1,
 							} as Partial<PictureInfo>)
 						} else {
 							await self.camera.setPictureInfo({
@@ -992,7 +992,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'smartFocus',
 					'Smart Focus',
-					() => self.camera?.currentLensInfo()?.SmartFocus,
+					() => self.camera?.getState().lensInfo?.SmartFocus,
 					async (value) => {
 						await self.camera!.setLensInfo({ SmartFocus: value } as Partial<LensInfo>)
 					},
@@ -1000,7 +1000,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'digitalZoom',
 					'Digital Zoom',
-					() => self.camera?.currentLensInfo()?.DigitalZoom,
+					() => self.camera?.getState().lensInfo?.DigitalZoom,
 					async (value) => {
 						await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
 					},
@@ -1008,7 +1008,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'zoomRatioOSD',
 					'Zoom Ratio OSD',
-					() => self.camera?.currentLensInfo()?.ZoomRatioOSD,
+					() => self.camera?.getState().lensInfo?.ZoomRatioOSD,
 					async (value) => {
 						await self.camera!.setLensInfo({ ZoomRatioOSD: value } as Partial<LensInfo>)
 					},
@@ -1017,7 +1017,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'wdr',
 					'Gamma - WDR',
-					() => self.camera?.currentGammaInfo()?.WDR,
+					() => self.camera?.getState().gammaInfo?.WDR,
 					async (value) => {
 						await self.camera!.setGammaInfo({ WDR: value } as Partial<GammaInfo>)
 					},
@@ -1026,7 +1026,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'gain',
 					'Gain',
-					() => self.camera?.currentExposureInfo()?.Gain,
+					() => self.camera?.getState().exposureInfo?.Gain,
 					async (value) => {
 						await self.camera!.setExposureInfo({ Gain: value } as Partial<ExposureInfo>)
 					},
@@ -1034,7 +1034,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'gainLimit',
 					'Gain Limit',
-					() => self.camera?.currentExposureInfo()?.GainLimit,
+					() => self.camera?.getState().exposureInfo?.GainLimit,
 					async (value) => {
 						await self.camera!.setExposureInfo({ GainLimit: value } as Partial<ExposureInfo>)
 					},
@@ -1042,7 +1042,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createValueAction(
 					'expCompLevel',
 					'Exposure Compensation Level',
-					() => self.camera?.currentExposureInfo()?.ExCompLevel,
+					() => self.camera?.getState().exposureInfo?.ExCompLevel,
 					async (value) => {
 						await self.camera!.setExposureInfo({ ExCompLevel: value } as Partial<ExposureInfo>)
 					},
@@ -1050,7 +1050,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'smartExposure',
 					'Smart Exposure',
-					() => self.camera?.currentExposureInfo()?.SmartExposure,
+					() => self.camera?.getState().exposureInfo?.SmartExposure,
 					async (value) => {
 						await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
 					},
@@ -1059,7 +1059,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'panDirectionInverted',
 					'Pan Direction Invert',
-					() => self.camera?.currentPTInfo()?.PanDirection === 1,
+					() => self.camera?.getState().panTiltInfo?.PanDirection === 1,
 					async (value) => {
 						await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
 					},
@@ -1067,7 +1067,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				createToggleAction(
 					'tiltDirectionInverted',
 					'Tilt Direction Invert',
-					() => self.camera?.currentPTInfo()?.TiltDirection === 1,
+					() => self.camera?.getState().panTiltInfo?.TiltDirection === 1,
 					async (value) => {
 						await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
 					},
@@ -1267,7 +1267,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							if (prop === 'enable') {
 								const enable =
 									action.options.mode === 'toggle'
-										? !self.camera.currentOverlayInfo()?.[(action.options.overlay as number) - 1]?.Enable
+										? !self.camera.getState().overlayInfo?.[(action.options.overlay as number) - 1]?.Enable
 										: action.options.mode === 'true'
 											? true
 											: false

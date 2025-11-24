@@ -526,5 +526,4 @@ export interface CameraState {
 	generalCapabilities: GeneralCapabilities | null
 	panTiltInfo: PanTiltInfo | null
 	overlayInfo: OverlayInfo[] | null
-	cameraCapabilities: CameraCapabilities | null
 }

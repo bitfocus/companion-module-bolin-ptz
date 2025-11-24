@@ -1,12 +1,13 @@
 import type { ModuleInstance } from './main.js'
 import type { PositionLimitations } from './types.js'
+import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
 
 export function UpdateFeedbacks(self: ModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
 
 	// Only check capabilities if they've been loaded, otherwise create all feedbacks
-	const capabilitiesLoaded = self.camera?.currentCameraCapabilities() !== null
+	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
 
 	const hasCapability = (cap: string): boolean => {
 		if (!capabilitiesLoaded) return true
@@ -60,9 +61,9 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 					useVariables: true,
 				},
 			],
-			callback: (feedback: any) => {
-				const comparison = feedback.options.comparison as 'equal' | 'greaterThan' | 'lessThan'
-				const value = feedback.options.value as number
+			callback: (feedback: CompanionFeedbackBooleanEvent) => {
+				const comparison = feedback.options.comparison as string as 'equal' | 'greaterThan' | 'lessThan'
+				const value = Number(feedback.options.value)
 
 				switch (comparison) {
 					case 'equal':
@@ -84,9 +85,9 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['ExposureInfo', 'Exposure'],
 			createFeedbacks: () => {
-				createValueFeedback('gain', 'Gain', 'Gain', 50, self.camera?.currentExposureInfo()?.Gain ?? 0)
+				createValueFeedback('gain', 'Gain', 'Gain', 50, self.camera?.getState().exposureInfo?.Gain ?? 0)
 				createToggleFeedback('smartExposure', 'Smart Exposure', 'Smart exposure enabled', () => {
-					return self.camera?.currentExposureInfo()?.SmartExposure ?? false
+					return self.camera?.getState().exposureInfo?.SmartExposure ?? false
 				})
 			},
 		},
@@ -98,7 +99,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 					'Color Temperature',
 					'Color temperature',
 					5000,
-					self.camera?.currentWhiteBalanceInfo()?.ColorTemperature ?? 5500,
+					self.camera?.getState().whiteBalanceInfo?.ColorTemperature ?? 5500,
 				)
 				feedbacks['whiteBalanceMode'] = {
 					name: 'White Balance Mode',
@@ -125,9 +126,9 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							default: 'Auto',
 						},
 					],
-					callback: (feedback: any) => {
-						const mode = feedback.options.mode as number
-						return self.camera?.currentWhiteBalanceInfo()?.Mode === mode.toString()
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const mode = feedback.options.mode as string
+						return self.camera?.getState().whiteBalanceInfo?.Mode === mode
 					},
 				}
 			},
@@ -151,9 +152,9 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							useVariables: true,
 						},
 					],
-					callback: (feedback: any) => {
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
 						const channel = Number(feedback.options.channel)
-						const overlayInfo = self.camera?.currentOverlayInfo()
+						const overlayInfo = self.camera?.getState().overlayInfo
 						if (!overlayInfo) return false
 						const overlay = overlayInfo.find((o) => o.Channel === channel)
 						return overlay?.Enable ?? false
@@ -165,19 +166,19 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			capabilities: ['PictureInfo', 'Picture'],
 			createFeedbacks: () => {
 				createToggleFeedback('flip', 'Flip', 'Flip enabled', () => {
-					return self.camera?.currentPictureInfo()?.Flip ?? false
+					return self.camera?.getState().pictureInfo?.Flip ?? false
 				})
 
 				createToggleFeedback('mirror', 'Mirror', 'Mirror enabled', () => {
-					return self.camera?.currentPictureInfo()?.Mirror ?? false
+					return self.camera?.getState().pictureInfo?.Mirror ?? false
 				})
 
 				createToggleFeedback('hlcMode', 'HLC Mode', 'HLC mode enabled', () => {
-					return self.camera?.currentPictureInfo()?.HLCMode ?? false
+					return self.camera?.getState().pictureInfo?.HLCMode ?? false
 				})
 
 				createToggleFeedback('blcMode', 'BLC Mode', 'BLC mode enabled', () => {
-					return self.camera?.currentPictureInfo()?.BLC ?? false
+					return self.camera?.getState().pictureInfo?.BLC ?? false
 				})
 			},
 		},
@@ -185,19 +186,19 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			capabilities: ['LensInfo', 'Lens'],
 			createFeedbacks: () => {
 				createToggleFeedback('smart', 'Smart Focus', 'Smart focus enabled', () => {
-					return self.camera?.currentLensInfo()?.SmartFocus ?? false
+					return self.camera?.getState().lensInfo?.SmartFocus ?? false
 				})
 
 				createToggleFeedback('focusMode', 'Auto Focus Enabled', 'Focus mode', () => {
-					return self.camera?.currentLensInfo()?.FocusMode === 'Auto' ? true : false
+					return self.camera?.getState().lensInfo?.FocusMode === 'Auto' ? true : false
 				})
 
 				createToggleFeedback('digitalZoom', 'Digital Zoom', 'Digital zoom enabled', () => {
-					return self.camera?.currentLensInfo()?.DigitalZoom ?? false
+					return self.camera?.getState().lensInfo?.DigitalZoom ?? false
 				})
 
 				createToggleFeedback('zoomRatioOSD', 'Zoom Ratio OSD', 'Zoom ratio OSD enabled', () => {
-					return self.camera?.currentLensInfo()?.ZoomRatioOSD ?? false
+					return self.camera?.getState().lensInfo?.ZoomRatioOSD ?? false
 				})
 			},
 		},
@@ -205,7 +206,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			capabilities: ['GammaInfo'],
 			createFeedbacks: () => {
 				createToggleFeedback('wdr', 'Gamma - WDR', 'Gamma - WDR enabled', () => {
-					return self.camera?.currentGammaInfo()?.WDR ?? false
+					return self.camera?.getState().gammaInfo?.WDR ?? false
 				})
 			},
 		},
@@ -213,11 +214,11 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			capabilities: ['PanTiltInfo'],
 			createFeedbacks: () => {
 				createToggleFeedback('panDirectionInverted', 'Pan Direction Inverted', 'Pan direction inverted', () => {
-					return self.camera?.currentPTInfo()?.PanDirection === 1
+					return self.camera?.getState().panTiltInfo?.PanDirection === 1
 				})
 
 				createToggleFeedback('tiltDirectionInverted', 'Tilt Direction Inverted', 'Tilt direction inverted', () => {
-					return self.camera?.currentPTInfo()?.TiltDirection === 1
+					return self.camera?.getState().panTiltInfo?.TiltDirection === 1
 				})
 			},
 		},
@@ -245,7 +246,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							id: 'direction',
 						},
 					],
-					callback: (feedback: any) => {
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
 						const direction = feedback.options.direction as keyof PositionLimitations
 						return self.camera?.getState().positionLimitations?.[direction] ?? false
 					},

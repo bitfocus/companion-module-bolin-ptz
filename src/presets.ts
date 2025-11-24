@@ -347,7 +347,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
-	const cameraPresets = self.camera?.currentPresets()
+	const cameraPresets = self.camera?.getState().presets
 	if (!cameraPresets) return
 	presets['presetCallHeader'] = {
 		category: 'PTZ Presets',

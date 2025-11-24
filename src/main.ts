@@ -87,43 +87,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 
 	async getCameraInfo(): Promise<void> {
 		if (!this.camera) return
-
-		// Only check capabilities if they've been loaded, otherwise try all calls
-		const capabilitiesLoaded = this.camera.currentCameraCapabilities() !== null
-
-		// Mapping of capability names to their corresponding method calls
-		const capabilityMappings: Array<{
-			capabilities: string[]
-			method: () => Promise<unknown>
-		}> = [
-			{ capabilities: ['PresetInfo'], method: async () => this.camera!.getCurrentPresets() },
-			{ capabilities: ['PTZFPosition'], method: async () => this.camera!.getPTZPosition() },
-			{ capabilities: ['LensInfo', 'Lens'], method: async () => this.camera!.getLensInfo() },
-			{ capabilities: ['PictureInfo', 'Picture'], method: async () => this.camera!.getPictureInfo() },
-			{ capabilities: ['GammaInfo'], method: async () => this.camera!.getGammaInfo() },
-			{ capabilities: ['WhiteBalanceInfo', 'WhiteBalance'], method: async () => this.camera!.getWhiteBalanceInfo() },
-			{ capabilities: ['ExposureInfo', 'Exposure'], method: async () => this.camera!.getExposureInfo() },
-			{ capabilities: ['PositionLimitations'], method: async () => this.camera!.getPositionLimits() },
-			{ capabilities: ['VideoOutputInfo'], method: async () => this.camera!.getVideoOutput() },
-			{ capabilities: ['VideoOutputInfo'], method: async () => this.camera!.getGeneralCapabilities() },
-			{
-				capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
-				method: async () => this.camera!.getPresetSpeed(),
-			},
-			{ capabilities: ['PanTiltInfo'], method: async () => this.camera!.getPTInfo() },
-			{ capabilities: ['OverlayInfo'], method: async () => this.camera!.getOverlayInfo() },
-		]
-
-		const promises = capabilityMappings
-			.filter((mapping) => {
-				// If capabilities aren't loaded, try all calls
-				if (!capabilitiesLoaded) return true
-				// Otherwise, check if any of the required capabilities exist
-				return mapping.capabilities.some((cap) => this.camera!.hasCapability(cap))
-			})
-			.map(async (mapping) => mapping.method())
-
-		await Promise.all(promises)
+		await this.camera.fetchAllCameraInfo()
 	}
 
 	pollCameraInfo(): void {

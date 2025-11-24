@@ -5,7 +5,7 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 	const variables: { name: string; variableId: string }[] = []
 
 	// Only check capabilities if they've been loaded, otherwise define all variables
-	const capabilitiesLoaded = self.camera?.currentCameraCapabilities() !== null
+	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
 
 	// Mapping of capability names to their corresponding variable definitions
 	const variableMappings: Array<{

@@ -1,27 +1,30 @@
 import { createHash, randomBytes } from 'crypto'
 import type { ModuleConfig } from './config.js'
 import type {
+	// API & Request types
 	ApiResponse,
 	LoginRequest,
 	LoginResponse,
-	SystemInfo,
-	PresetInfo,
+	// Command types
 	PresetRequest,
-	PresetSpeed,
 	ZoomCommand,
 	FocusCommand,
 	PTMoveCommand,
 	PTZFPosition,
 	PTZFPositionSet,
 	PTZFRelPosition,
+	MenuAction,
+	// State types
 	CameraState,
+	SystemInfo,
+	PresetInfo,
+	PresetSpeed,
 	LensInfo,
 	PictureInfo,
 	GammaInfo,
 	WhiteBalanceInfo,
 	ExposureInfo,
 	PositionLimitations,
-	MenuAction,
 	VideoOutputInfo,
 	GeneralCapabilities,
 	PanTiltInfo,
@@ -30,29 +33,52 @@ import type {
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
+import {
+	AF_SENSITIVITY_MAP,
+	DE_FLICKER_MAP,
+	DEFOG_MODE_MAP,
+	EFFECT_MAP,
+	EXPOSURE_MODE_MAP,
+	FOCUS_AREA_MAP,
+	GAMMA_LEVEL_MAP,
+	NEAR_LIMIT_MAP,
+	SCENE_MAP,
+	SHUTTER_SPEED_MAP,
+	WHITE_BALANCE_MODE_MAP,
+	safeEnumLookup,
+} from './constants.js'
+
+/**
+ * Creates an empty camera state object with all properties set to null
+ */
+function createEmptyState(): CameraState {
+	return {
+		positionLimitations: null,
+		ptzPosition: null,
+		systemInfo: null,
+		presets: null,
+		presetSpeed: null,
+		lensInfo: null,
+		pictureInfo: null,
+		gammaInfo: null,
+		whiteBalanceInfo: null,
+		exposureInfo: null,
+		videoOutputInfo: null,
+		generalCapabilities: null,
+		panTiltInfo: null,
+		overlayInfo: null,
+	} satisfies CameraState
+}
 
 export class BolinCamera {
-	private config: ModuleConfig
-	private password: string
+	private readonly config: ModuleConfig
+	private readonly password: string
 	private authToken: string | null = null
-	private systemInfo: SystemInfo | null = null
-	private presets: PresetInfo[] | null = null
-	private ptzPosition: PTZFPosition | null = null
-	private presetSpeed: PresetSpeed | null = null
-	private lensInfo: LensInfo | null = null
-	private pictureInfo: PictureInfo | null = null
-	private gammaInfo: GammaInfo | null = null
-	private whiteBalanceInfo: WhiteBalanceInfo | null = null
-	private exposureInfo: ExposureInfo | null = null
-	private positionLimitations: PositionLimitations | null = null
-	private videoOutputInfo: VideoOutputInfo | null = null
-	private generalCapabilities: GeneralCapabilities | null = null
-	private panTiltInfo: PanTiltInfo | null = null
-	private overlayInfo: OverlayInfo[] | null = null
+	private state: CameraState = createEmptyState()
 	private cameraCapabilities: CameraCapabilities | null = null
 	private previousState: CameraState | null = null
 	private updateVariablesTimeout: NodeJS.Timeout | null = null
-	private self: ModuleInstance
+	private readonly self: ModuleInstance
 
 	constructor(config: ModuleConfig, password: string, self: ModuleInstance) {
 		this.config = config
@@ -145,44 +171,18 @@ export class BolinCamera {
 			this.updateVariablesTimeout = null
 		}
 		this.authToken = null
-		this.systemInfo = null
-		this.presets = null
-		this.ptzPosition = null
-		this.lensInfo = null
-		this.pictureInfo = null
-		this.gammaInfo = null
-		this.whiteBalanceInfo = null
-		this.exposureInfo = null
-		this.positionLimitations = null
-		this.videoOutputInfo = null
-		this.generalCapabilities = null
-		this.panTiltInfo = null
-		this.overlayInfo = null
+		this.state = createEmptyState()
 		this.cameraCapabilities = null
 		this.previousState = null
 	}
 
 	/**
-	 * Gets the current camera state
+	 * Gets the current camera state (returns a shallow copy to prevent external mutations)
+	 * Since state properties are objects/arrays, they remain references - this is intentional
+	 * for performance. External code should not mutate these objects.
 	 */
-	getState(): CameraState {
-		return {
-			positionLimitations: this.positionLimitations,
-			ptzPosition: this.ptzPosition,
-			systemInfo: this.systemInfo,
-			presets: this.presets,
-			presetSpeed: this.presetSpeed,
-			lensInfo: this.lensInfo,
-			pictureInfo: this.pictureInfo,
-			gammaInfo: this.gammaInfo,
-			whiteBalanceInfo: this.whiteBalanceInfo,
-			exposureInfo: this.exposureInfo,
-			videoOutputInfo: this.videoOutputInfo,
-			generalCapabilities: this.generalCapabilities,
-			panTiltInfo: this.panTiltInfo,
-			overlayInfo: this.overlayInfo,
-			cameraCapabilities: this.cameraCapabilities,
-		}
+	getState(): Readonly<CameraState> {
+		return { ...this.state }
 	}
 
 	/**
@@ -260,16 +260,9 @@ export class BolinCamera {
 	 */
 	async getSystemInfo(): Promise<SystemInfo> {
 		const response = await this.sendRequest('/apiv2/system', 'ReqGetSystemInfo')
-		this.systemInfo = response.Content.SystemInfo as SystemInfo
+		this.state.systemInfo = response.Content.SystemInfo as SystemInfo
 		this.updateVariablesOnStateChange()
-		return this.systemInfo
-	}
-
-	/**
-	 * Gets the stored system information
-	 */
-	currentSystemInfo(): SystemInfo | null {
-		return this.systemInfo
+		return this.state.systemInfo
 	}
 
 	/**
@@ -277,9 +270,9 @@ export class BolinCamera {
 	 */
 	async getCurrentPresets(): Promise<PresetInfo[]> {
 		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPreset')
-		this.presets = response.Content.PresetInfo as PresetInfo[]
+		this.state.presets = response.Content.PresetInfo as PresetInfo[]
 		this.updateVariablesOnStateChange()
-		return this.presets
+		return this.state.presets
 	}
 
 	/**
@@ -291,18 +284,11 @@ export class BolinCamera {
 		})
 	}
 
-	/**
-	 * Gets the stored presets
-	 */
-	currentPresets(): PresetInfo[] | null {
-		return this.presets
-	}
-
 	async getPresetSpeed(): Promise<PresetSpeed> {
 		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPresetSpeed')
-		this.presetSpeed = response.Content.PTZFPresetSpeed as PresetSpeed
+		this.state.presetSpeed = response.Content.PTZFPresetSpeed as PresetSpeed
 		this.updateVariablesOnStateChange()
-		return response.Content.PresetSpeed as PresetSpeed
+		return this.state.presetSpeed
 	}
 
 	/**
@@ -312,21 +298,9 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPresetSpeed', {
 			PTZFPresetSpeed: presetSpeed,
 		})
-		await this.getPresetSpeed()
-	}
-
-	/**
-	 * Gets the stored preset speed
-	 */
-	currentPresetSpeed(): PresetSpeed | null {
-		return this.presetSpeed
-	}
-
-	/**
-	 * Gets the stored PTZ position
-	 */
-	currentPTZPosition(): PTZFPosition | null {
-		return this.ptzPosition
+		// Update state optimistically - no need for redundant GET call
+		this.state.presetSpeed = presetSpeed
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -345,51 +319,26 @@ export class BolinCamera {
 			MFSpeed: number
 		}
 
-		// Convert FocusArea enum: 0 = 'Default', 1 = 'All', 2 = 'Top', 3 = 'Center', 4 = 'Bottom'
-		const focusAreaMap: Record<number, 'Default' | 'All' | 'Top' | 'Center' | 'Bottom'> = {
-			0: 'Default',
-			1: 'All',
-			2: 'Top',
-			3: 'Center',
-			4: 'Bottom',
-		}
-
-		// Convert NearLimit enum: 0 = '1cm', 1 = '30cm', 4 = '1.0m'
-		const nearLimitMap: Record<number, '1cm' | '30cm' | '1.0m'> = {
-			0: '1cm',
-			1: '30cm',
-			4: '1.0m',
-		}
-
-		// Convert AFSensitivity enum: 0 = 'Low', 1 = 'Middle', 2 = 'High'
-		const afSensitivityMap: Record<number, 'Low' | 'Middle' | 'High'> = {
-			0: 'Low',
-			1: 'Middle',
-			2: 'High',
-		}
-
-		this.lensInfo = {
+		this.state.lensInfo = {
 			...rawLensInfo,
 			FocusMode: rawLensInfo.FocusMode === 0 ? 'Auto' : 'Manual',
-			FocusArea: focusAreaMap[rawLensInfo.FocusArea] ?? 'Default',
-			NearLimit: nearLimitMap[rawLensInfo.NearLimit] ?? '1cm',
-			AFSensitivity: afSensitivityMap[rawLensInfo.AFSensitivity] ?? 'Low',
+			FocusArea: safeEnumLookup(FOCUS_AREA_MAP, rawLensInfo.FocusArea, 'Default'),
+			NearLimit: safeEnumLookup(NEAR_LIMIT_MAP, rawLensInfo.NearLimit, '1cm'),
+			AFSensitivity: safeEnumLookup(AF_SENSITIVITY_MAP, rawLensInfo.AFSensitivity, 'Low'),
 		}
 		this.updateVariablesOnStateChange()
-		return this.lensInfo
-	}
-
-	/**
-	 * Gets the stored lens information
-	 */
-	currentLensInfo(): LensInfo | null {
-		return this.lensInfo
+		return this.state.lensInfo
 	}
 
 	async setLensInfo(lensInfo: Partial<LensInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetLensInfo', {
 			LensInfo: lensInfo,
 		})
+		// Update state optimistically - merge with existing state
+		if (this.state.lensInfo) {
+			this.state.lensInfo = { ...this.state.lensInfo, ...lensInfo }
+		}
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -433,50 +382,15 @@ export class BolinCamera {
 			BlueValue: number
 		}
 
-		// Convert DeFlicker enum: 0 = 'OFF', 1 = '50HZ', 2 = '60HZ'
-		const deFlickerMap: Record<number, 'OFF' | '50HZ' | '60HZ'> = {
-			0: 'OFF',
-			1: '50HZ',
-			2: '60HZ',
-		}
-
-		// Convert Scene enum: 1 = 'Standard', 3 = 'Bright', 4 = 'Clarity', 5 = 'Soft'
-		const sceneMap: Record<number, 'Standard' | 'Bright' | 'Clarity' | 'Soft'> = {
-			1: 'Standard',
-			3: 'Bright',
-			4: 'Clarity',
-			5: 'Soft',
-		}
-
-		// Convert DefogMode enum: 0 = 'OFF', 1 = 'Auto', 2 = 'Manual'
-		const defogModeMap: Record<number, 'OFF' | 'Auto' | 'Manual'> = {
-			0: 'OFF',
-			1: 'Auto',
-			2: 'Manual',
-		}
-
-		// Convert Effect enum: 0 = 'Day', 1 = 'Night'
-		const effectMap: Record<number, 'Day' | 'Night'> = {
-			0: 'Day',
-			1: 'Night',
-		}
-
-		this.pictureInfo = {
+		this.state.pictureInfo = {
 			...rawPictureInfo,
-			DeFlicker: deFlickerMap[rawPictureInfo.DeFlicker] ?? 'OFF',
-			Scene: sceneMap[rawPictureInfo.Scene] ?? 'Standard',
-			DefogMode: defogModeMap[rawPictureInfo.DefogMode] ?? 'OFF',
-			Effect: effectMap[rawPictureInfo.Effect] ?? 'Day',
+			DeFlicker: safeEnumLookup(DE_FLICKER_MAP, rawPictureInfo.DeFlicker, 'OFF'),
+			Scene: safeEnumLookup(SCENE_MAP, rawPictureInfo.Scene, 'Standard'),
+			DefogMode: safeEnumLookup(DEFOG_MODE_MAP, rawPictureInfo.DefogMode, 'OFF'),
+			Effect: safeEnumLookup(EFFECT_MAP, rawPictureInfo.Effect, 'Day'),
 		}
 		this.updateVariablesOnStateChange()
-		return this.pictureInfo
-	}
-
-	/**
-	 * Gets the stored picture information
-	 */
-	currentPictureInfo(): PictureInfo | null {
-		return this.pictureInfo
+		return this.state.pictureInfo
 	}
 
 	/**
@@ -491,34 +405,23 @@ export class BolinCamera {
 			WDRLevel: number
 		}
 
-		// Convert Level enum: 0 = 'Default', 1 = '0.45', 2 = '0.50', 3 = '0.55', 4 = '0.63'
-		const gammaLevelMap: Record<number, 'Default' | '0.45' | '0.50' | '0.55' | '0.63'> = {
-			0: 'Default',
-			1: '0.45',
-			2: '0.50',
-			3: '0.55',
-			4: '0.63',
-		}
-
-		this.gammaInfo = {
+		this.state.gammaInfo = {
 			...rawGammaInfo,
-			Level: gammaLevelMap[rawGammaInfo?.Level] ?? 'Default',
+			Level: safeEnumLookup(GAMMA_LEVEL_MAP, rawGammaInfo?.Level ?? 0, 'Default'),
 		}
 		this.updateVariablesOnStateChange()
-		return this.gammaInfo
-	}
-
-	/**
-	 * Gets the stored gamma information
-	 */
-	currentGammaInfo(): GammaInfo | null {
-		return this.gammaInfo
+		return this.state.gammaInfo
 	}
 
 	async setGammaInfo(gammaInfo: Partial<GammaInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetGammaInfo', {
 			GammaInfo: gammaInfo,
 		})
+		// Update state optimistically - merge with existing state
+		if (this.state.gammaInfo) {
+			this.state.gammaInfo = { ...this.state.gammaInfo, ...gammaInfo }
+		}
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -537,41 +440,23 @@ export class BolinCamera {
 			ColorTemperature: number
 		}
 
-		// Convert Mode enum: 0 = 'Auto', 1 = 'Indoor', 2 = 'Outdoor', 3 = 'OPW', 4 = 'ATW', 5 = 'User', 8 = 'SVL', 10 = 'ManualColorTemperature'
-		const whiteBalanceModeMap: Record<
-			number,
-			'Auto' | 'Indoor' | 'Outdoor' | 'OPW' | 'ATW' | 'User' | 'SVL' | 'ManualColorTemperature'
-		> = {
-			0: 'Auto',
-			1: 'Indoor',
-			2: 'Outdoor',
-			3: 'OPW',
-			4: 'ATW',
-			5: 'User',
-			8: 'SVL',
-			10: 'ManualColorTemperature',
-		}
-
-		this.whiteBalanceInfo = {
+		this.state.whiteBalanceInfo = {
 			...rawWhiteBalanceInfo,
-			Mode: whiteBalanceModeMap[rawWhiteBalanceInfo.Mode] ?? 'Auto',
+			Mode: safeEnumLookup(WHITE_BALANCE_MODE_MAP, rawWhiteBalanceInfo.Mode, 'Auto'),
 		}
 		this.updateVariablesOnStateChange()
-		return this.whiteBalanceInfo
-	}
-
-	/**
-	 * Gets the stored white balance information
-	 */
-	currentWhiteBalanceInfo(): WhiteBalanceInfo | null {
-		return this.whiteBalanceInfo
+		return this.state.whiteBalanceInfo
 	}
 
 	async setWhiteBalanceInfo(whiteBalanceInfo: Partial<WhiteBalanceInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetWhiteBalanceInfo', {
 			WhiteBalanceInfo: whiteBalanceInfo,
 		})
-		await this.getWhiteBalanceInfo()
+		// Update state optimistically - merge with existing state
+		if (this.state.whiteBalanceInfo) {
+			this.state.whiteBalanceInfo = { ...this.state.whiteBalanceInfo, ...whiteBalanceInfo }
+		}
+		this.updateVariablesOnStateChange()
 		this.self.checkFeedbacks('whiteBalanceMode')
 	}
 
@@ -579,7 +464,11 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetPictureInfo', {
 			PictureInfo: pictureInfo,
 		})
-		await this.getPictureInfo()
+		// Update state optimistically - merge with existing state
+		if (this.state.pictureInfo) {
+			this.state.pictureInfo = { ...this.state.pictureInfo, ...pictureInfo }
+		}
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -597,82 +486,24 @@ export class BolinCamera {
 			Iris: number
 		}
 
-		// Convert Mode enum: 0 = 'Auto', 1 = 'Manual', 2 = 'ShutterPri', 3 = 'IrisPri'
-		const exposureModeMap: Record<number, 'Auto' | 'Manual' | 'ShutterPri' | 'IrisPri'> = {
-			0: 'Auto',
-			1: 'Manual',
-			2: 'ShutterPri',
-			3: 'IrisPri',
-		}
-
-		// Convert ShutterSpeed enum: 9 = '1/60', 10 = '1/90', ..., 29 = '1/100000'
-		const shutterSpeedMap: Record<
-			number,
-			| '1/60'
-			| '1/90'
-			| '1/100'
-			| '1/125'
-			| '1/180'
-			| '1/195'
-			| '1/215'
-			| '1/230'
-			| '1/250'
-			| '1/350'
-			| '1/500'
-			| '1/725'
-			| '1/1000'
-			| '1/1500'
-			| '1/2000'
-			| '1/3000'
-			| '1/4000'
-			| '1/6000'
-			| '1/10000'
-			| '1/30000'
-			| '1/100000'
-		> = {
-			9: '1/60',
-			10: '1/90',
-			11: '1/100',
-			12: '1/125',
-			13: '1/180',
-			14: '1/195',
-			15: '1/215',
-			16: '1/230',
-			17: '1/250',
-			18: '1/350',
-			19: '1/500',
-			20: '1/725',
-			21: '1/1000',
-			22: '1/1500',
-			23: '1/2000',
-			24: '1/3000',
-			25: '1/4000',
-			26: '1/6000',
-			27: '1/10000',
-			28: '1/30000',
-			29: '1/100000',
-		}
-
-		this.exposureInfo = {
+		this.state.exposureInfo = {
 			...rawExposureInfo,
-			Mode: exposureModeMap[rawExposureInfo.Mode] ?? 'Auto',
-			ShutterSpeed: shutterSpeedMap[rawExposureInfo.ShutterSpeed] ?? '1/60',
+			Mode: safeEnumLookup(EXPOSURE_MODE_MAP, rawExposureInfo.Mode, 'Auto'),
+			ShutterSpeed: safeEnumLookup(SHUTTER_SPEED_MAP, rawExposureInfo.ShutterSpeed, '1/60'),
 		}
 		this.updateVariablesOnStateChange()
-		return this.exposureInfo
-	}
-
-	/**
-	 * Gets the stored exposure information
-	 */
-	currentExposureInfo(): ExposureInfo | null {
-		return this.exposureInfo
+		return this.state.exposureInfo
 	}
 
 	async setExposureInfo(exposureInfo: Partial<ExposureInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetExposureInfo', {
 			ExposureInfo: exposureInfo,
 		})
+		// Update state optimistically - merge with existing state
+		if (this.state.exposureInfo) {
+			this.state.exposureInfo = { ...this.state.exposureInfo, ...exposureInfo }
+		}
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -732,7 +563,7 @@ export class BolinCamera {
 	async getPTZPosition(): Promise<PTZFPosition> {
 		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPosition')
 		const position = response.Content.PTZFPosition as PTZFPosition
-		this.ptzPosition = position
+		this.state.ptzPosition = position
 		this.updateVariablesOnStateChange()
 		return position
 	}
@@ -746,11 +577,11 @@ export class BolinCamera {
 			PTZFPosition: position,
 		})
 		// Update state if we have current position and new values
-		if (this.ptzPosition) {
-			this.ptzPosition = {
-				PanPosition: position.PanPosition ?? this.ptzPosition.PanPosition,
-				TiltPosition: position.TiltPosition ?? this.ptzPosition.TiltPosition,
-				ZoomPosition: position.ZoomPosition ?? this.ptzPosition.ZoomPosition,
+		if (this.state.ptzPosition) {
+			this.state.ptzPosition = {
+				PanPosition: position.PanPosition ?? this.state.ptzPosition.PanPosition,
+				TiltPosition: position.TiltPosition ?? this.state.ptzPosition.TiltPosition,
+				ZoomPosition: position.ZoomPosition ?? this.state.ptzPosition.ZoomPosition,
 			}
 			this.updateVariablesOnStateChange()
 		}
@@ -765,11 +596,11 @@ export class BolinCamera {
 			PTZFRelPosition: position,
 		})
 		// Update state if we have current position and relative values
-		if (this.ptzPosition && (position.PanPosition !== undefined || position.TiltPosition !== undefined)) {
-			this.ptzPosition = {
-				PanPosition: (this.ptzPosition.PanPosition ?? 0) + (position.PanPosition ?? 0),
-				TiltPosition: (this.ptzPosition.TiltPosition ?? 0) + (position.TiltPosition ?? 0),
-				ZoomPosition: this.ptzPosition.ZoomPosition,
+		if (this.state.ptzPosition && (position.PanPosition !== undefined || position.TiltPosition !== undefined)) {
+			this.state.ptzPosition = {
+				PanPosition: (this.state.ptzPosition.PanPosition ?? 0) + (position.PanPosition ?? 0),
+				TiltPosition: (this.state.ptzPosition.TiltPosition ?? 0) + (position.TiltPosition ?? 0),
+				ZoomPosition: this.state.ptzPosition.ZoomPosition,
 			}
 			this.updateVariablesOnStateChange()
 		}
@@ -781,17 +612,10 @@ export class BolinCamera {
 	async getPositionLimits(): Promise<PositionLimitations> {
 		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPositionLimitations')
 		const positionLimitations = response.Content.PositionLimitations as PositionLimitations
-		this.positionLimitations = positionLimitations
+		this.state.positionLimitations = positionLimitations
 		this.updateVariablesOnStateChange()
 		this.self.checkFeedbacks('positionLimitEnabled')
 		return positionLimitations
-	}
-
-	/**
-	 * Gets the stored position limitations
-	 */
-	currentPositionLimits(): PositionLimitations | null {
-		return this.positionLimitations
 	}
 
 	/**
@@ -802,7 +626,12 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPositionLimitations', {
 			PositionLimitations: limitations,
 		})
-		await this.getPositionLimits()
+		// Update state optimistically - merge with existing state
+		if (this.state.positionLimitations) {
+			this.state.positionLimitations = { ...this.state.positionLimitations, ...limitations }
+		}
+		this.updateVariablesOnStateChange()
+		this.self.checkFeedbacks('positionLimitEnabled')
 	}
 
 	/**
@@ -822,9 +651,9 @@ export class BolinCamera {
 	 */
 	async getPTInfo(): Promise<PanTiltInfo> {
 		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo', undefined, '2.0.000')
-		this.panTiltInfo = response.Content.PanTiltInfo as PanTiltInfo
+		this.state.panTiltInfo = response.Content.PanTiltInfo as PanTiltInfo
 		this.updateVariablesOnStateChange()
-		return this.panTiltInfo
+		return this.state.panTiltInfo
 	}
 
 	/**
@@ -835,14 +664,11 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetPanTiltInfo', {
 			PanTiltInfo: panTiltInfo,
 		})
-		await this.getPTInfo()
-	}
-
-	/**
-	 * Gets the stored pan/tilt information
-	 */
-	currentPTInfo(): PanTiltInfo | null {
-		return this.panTiltInfo
+		// Update state optimistically - merge with existing state
+		if (this.state.panTiltInfo) {
+			this.state.panTiltInfo = { ...this.state.panTiltInfo, ...panTiltInfo }
+		}
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -850,23 +676,21 @@ export class BolinCamera {
 	 */
 	async getVideoOutput(): Promise<VideoOutputInfo> {
 		const response = await this.sendRequest('/apiv2/general', 'ReqGetVideoOutputInfo')
-		this.videoOutputInfo = response.Content.VideoOutputInfo as VideoOutputInfo
+		this.state.videoOutputInfo = response.Content.VideoOutputInfo as VideoOutputInfo
 		this.updateVariablesOnStateChange()
-		return this.videoOutputInfo
+		return this.state.videoOutputInfo
 	}
 
 	async setVideoOutput(output: Partial<VideoOutputInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/general', 'ReqSetVideoOutputInfo', {
 			VideoOutputInfo: output,
 		})
+		// Update state optimistically - merge with existing state
+		if (this.state.videoOutputInfo) {
+			this.state.videoOutputInfo = { ...this.state.videoOutputInfo, ...output }
+		}
+		this.updateVariablesOnStateChange()
 	}
-	/**
-	 * Gets the stored video output information
-	 */
-	currentVideoOutputInfo(): VideoOutputInfo | null {
-		return this.videoOutputInfo
-	}
-
 	/**
 	 * Gets general capabilities from the camera and stores it in state
 	 */
@@ -874,17 +698,10 @@ export class BolinCamera {
 		const response = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities')
 		const generalCapabilities = response.Content as GeneralCapabilities
 
-		this.generalCapabilities = generalCapabilities
+		this.state.generalCapabilities = generalCapabilities
 
 		this.updateVariablesOnStateChange()
-		return this.generalCapabilities
-	}
-
-	/**
-	 * Gets the stored general capabilities
-	 */
-	currentGeneralCapabilities(): GeneralCapabilities | null {
-		return this.generalCapabilities
+		return this.state.generalCapabilities
 	}
 
 	/**
@@ -892,9 +709,9 @@ export class BolinCamera {
 	 */
 	async getOverlayInfo(): Promise<OverlayInfo[]> {
 		const response = await this.sendRequest('/apiv2/general', 'ReqGetOverlayInfo')
-		this.overlayInfo = response.Content.OverlayInfo as OverlayInfo[]
+		this.state.overlayInfo = response.Content.OverlayInfo as OverlayInfo[]
 		this.updateVariablesOnStateChange()
-		return this.overlayInfo
+		return this.state.overlayInfo
 	}
 
 	/**
@@ -905,14 +722,9 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/general', 'ReqSetOverlayInfo', {
 			OverlayInfo: [overlayInfo],
 		})
+		// Note: Overlay updates are complex (array-based), so we refresh state
+		// This could be optimized further if we track which overlay index was updated
 		await this.getOverlayInfo()
-	}
-
-	/**
-	 * Gets the stored overlay information
-	 */
-	currentOverlayInfo(): OverlayInfo[] | null {
-		return this.overlayInfo
 	}
 
 	/**
@@ -1017,9 +829,9 @@ export class BolinCamera {
 	}
 
 	/**
-	 * Gets the stored camera capabilities
+	 * Gets the stored camera capabilities (does not fetch from camera)
 	 */
-	currentCameraCapabilities(): CameraCapabilities | null {
+	getStoredCameraCapabilities(): CameraCapabilities | null {
 		return this.cameraCapabilities
 	}
 
@@ -1043,5 +855,48 @@ export class BolinCamera {
 		]
 
 		return categories.some((category) => category?.includes(capabilityName) ?? false)
+	}
+
+	/**
+	 * Fetches all available camera info based on capabilities
+	 * Only fetches info for capabilities that are supported by the camera
+	 */
+	async fetchAllCameraInfo(): Promise<void> {
+		const capabilitiesLoaded = this.cameraCapabilities !== null
+
+		// Mapping of capability names to their corresponding method calls
+		type CapabilityMapping = {
+			capabilities: readonly string[]
+			method: () => Promise<unknown>
+		}
+		const capabilityMappings: readonly CapabilityMapping[] = [
+			{ capabilities: ['PresetInfo'], method: async () => this.getCurrentPresets() },
+			{ capabilities: ['PTZFPosition'], method: async () => this.getPTZPosition() },
+			{ capabilities: ['LensInfo', 'Lens'], method: async () => this.getLensInfo() },
+			{ capabilities: ['PictureInfo', 'Picture'], method: async () => this.getPictureInfo() },
+			{ capabilities: ['GammaInfo'], method: async () => this.getGammaInfo() },
+			{ capabilities: ['WhiteBalanceInfo', 'WhiteBalance'], method: async () => this.getWhiteBalanceInfo() },
+			{ capabilities: ['ExposureInfo', 'Exposure'], method: async () => this.getExposureInfo() },
+			{ capabilities: ['PositionLimitations'], method: async () => this.getPositionLimits() },
+			{ capabilities: ['VideoOutputInfo'], method: async () => this.getVideoOutput() },
+			{ capabilities: ['VideoOutputInfo'], method: async () => this.getGeneralCapabilities() },
+			{
+				capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
+				method: async () => this.getPresetSpeed(),
+			},
+			{ capabilities: ['PanTiltInfo'], method: async () => this.getPTInfo() },
+			{ capabilities: ['OverlayInfo'], method: async () => this.getOverlayInfo() },
+		]
+
+		const promises = capabilityMappings
+			.filter((mapping) => {
+				// If capabilities aren't loaded, try all calls
+				if (!capabilitiesLoaded) return true
+				// Otherwise, check if any of the required capabilities exist
+				return mapping.capabilities.some((cap) => this.hasCapability(cap))
+			})
+			.map(async (mapping) => mapping.method())
+
+		await Promise.all(promises)
 	}
 }
