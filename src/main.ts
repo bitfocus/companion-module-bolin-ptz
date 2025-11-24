@@ -16,6 +16,8 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 	secrets!: ModuleSecrets // Setup in init()
 	public camera: BolinCamera | null = null
 	public interval: NodeJS.Timeout | null = null
+	public reconnectionInterval: NodeJS.Timeout | null = null
+	private isReconnecting: boolean = false
 	constructor(internal: unknown) {
 		super(internal)
 	}
@@ -38,6 +40,7 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 		this.log('debug', 'destroy')
 		if (this.interval) clearInterval(this.interval)
 		this.interval = null
+		this.stopReconnectionPoll()
 		if (this.camera) {
 			this.camera.clearAuth()
 			this.camera = null
@@ -66,14 +69,33 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			const token = await this.camera.login()
 
 			if (token) {
+				// Stop reconnection polling if it was active
+				this.stopReconnectionPoll()
+				this.isReconnecting = false
+
 				this.updateStatus(InstanceStatus.Ok)
 
-				const systemInfo = await this.camera.getSystemInfo()
-				this.log('debug', 'System info: ' + JSON.stringify(systemInfo))
-
-				await Promise.all([this.getCameraInfo(), this.camera.getCameraCapabilities()])
-				this.updateModuleComponents()
-				this.pollCameraInfo()
+				// Wait for camera to be ready (retry up to 7 times with backoff, up to ~60 seconds)
+				for (let attempt = 0; attempt < 7; attempt++) {
+					try {
+						const systemInfo = await this.camera.getSystemInfo()
+						this.log('debug', 'System info: ' + JSON.stringify(systemInfo))
+						await Promise.all([this.getCameraInfo(true), this.camera.getCameraCapabilities()])
+						this.updateModuleComponents()
+						this.pollCameraInfo()
+						return // Success
+					} catch (error) {
+						if (attempt === 6) {
+							// Last attempt failed - rethrow to be caught by outer catch
+							const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+							this.log('warn', `Camera initialization failed after 7 attempts (~60s): ${errorMessage}`)
+							throw error
+						}
+						const delay = 1000 * Math.pow(2, attempt)
+						this.log('debug', `Camera not ready (attempt ${attempt + 1}/7), retrying in ${delay}ms...`)
+						await new Promise((resolve) => setTimeout(resolve, delay))
+					}
+				}
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure)
 			}
@@ -81,13 +103,41 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			this.camera = null
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			this.updateStatus(InstanceStatus.ConnectionFailure)
-			this.log('error', `${errorMessage}`)
+			// Only log error if we're not already in reconnection mode
+			if (!this.isReconnecting) {
+				this.log('warn', `Camera connection error: ${errorMessage}`)
+			}
+			// Start reconnection polling if not already active
+			this.startReconnectionPoll()
 		}
 	}
 
-	async getCameraInfo(): Promise<void> {
+	async getCameraInfo(suppressReconnection: boolean = false): Promise<void> {
 		if (!this.camera) return
-		await this.camera.fetchAllCameraInfo()
+		try {
+			await this.camera.fetchAllCameraInfo()
+		} catch (error) {
+			// During initialization, rethrow the error so retry logic can handle it
+			if (suppressReconnection) {
+				throw error
+			}
+
+			// Camera is offline or connection lost
+			// Stop normal polling immediately to prevent multiple error logs
+			if (this.interval) {
+				clearInterval(this.interval)
+				this.interval = null
+			}
+
+			// Only log the first error
+			if (!this.isReconnecting) {
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+				this.log('warn', `Camera connection error: ${errorMessage}`)
+				this.updateStatus(InstanceStatus.ConnectionFailure)
+			}
+
+			this.startReconnectionPoll()
+		}
 	}
 
 	pollCameraInfo(): void {
@@ -96,6 +146,33 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 		this.interval = setInterval(() => {
 			void this.getCameraInfo()
 		}, 1000)
+	}
+
+	startReconnectionPoll(): void {
+		// Stop normal polling when offline
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
+		}
+
+		// Don't start multiple reconnection polls
+		if (this.reconnectionInterval) return
+
+		this.isReconnecting = true
+		this.log('debug', 'Starting reconnection polling')
+
+		this.reconnectionInterval = setInterval(() => {
+			void this.performLogin()
+		}, 5000) // Poll every 5 seconds
+	}
+
+	stopReconnectionPoll(): void {
+		if (this.reconnectionInterval) {
+			clearInterval(this.reconnectionInterval)
+			this.reconnectionInterval = null
+			this.isReconnecting = false
+			this.log('debug', 'Stopped reconnection polling')
+		}
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
