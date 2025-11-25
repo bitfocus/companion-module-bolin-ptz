@@ -403,55 +403,65 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 						return currentEffectNumber === effectNumber
 					},
 				}
-				feedbacks['colorMatrix'] = {
-					name: 'Picture - Color Matrix',
-					description: 'Color matrix value matches selected value',
-					type: 'boolean',
-					defaultStyle: {
-						bgcolor: 0x009900,
-					},
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Matrix Option',
-							id: 'matrix',
-							choices: [
-								{ label: 'Magenta Hue', id: 'MagentaHue' },
-								{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
-								{ label: 'Magenta Value', id: 'MagentaValue' },
-								{ label: 'Red Hue', id: 'RedHue' },
-								{ label: 'Red Saturation', id: 'RedSaturation' },
-								{ label: 'Red Value', id: 'RedValue' },
-								{ label: 'Yellow Hue', id: 'YellowHue' },
-								{ label: 'Yellow Saturation', id: 'YellowSaturation' },
-								{ label: 'Yellow Value', id: 'YellowValue' },
-								{ label: 'Green Hue', id: 'GreenHue' },
-								{ label: 'Green Saturation', id: 'GreenSaturation' },
-								{ label: 'Green Value', id: 'GreenValue' },
-								{ label: 'Cyan Hue', id: 'CyanHue' },
-								{ label: 'Cyan Saturation', id: 'CyanSaturation' },
-								{ label: 'Cyan Value', id: 'CyanValue' },
-								{ label: 'Blue Hue', id: 'BlueHue' },
-								{ label: 'Blue Saturation', id: 'BlueSaturation' },
-								{ label: 'Blue Value', id: 'BlueValue' },
-							],
-							default: 'MagentaSaturation',
+				// Check if camera has color matrix capabilities
+				const hasColorMatrixCapability =
+					!capabilitiesLoaded ||
+					hasCapability('MagentaHue') ||
+					hasCapability('RedHue') ||
+					hasCapability('PictureInfo.MagentaHue') ||
+					hasCapability('PictureInfo.RedHue')
+
+				if (hasColorMatrixCapability) {
+					feedbacks['colorMatrix'] = {
+						name: 'Picture - Color Matrix',
+						description: 'Color matrix value matches selected value',
+						type: 'boolean',
+						defaultStyle: {
+							bgcolor: 0x009900,
 						},
-						{
-							type: 'textinput',
-							label: 'Value',
-							id: 'value',
-							default: '0',
-							useVariables: true,
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Matrix Option',
+								id: 'matrix',
+								choices: [
+									{ label: 'Magenta Hue', id: 'MagentaHue' },
+									{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
+									{ label: 'Magenta Value', id: 'MagentaValue' },
+									{ label: 'Red Hue', id: 'RedHue' },
+									{ label: 'Red Saturation', id: 'RedSaturation' },
+									{ label: 'Red Value', id: 'RedValue' },
+									{ label: 'Yellow Hue', id: 'YellowHue' },
+									{ label: 'Yellow Saturation', id: 'YellowSaturation' },
+									{ label: 'Yellow Value', id: 'YellowValue' },
+									{ label: 'Green Hue', id: 'GreenHue' },
+									{ label: 'Green Saturation', id: 'GreenSaturation' },
+									{ label: 'Green Value', id: 'GreenValue' },
+									{ label: 'Cyan Hue', id: 'CyanHue' },
+									{ label: 'Cyan Saturation', id: 'CyanSaturation' },
+									{ label: 'Cyan Value', id: 'CyanValue' },
+									{ label: 'Blue Hue', id: 'BlueHue' },
+									{ label: 'Blue Saturation', id: 'BlueSaturation' },
+									{ label: 'Blue Value', id: 'BlueValue' },
+								],
+								default: 'MagentaSaturation',
+							},
+							{
+								type: 'textinput',
+								label: 'Value',
+								id: 'value',
+								default: '0',
+								useVariables: true,
+							},
+						],
+						callback: (feedback: CompanionFeedbackBooleanEvent) => {
+							const matrixOption = feedback.options.matrix as keyof PictureInfo
+							const value = parseInt(feedback.options.value as string)
+							if (isNaN(value)) return false
+							const currentValue = self.camera?.getState().pictureInfo?.[matrixOption] as number
+							return currentValue === value
 						},
-					],
-					callback: (feedback: CompanionFeedbackBooleanEvent) => {
-						const matrixOption = feedback.options.matrix as keyof PictureInfo
-						const value = parseInt(feedback.options.value as string)
-						if (isNaN(value)) return false
-						const currentValue = self.camera?.getState().pictureInfo?.[matrixOption] as number
-						return currentValue === value
-					},
+					}
 				}
 			},
 		},

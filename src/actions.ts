@@ -1071,76 +1071,86 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 
-				const ColorMatrixOptions = [
-					{ label: 'Magenta Hue', id: 'MagentaHue' },
-					{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
-					{ label: 'Magenta Value', id: 'MagentaValue' },
-					{ label: 'Red Hue', id: 'RedHue' },
-					{ label: 'Red Saturation', id: 'RedSaturation' },
-					{ label: 'Red Value', id: 'RedValue' },
-					{ label: 'Yellow Hue', id: 'YellowHue' },
-					{ label: 'Yellow Saturation', id: 'YellowSaturation' },
-					{ label: 'Yellow Value', id: 'YellowValue' },
-					{ label: 'Green Hue', id: 'GreenHue' },
-					{ label: 'Green Saturation', id: 'GreenSaturation' },
-					{ label: 'Green Value', id: 'GreenValue' },
-					{ label: 'Cyan Hue', id: 'CyanHue' },
-					{ label: 'Cyan Saturation', id: 'CyanSaturation' },
-					{ label: 'Cyan Value', id: 'CyanValue' },
-					{ label: 'Blue Hue', id: 'BlueHue' },
-					{ label: 'Blue Saturation', id: 'BlueSaturation' },
-					{ label: 'Blue Value', id: 'BlueValue' },
-				]
+				// Check if camera has color matrix capabilities
+				const hasColorMatrixCapability =
+					!capabilitiesLoaded ||
+					hasCapability('MagentaHue') ||
+					hasCapability('RedHue') ||
+					hasCapability('PictureInfo.MagentaHue') ||
+					hasCapability('PictureInfo.RedHue')
 
-				actions['colorMatrix'] = {
-					name: 'Color Matrix',
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Matrix Option',
-							choices: ColorMatrixOptions,
-							default: 'MagentaSaturation',
-							id: 'matrix',
-						},
-						{
-							type: 'dropdown',
-							label: 'Adjustment',
-							choices: setChoices,
-							default: 'increase',
-							id: 'adjustment',
-						},
-						{
-							type: 'textinput',
-							label: 'Value',
-							default: '0',
-							id: 'value',
-							useVariables: true,
-							isVisibleExpression: `$(options:adjustment) === 'set'`,
-						},
-					],
-					description: 'Set the color matrix',
-					callback: async (action) => {
-						if (!self.camera) return
-						const matrixOption = action.options.matrix as keyof PictureInfo
-						if (action.options.adjustment === 'increase') {
-							await self.camera.setPictureInfo({
-								[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) + 1,
-							} as Partial<PictureInfo>)
-						} else if (action.options.adjustment === 'decrease') {
-							await self.camera.setPictureInfo({
-								[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) - 1,
-							} as Partial<PictureInfo>)
-						} else {
-							const parsedValue = parseInt(action.options.value as string)
-							if (isNaN(parsedValue)) {
-								self.log('warn', 'Color matrix value must be a number')
-								return
+				if (hasColorMatrixCapability) {
+					const ColorMatrixOptions = [
+						{ label: 'Magenta Hue', id: 'MagentaHue' },
+						{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
+						{ label: 'Magenta Value', id: 'MagentaValue' },
+						{ label: 'Red Hue', id: 'RedHue' },
+						{ label: 'Red Saturation', id: 'RedSaturation' },
+						{ label: 'Red Value', id: 'RedValue' },
+						{ label: 'Yellow Hue', id: 'YellowHue' },
+						{ label: 'Yellow Saturation', id: 'YellowSaturation' },
+						{ label: 'Yellow Value', id: 'YellowValue' },
+						{ label: 'Green Hue', id: 'GreenHue' },
+						{ label: 'Green Saturation', id: 'GreenSaturation' },
+						{ label: 'Green Value', id: 'GreenValue' },
+						{ label: 'Cyan Hue', id: 'CyanHue' },
+						{ label: 'Cyan Saturation', id: 'CyanSaturation' },
+						{ label: 'Cyan Value', id: 'CyanValue' },
+						{ label: 'Blue Hue', id: 'BlueHue' },
+						{ label: 'Blue Saturation', id: 'BlueSaturation' },
+						{ label: 'Blue Value', id: 'BlueValue' },
+					]
+
+					actions['colorMatrix'] = {
+						name: 'Color Matrix',
+						options: [
+							{
+								type: 'dropdown',
+								label: 'Matrix Option',
+								choices: ColorMatrixOptions,
+								default: 'MagentaSaturation',
+								id: 'matrix',
+							},
+							{
+								type: 'dropdown',
+								label: 'Adjustment',
+								choices: setChoices,
+								default: 'increase',
+								id: 'adjustment',
+							},
+							{
+								type: 'textinput',
+								label: 'Value',
+								default: '0',
+								id: 'value',
+								useVariables: true,
+								isVisibleExpression: `$(options:adjustment) === 'set'`,
+							},
+						],
+						description: 'Set the color matrix',
+						callback: async (action) => {
+							if (!self.camera) return
+							const matrixOption = action.options.matrix as keyof PictureInfo
+							if (action.options.adjustment === 'increase') {
+								await self.camera.setPictureInfo({
+									[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) + 1,
+								} as Partial<PictureInfo>)
+							} else if (action.options.adjustment === 'decrease') {
+								await self.camera.setPictureInfo({
+									[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) - 1,
+								} as Partial<PictureInfo>)
+							} else {
+								const parsedValue = parseInt(action.options.value as string)
+								if (isNaN(parsedValue)) {
+									self.log('warn', 'Color matrix value must be a number')
+									return
+								}
+								await self.camera.setPictureInfo({
+									[matrixOption]: parsedValue,
+								} as Partial<PictureInfo>)
 							}
-							await self.camera.setPictureInfo({
-								[matrixOption]: parsedValue,
-							} as Partial<PictureInfo>)
-						}
-					},
+						},
+					}
 				}
 			},
 		},

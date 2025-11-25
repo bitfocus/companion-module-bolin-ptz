@@ -1,5 +1,5 @@
 import type { ModuleInstance } from './main.js'
-import type { CameraState } from './types.js'
+import type { CameraState, PictureInfo } from './types.js'
 import { convertIrisValueToFStop } from './utils.js'
 
 /**
@@ -54,7 +54,7 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 	// Mapping of capability names to their corresponding variable definitions
 	const variableMappings: Array<{
 		capabilities: string[]
-		variables: Array<{ name: string; variableId: string }>
+		variables: Array<{ name: string; variableId: string }> | (() => Array<{ name: string; variableId: string }>)
 	}> = [
 		{
 			capabilities: ['OverlayInfo'],
@@ -100,41 +100,59 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 		},
 		{
 			capabilities: ['PictureInfo', 'Picture'],
-			variables: [
-				{ name: 'Picture - 2DNR', variableId: '2dnr' },
-				{ name: 'Picture - 3DNR', variableId: '3dnr' },
-				{ name: 'Picture - Sharpness', variableId: 'sharpness' },
-				{ name: 'Picture - Contrast', variableId: 'contrast' },
-				{ name: 'Picture - Saturation', variableId: 'saturation' },
-				{ name: 'Picture - Hue', variableId: 'hue' },
-				{ name: 'Picture - DeFlicker', variableId: 'deflicker' },
-				{ name: 'Picture - Scene', variableId: 'scene' },
-				{ name: 'Picture - Defog Mode', variableId: 'defog_mode' },
-				{ name: 'Picture - Defog Level', variableId: 'defog_level' },
-				{ name: 'Picture - Effect', variableId: 'effect' },
-				{ name: 'Picture - Flip', variableId: 'flip' },
-				{ name: 'Picture - Mirror', variableId: 'mirror' },
-				{ name: 'Picture - HLC Mode', variableId: 'hlc_mode' },
-				{ name: 'Picture - BLC', variableId: 'blc' },
-				{ name: 'Picture - Color Matrix - Magenta Hue', variableId: 'color_matrix_magenta_hue' },
-				{ name: 'Picture - Color Matrix - Magenta Saturation', variableId: 'color_matrix_magenta_saturation' },
-				{ name: 'Picture - Color Matrix - Magenta Value', variableId: 'color_matrix_magenta_value' },
-				{ name: 'Picture - Color Matrix - Red Hue', variableId: 'color_matrix_red_hue' },
-				{ name: 'Picture - Color Matrix - Red Saturation', variableId: 'color_matrix_red_saturation' },
-				{ name: 'Picture - Color Matrix - Red Value', variableId: 'color_matrix_red_value' },
-				{ name: 'Picture - Color Matrix - Yellow Hue', variableId: 'color_matrix_yellow_hue' },
-				{ name: 'Picture - Color Matrix - Yellow Saturation', variableId: 'color_matrix_yellow_saturation' },
-				{ name: 'Picture - Color Matrix - Yellow Value', variableId: 'color_matrix_yellow_value' },
-				{ name: 'Picture - Color Matrix - Green Hue', variableId: 'color_matrix_green_hue' },
-				{ name: 'Picture - Color Matrix - Green Saturation', variableId: 'color_matrix_green_saturation' },
-				{ name: 'Picture - Color Matrix - Green Value', variableId: 'color_matrix_green_value' },
-				{ name: 'Picture - Color Matrix - Cyan Hue', variableId: 'color_matrix_cyan_hue' },
-				{ name: 'Picture - Color Matrix - Cyan Saturation', variableId: 'color_matrix_cyan_saturation' },
-				{ name: 'Picture - Color Matrix - Cyan Value', variableId: 'color_matrix_cyan_value' },
-				{ name: 'Picture - Color Matrix - Blue Hue', variableId: 'color_matrix_blue_hue' },
-				{ name: 'Picture - Color Matrix - Blue Saturation', variableId: 'color_matrix_blue_saturation' },
-				{ name: 'Picture - Color Matrix - Blue Value', variableId: 'color_matrix_blue_value' },
-			],
+			variables: (() => {
+				const baseVariables = [
+					{ name: 'Picture - 2DNR', variableId: '2dnr' },
+					{ name: 'Picture - 3DNR', variableId: '3dnr' },
+					{ name: 'Picture - Sharpness', variableId: 'sharpness' },
+					{ name: 'Picture - Contrast', variableId: 'contrast' },
+					{ name: 'Picture - Saturation', variableId: 'saturation' },
+					{ name: 'Picture - Hue', variableId: 'hue' },
+					{ name: 'Picture - DeFlicker', variableId: 'deflicker' },
+					{ name: 'Picture - Scene', variableId: 'scene' },
+					{ name: 'Picture - Defog Mode', variableId: 'defog_mode' },
+					{ name: 'Picture - Defog Level', variableId: 'defog_level' },
+					{ name: 'Picture - Effect', variableId: 'effect' },
+					{ name: 'Picture - Flip', variableId: 'flip' },
+					{ name: 'Picture - Mirror', variableId: 'mirror' },
+					{ name: 'Picture - HLC Mode', variableId: 'hlc_mode' },
+					{ name: 'Picture - BLC', variableId: 'blc' },
+				]
+
+				// Check if camera has color matrix capabilities
+				const hasColorMatrixCapability =
+					!capabilitiesLoaded ||
+					self.camera?.hasCapability('MagentaHue') ||
+					self.camera?.hasCapability('RedHue') ||
+					self.camera?.hasCapability('PictureInfo.MagentaHue') ||
+					self.camera?.hasCapability('PictureInfo.RedHue')
+
+				if (hasColorMatrixCapability) {
+					return [
+						...baseVariables,
+						{ name: 'Picture - Color Matrix - Magenta Hue', variableId: 'color_matrix_magenta_hue' },
+						{ name: 'Picture - Color Matrix - Magenta Saturation', variableId: 'color_matrix_magenta_saturation' },
+						{ name: 'Picture - Color Matrix - Magenta Value', variableId: 'color_matrix_magenta_value' },
+						{ name: 'Picture - Color Matrix - Red Hue', variableId: 'color_matrix_red_hue' },
+						{ name: 'Picture - Color Matrix - Red Saturation', variableId: 'color_matrix_red_saturation' },
+						{ name: 'Picture - Color Matrix - Red Value', variableId: 'color_matrix_red_value' },
+						{ name: 'Picture - Color Matrix - Yellow Hue', variableId: 'color_matrix_yellow_hue' },
+						{ name: 'Picture - Color Matrix - Yellow Saturation', variableId: 'color_matrix_yellow_saturation' },
+						{ name: 'Picture - Color Matrix - Yellow Value', variableId: 'color_matrix_yellow_value' },
+						{ name: 'Picture - Color Matrix - Green Hue', variableId: 'color_matrix_green_hue' },
+						{ name: 'Picture - Color Matrix - Green Saturation', variableId: 'color_matrix_green_saturation' },
+						{ name: 'Picture - Color Matrix - Green Value', variableId: 'color_matrix_green_value' },
+						{ name: 'Picture - Color Matrix - Cyan Hue', variableId: 'color_matrix_cyan_hue' },
+						{ name: 'Picture - Color Matrix - Cyan Saturation', variableId: 'color_matrix_cyan_saturation' },
+						{ name: 'Picture - Color Matrix - Cyan Value', variableId: 'color_matrix_cyan_value' },
+						{ name: 'Picture - Color Matrix - Blue Hue', variableId: 'color_matrix_blue_hue' },
+						{ name: 'Picture - Color Matrix - Blue Saturation', variableId: 'color_matrix_blue_saturation' },
+						{ name: 'Picture - Color Matrix - Blue Value', variableId: 'color_matrix_blue_value' },
+					]
+				}
+
+				return baseVariables
+			})(),
 		},
 		{
 			capabilities: ['GammaInfo'],
@@ -211,7 +229,12 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 	// Filter and collect variables based on capabilities
 	for (const mapping of variableMappings) {
 		if (!capabilitiesLoaded || mapping.capabilities.some((cap) => self.camera?.hasCapability(cap))) {
-			variables.push(...mapping.variables)
+			// Handle function-based variables (for conditional variables like color matrix)
+			if (typeof mapping.variables === 'function') {
+				variables.push(...mapping.variables())
+			} else {
+				variables.push(...mapping.variables)
+			}
 		}
 	}
 
@@ -292,41 +315,90 @@ export function UpdateVariablesOnStateChange(
 	}
 
 	// Update picture info variables if changed
-	updateFields(variables, previousState?.pictureInfo, currentState.pictureInfo, [
-		{ getValue: (p) => p['2DNR'], variableId: '2dnr' },
-		{ getValue: (p) => p['3DNR'], variableId: '3dnr' },
-		{ getValue: (p) => p.Sharpness, variableId: 'sharpness' },
-		{ getValue: (p) => p.Contrast, variableId: 'contrast' },
-		{ getValue: (p) => p.Saturation, variableId: 'saturation' },
-		{ getValue: (p) => p.Hue, variableId: 'hue' },
-		{ getValue: (p) => p.DeFlicker, variableId: 'deflicker' },
-		{ getValue: (p) => p.Scene, variableId: 'scene' },
-		{ getValue: (p) => p.DefogMode, variableId: 'defog_mode' },
-		{ getValue: (p) => p.DefogLevel, variableId: 'defog_level' },
-		{ getValue: (p) => p.Effect, variableId: 'effect' },
-		{ getValue: (p) => p.Flip, variableId: 'flip' },
-		{ getValue: (p) => p.Mirror, variableId: 'mirror' },
-		{ getValue: (p) => p.HLCMode, variableId: 'hlc_mode' },
-		{ getValue: (p) => p.BLC, variableId: 'blc' },
-		{ getValue: (p) => p.MagentaHue, variableId: 'color_matrix_magenta_hue' },
-		{ getValue: (p) => p.MagentaSaturation, variableId: 'color_matrix_magenta_saturation' },
-		{ getValue: (p) => p.MagentaValue, variableId: 'color_matrix_magenta_value' },
-		{ getValue: (p) => p.RedHue, variableId: 'color_matrix_red_hue' },
-		{ getValue: (p) => p.RedSaturation, variableId: 'color_matrix_red_saturation' },
-		{ getValue: (p) => p.RedValue, variableId: 'color_matrix_red_value' },
-		{ getValue: (p) => p.YellowHue, variableId: 'color_matrix_yellow_hue' },
-		{ getValue: (p) => p.YellowSaturation, variableId: 'color_matrix_yellow_saturation' },
-		{ getValue: (p) => p.YellowValue, variableId: 'color_matrix_yellow_value' },
-		{ getValue: (p) => p.GreenHue, variableId: 'color_matrix_green_hue' },
-		{ getValue: (p) => p.GreenSaturation, variableId: 'color_matrix_green_saturation' },
-		{ getValue: (p) => p.GreenValue, variableId: 'color_matrix_green_value' },
-		{ getValue: (p) => p.CyanHue, variableId: 'color_matrix_cyan_hue' },
-		{ getValue: (p) => p.CyanSaturation, variableId: 'color_matrix_cyan_saturation' },
-		{ getValue: (p) => p.CyanValue, variableId: 'color_matrix_cyan_value' },
-		{ getValue: (p) => p.BlueHue, variableId: 'color_matrix_blue_hue' },
-		{ getValue: (p) => p.BlueSaturation, variableId: 'color_matrix_blue_saturation' },
-		{ getValue: (p) => p.BlueValue, variableId: 'color_matrix_blue_value' },
-	])
+	const basePictureFields: Array<{
+		getValue: (p: PictureInfo) => unknown
+		variableId: string
+		defaultValue?: number | string | boolean
+	}> = [
+		{ getValue: (p: PictureInfo) => p['2DNR'], variableId: '2dnr' },
+		{ getValue: (p: PictureInfo) => p['3DNR'], variableId: '3dnr' },
+		{ getValue: (p: PictureInfo) => p.Sharpness, variableId: 'sharpness' },
+		{ getValue: (p: PictureInfo) => p.Contrast, variableId: 'contrast' },
+		{ getValue: (p: PictureInfo) => p.Saturation, variableId: 'saturation' },
+		{ getValue: (p: PictureInfo) => p.Hue, variableId: 'hue' },
+		{ getValue: (p: PictureInfo) => p.DeFlicker, variableId: 'deflicker' },
+		{ getValue: (p: PictureInfo) => p.Scene, variableId: 'scene' },
+		{ getValue: (p: PictureInfo) => p.DefogMode, variableId: 'defog_mode' },
+		{ getValue: (p: PictureInfo) => p.DefogLevel, variableId: 'defog_level' },
+		{ getValue: (p: PictureInfo) => p.Effect, variableId: 'effect' },
+		{ getValue: (p: PictureInfo) => p.Flip, variableId: 'flip' },
+		{ getValue: (p: PictureInfo) => p.Mirror, variableId: 'mirror' },
+		{ getValue: (p: PictureInfo) => p.HLCMode, variableId: 'hlc_mode' },
+		{ getValue: (p: PictureInfo) => p.BLC, variableId: 'blc' },
+	]
+
+	// Check if camera has color matrix capabilities
+	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
+	const hasColorMatrixCapability =
+		!capabilitiesLoaded ||
+		self.camera?.hasCapability('MagentaHue') ||
+		self.camera?.hasCapability('RedHue') ||
+		self.camera?.hasCapability('PictureInfo.MagentaHue') ||
+		self.camera?.hasCapability('PictureInfo.RedHue')
+
+	const pictureFields = hasColorMatrixCapability
+		? [
+				...basePictureFields,
+				{ getValue: (p: PictureInfo) => p.MagentaHue ?? 0, variableId: 'color_matrix_magenta_hue', defaultValue: 0 },
+				{
+					getValue: (p: PictureInfo) => p.MagentaSaturation ?? 0,
+					variableId: 'color_matrix_magenta_saturation',
+					defaultValue: 0,
+				},
+				{
+					getValue: (p: PictureInfo) => p.MagentaValue ?? 0,
+					variableId: 'color_matrix_magenta_value',
+					defaultValue: 0,
+				},
+				{ getValue: (p: PictureInfo) => p.RedHue ?? 0, variableId: 'color_matrix_red_hue', defaultValue: 0 },
+				{
+					getValue: (p: PictureInfo) => p.RedSaturation ?? 0,
+					variableId: 'color_matrix_red_saturation',
+					defaultValue: 0,
+				},
+				{ getValue: (p: PictureInfo) => p.RedValue ?? 0, variableId: 'color_matrix_red_value', defaultValue: 0 },
+				{ getValue: (p: PictureInfo) => p.YellowHue ?? 0, variableId: 'color_matrix_yellow_hue', defaultValue: 0 },
+				{
+					getValue: (p: PictureInfo) => p.YellowSaturation ?? 0,
+					variableId: 'color_matrix_yellow_saturation',
+					defaultValue: 0,
+				},
+				{ getValue: (p: PictureInfo) => p.YellowValue ?? 0, variableId: 'color_matrix_yellow_value', defaultValue: 0 },
+				{ getValue: (p: PictureInfo) => p.GreenHue ?? 0, variableId: 'color_matrix_green_hue', defaultValue: 0 },
+				{
+					getValue: (p: PictureInfo) => p.GreenSaturation ?? 0,
+					variableId: 'color_matrix_green_saturation',
+					defaultValue: 0,
+				},
+				{ getValue: (p: PictureInfo) => p.GreenValue ?? 0, variableId: 'color_matrix_green_value', defaultValue: 0 },
+				{ getValue: (p: PictureInfo) => p.CyanHue ?? 0, variableId: 'color_matrix_cyan_hue', defaultValue: 0 },
+				{
+					getValue: (p: PictureInfo) => p.CyanSaturation ?? 0,
+					variableId: 'color_matrix_cyan_saturation',
+					defaultValue: 0,
+				},
+				{ getValue: (p: PictureInfo) => p.CyanValue ?? 0, variableId: 'color_matrix_cyan_value', defaultValue: 0 },
+				{ getValue: (p: PictureInfo) => p.BlueHue ?? 0, variableId: 'color_matrix_blue_hue', defaultValue: 0 },
+				{
+					getValue: (p: PictureInfo) => p.BlueSaturation ?? 0,
+					variableId: 'color_matrix_blue_saturation',
+					defaultValue: 0,
+				},
+				{ getValue: (p: PictureInfo) => p.BlueValue ?? 0, variableId: 'color_matrix_blue_value', defaultValue: 0 },
+			]
+		: basePictureFields
+
+	updateFields(variables, previousState?.pictureInfo, currentState.pictureInfo, pictureFields)
 
 	// Update gamma info variables if changed
 	updateFields(variables, previousState?.gammaInfo, currentState.gammaInfo, [
