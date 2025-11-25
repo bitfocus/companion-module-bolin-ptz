@@ -86,8 +86,14 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['ExposureInfo', 'Exposure'],
 			createFeedbacks: () => {
-				createValueFeedback('gain', 'Gain', 'Gain', 50, self.camera?.getState().exposureInfo?.Gain ?? 0)
-				createToggleFeedback('smartExposure', 'Smart Exposure', 'Smart exposure enabled', () => {
+				createValueFeedback(
+					'gain',
+					'Exposure - Gain',
+					'Gain matches selected value',
+					50,
+					self.camera?.getState().exposureInfo?.Gain ?? 0,
+				)
+				createToggleFeedback('smartExposure', 'Exposure - Smart Exposure', 'Smart exposure is enabled', () => {
 					return self.camera?.getState().exposureInfo?.SmartExposure ?? false
 				})
 
@@ -102,7 +108,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 
 				if (shutterSpeedChoices.length > 0) {
 					feedbacks['shutterSpeed'] = {
-						name: 'Shutter Speed',
+						name: 'Exposure - Shutter Speed',
 						description: 'Shutter speed matches selected value',
 						type: 'boolean',
 						defaultStyle: {
@@ -144,8 +150,8 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 					)
 
 					feedbacks['iris'] = {
-						name: 'Iris',
-						description: 'Iris matches selected value',
+						name: 'Exposure - Iris',
+						description: 'Iris matches selected f-stop value',
 						type: 'boolean',
 						defaultStyle: {
 							bgcolor: 0x009900,
@@ -188,14 +194,14 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			createFeedbacks: () => {
 				createValueFeedback(
 					'colorTemperature',
-					'Color Temperature',
-					'Color temperature',
+					'White Balance - Color Temperature',
+					'Color temperature matches selected value',
 					5000,
 					self.camera?.getState().whiteBalanceInfo?.ColorTemperature ?? 5500,
 				)
 				feedbacks['whiteBalanceMode'] = {
-					name: 'White Balance Mode',
-					description: 'White balance mode',
+					name: 'White Balance - Mode',
+					description: 'White balance mode matches selected value',
 					type: 'boolean',
 					defaultStyle: {
 						bgcolor: 0x009900,
@@ -230,7 +236,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			createFeedbacks: () => {
 				feedbacks['overlayEnabled'] = {
 					name: 'Overlay Enabled',
-					description: 'Overlay enabled',
+					description: 'Selected overlay channel is enabled',
 					type: 'boolean',
 					defaultStyle: {
 						bgcolor: 0x009900,
@@ -257,19 +263,19 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['PictureInfo', 'Picture'],
 			createFeedbacks: () => {
-				createToggleFeedback('flip', 'Flip', 'Flip enabled', () => {
+				createToggleFeedback('flip', 'Picture - Flip', 'Image flip is enabled', () => {
 					return self.camera?.getState().pictureInfo?.Flip ?? false
 				})
 
-				createToggleFeedback('mirror', 'Mirror', 'Mirror enabled', () => {
+				createToggleFeedback('mirror', 'Picture - Mirror', 'Image mirror is enabled', () => {
 					return self.camera?.getState().pictureInfo?.Mirror ?? false
 				})
 
-				createToggleFeedback('hlcMode', 'HLC Mode', 'HLC mode enabled', () => {
+				createToggleFeedback('hlcMode', 'Picture - HLC Mode', 'HLC mode is enabled', () => {
 					return self.camera?.getState().pictureInfo?.HLCMode ?? false
 				})
 
-				createToggleFeedback('blcMode', 'BLC Mode', 'BLC mode enabled', () => {
+				createToggleFeedback('blcMode', 'Picture - BLC', 'BLC mode is enabled', () => {
 					return self.camera?.getState().pictureInfo?.BLC ?? false
 				})
 			},
@@ -277,19 +283,19 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['LensInfo', 'Lens'],
 			createFeedbacks: () => {
-				createToggleFeedback('smart', 'Smart Focus', 'Smart focus enabled', () => {
+				createToggleFeedback('smart', 'Lens - Smart Focus', 'Smart focus is enabled', () => {
 					return self.camera?.getState().lensInfo?.SmartFocus ?? false
 				})
 
-				createToggleFeedback('focusMode', 'Auto Focus Enabled', 'Focus mode', () => {
+				createToggleFeedback('focusMode', 'Focus - Mode', 'Focus mode is set to Auto', () => {
 					return self.camera?.getState().lensInfo?.FocusMode === 'Auto' ? true : false
 				})
 
-				createToggleFeedback('digitalZoom', 'Digital Zoom', 'Digital zoom enabled', () => {
+				createToggleFeedback('digitalZoom', 'Lens - Digital Zoom', 'Digital zoom is enabled', () => {
 					return self.camera?.getState().lensInfo?.DigitalZoom ?? false
 				})
 
-				createToggleFeedback('zoomRatioOSD', 'Zoom Ratio OSD', 'Zoom ratio OSD enabled', () => {
+				createToggleFeedback('zoomRatioOSD', 'Lens - Zoom Ratio OSD', 'Zoom ratio OSD is enabled', () => {
 					return self.camera?.getState().lensInfo?.ZoomRatioOSD ?? false
 				})
 			},
@@ -297,7 +303,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['GammaInfo'],
 			createFeedbacks: () => {
-				createToggleFeedback('wdr', 'Gamma - WDR', 'Gamma - WDR enabled', () => {
+				createToggleFeedback('wdr', 'Gamma - WDR', 'WDR is enabled', () => {
 					return self.camera?.getState().gammaInfo?.WDR ?? false
 				})
 			},
@@ -305,21 +311,31 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		{
 			capabilities: ['PanTiltInfo', 'PTZFMoveInfo'],
 			createFeedbacks: () => {
-				createToggleFeedback('panDirectionInverted', 'Pan Direction Inverted', 'Pan direction inverted', () => {
-					return self.camera?.getState().panTiltInfo?.PanDirection === 1
-				})
+				createToggleFeedback(
+					'panDirectionInverted',
+					'PTZ - Pan Direction Inverted',
+					'Pan direction is inverted',
+					() => {
+						return self.camera?.getState().panTiltInfo?.PanDirection === 1
+					},
+				)
 
-				createToggleFeedback('tiltDirectionInverted', 'Tilt Direction Inverted', 'Tilt direction inverted', () => {
-					return self.camera?.getState().panTiltInfo?.TiltDirection === 1
-				})
+				createToggleFeedback(
+					'tiltDirectionInverted',
+					'PTZ - Tilt Direction Inverted',
+					'Tilt direction is inverted',
+					() => {
+						return self.camera?.getState().panTiltInfo?.TiltDirection === 1
+					},
+				)
 			},
 		},
 		{
 			capabilities: ['PositionLimitations'],
 			createFeedbacks: () => {
 				feedbacks['positionLimitEnabled'] = {
-					name: 'Position Limit Enabled',
-					description: 'Locked position',
+					name: 'PTZ - Position Limit Enabled',
+					description: 'Position limit is locked for selected direction',
 					type: 'boolean',
 					defaultStyle: {
 						bgcolor: 0x009900,

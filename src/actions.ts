@@ -65,6 +65,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		name: string,
 		getCurrentValue: () => boolean | undefined,
 		setValue: (value: boolean) => Promise<void>,
+		description?: string,
 	): void {
 		actions[actionId] = {
 			name: name,
@@ -77,7 +78,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					id: 'mode',
 				},
 			],
-			description: `Set the ${name.toLowerCase()}`,
+			description: description ?? `Set the ${name.toLowerCase()}`,
 			callback: async (action) => {
 				if (!self.camera) return
 				const currentValue = getCurrentValue() ?? false
@@ -99,6 +100,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		setValue: (value: number) => Promise<void>,
 		defaultValue: number = 50,
 		step: number = 1,
+		description?: string,
 	): void {
 		actions[actionId] = {
 			name: name,
@@ -118,7 +120,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					useVariables: true,
 				},
 			],
-			description: `Set the ${name.toLowerCase()}`,
+			description: description ?? `Set the ${name.toLowerCase()}`,
 			callback: async (action) => {
 				if (!self.camera) return
 				const currentValue = getCurrentValue() ?? defaultValue
@@ -148,7 +150,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['PresetInfo'],
 			createActions: () => {
 				actions['presetControl'] = {
-					name: 'Preset Control',
+					name: 'Presets - Call / Save / Delete',
 					description: 'Call, save or delete a preset',
 					options: [
 						{
@@ -231,7 +233,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
 			createActions: () => {
 				actions['setPresetSpeed'] = {
-					name: 'Set Preset Speed',
+					name: 'Presets -Set Preset Speed',
 					options: [
 						{
 							type: 'textinput',
@@ -284,7 +286,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			createActions: () => {
 				createToggleAction(
 					'panDirectionInverted',
-					'Pan Direction Invert',
+					'PTZ - Pan Direction Invert',
 					() => self.camera?.getState().panTiltInfo?.PanDirection === 1,
 					async (value) => {
 						await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
@@ -292,7 +294,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				)
 				createToggleAction(
 					'tiltDirectionInverted',
-					'Tilt Direction Invert',
+					'PTZ - Tilt Direction Invert',
 					() => self.camera?.getState().panTiltInfo?.TiltDirection === 1,
 					async (value) => {
 						await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
@@ -305,7 +307,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			createActions: () => {
 				// Basic PTZ controls - always available
 				actions['goHome'] = {
-					name: 'Go Home',
+					name: 'PTZ - Go Home',
 					options: [],
 					description: 'Go to the home position',
 					callback: async () => {
@@ -314,7 +316,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 				actions['zoom'] = {
-					name: 'Zoom',
+					name: 'PTZ - Zoom',
 					options: [
 						{
 							type: 'dropdown',
@@ -356,7 +358,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 				actions['ptMove'] = {
-					name: 'Pan / Tilt Move',
+					name: 'PTZ - Pan / Tilt Move',
 					options: [
 						{
 							type: 'dropdown',
@@ -405,7 +407,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 				actions['restart'] = {
-					name: 'Restart',
+					name: 'System - Restart',
 					options: [],
 					description: 'Restart the camera',
 					callback: async () => {
@@ -414,7 +416,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 				actions['setOSDMenu'] = {
-					name: 'OSD Menu Control',
+					name: 'System - OSD Menu Control',
 					options: [
 						{
 							type: 'dropdown',
@@ -444,7 +446,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['LensInfo', 'Lens'],
 			createActions: () => {
 				actions['focus'] = {
-					name: 'Focus',
+					name: 'Focus - Direction',
 					options: [
 						{
 							type: 'dropdown',
@@ -486,7 +488,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 				actions['focusMode'] = {
-					name: 'Focus Mode',
+					name: 'Focus - Mode',
 					options: [
 						{
 							type: 'dropdown',
@@ -510,27 +512,30 @@ export function UpdateActions(self: ModuleInstance): void {
 				}
 				createToggleAction(
 					'smartFocus',
-					'Smart Focus',
+					'Lens - Smart Focus',
 					() => self.camera?.getState().lensInfo?.SmartFocus,
 					async (value) => {
 						await self.camera!.setLensInfo({ SmartFocus: value } as Partial<LensInfo>)
 					},
+					'Enable or disable smart focus mode',
 				)
 				createToggleAction(
 					'digitalZoom',
-					'Digital Zoom',
+					'Lens -Digital Zoom',
 					() => self.camera?.getState().lensInfo?.DigitalZoom,
 					async (value) => {
 						await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
 					},
+					'Enable or disable digital zoom',
 				)
 				createToggleAction(
 					'zoomRatioOSD',
-					'Zoom Ratio OSD',
+					'Lens - Zoom Ratio OSD',
 					() => self.camera?.getState().lensInfo?.ZoomRatioOSD,
 					async (value) => {
 						await self.camera!.setLensInfo({ ZoomRatioOSD: value } as Partial<LensInfo>)
 					},
+					'Show or hide zoom ratio on OSD',
 				)
 			},
 		},
@@ -538,7 +543,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['PositionLimitations'],
 			createActions: () => {
 				actions['setPositionLimits'] = {
-					name: 'Pan / Tilt Move',
+					name: 'PTZ - Pan / Tilt Move',
 					options: [
 						{
 							type: 'dropdown',
@@ -587,18 +592,8 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 
-				actions['restart'] = {
-					name: 'Restart',
-					options: [],
-					description: 'Restart the camera',
-					callback: async () => {
-						if (!self.camera) return
-						await self.camera.restart()
-					},
-				}
-
 				actions['setPositionLimits'] = {
-					name: 'Set Position Limits',
+					name: 'PTZ - Set Position Limits',
 					options: [
 						{
 							type: 'multidropdown',
@@ -651,7 +646,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			createActions: () => {
 				if (self.camera?.hasCapability('VideoOutputInfo.SystemFormat')) {
 					actions['setSystemFormat'] = {
-						name: 'Set System Format',
+						name: 'System - Set Video Format',
 						options: [
 							{
 								type: 'dropdown',
@@ -681,7 +676,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				}
 				if (self.camera?.hasCapability('VideoOutputInfo.HDMIResolution')) {
 					actions['setHDMIResolution'] = {
-						name: 'Set HDMI Resolution',
+						name: 'System - Set HDMI Resolution',
 						options: [
 							{
 								type: 'dropdown',
@@ -711,7 +706,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				}
 				if (self.camera?.hasCapability('VideoOutputInfo.SDIResolution')) {
 					actions['setSDIResolution'] = {
-						name: 'Set SDI Resolution',
+						name: 'System - Set SDI Resolution',
 						options: [
 							{
 								type: 'dropdown',
@@ -836,6 +831,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 					5500,
 					100,
+					'Set color temperature in Kelvin',
 				)
 			},
 		},
@@ -844,96 +840,143 @@ export function UpdateActions(self: ModuleInstance): void {
 			createActions: () => {
 				createToggleAction(
 					'flip',
-					'Flip',
+					'Picture - Flip',
 					() => self.camera?.getState().pictureInfo?.Flip,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Flip: value } as Partial<PictureInfo>)
 					},
+					'Flip the image vertically',
 				)
 
 				createToggleAction(
 					'mirror',
-					'Mirror',
+					'Picture - Mirror',
 					() => self.camera?.getState().pictureInfo?.Mirror,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Mirror: value } as Partial<PictureInfo>)
 					},
+					'Mirror the image horizontally',
 				)
 
 				createToggleAction(
 					'hlcMode',
-					'HLC Mode',
+					'Picture - HLC Mode',
 					() => self.camera?.getState().pictureInfo?.HLCMode,
 					async (value) => {
 						await self.camera!.setPictureInfo({ HLCMode: value } as Partial<PictureInfo>)
 					},
+					'Enable or disable high light compensation',
 				)
 				createToggleAction(
 					'blcMode',
-					'BLC',
+					'Picture - BLC',
 					() => self.camera?.getState().pictureInfo?.BLC,
 					async (value) => {
 						await self.camera!.setPictureInfo({ BLC: value } as Partial<PictureInfo>)
 					},
+					'Enable or disable back light compensation',
 				)
 
 				createValueAction(
 					'2dnr',
-					'2DNR',
+					'Picture - 2DNR',
 					() => self.camera?.getState().pictureInfo?.['2DNR'],
 					async (value) => {
 						await self.camera!.setPictureInfo({ ['2DNR']: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust 2D noise reduction level',
 				)
 				createValueAction(
 					'3dnr',
-					'3DNR',
+					'Picture - 3DNR',
 					() => self.camera?.getState().pictureInfo?.['3DNR'],
 					async (value) => {
 						await self.camera!.setPictureInfo({ ['3DNR']: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust 3D noise reduction level',
 				)
 
 				createValueAction(
 					'sharpness',
-					'Sharpness',
+					'Picture - Sharpness',
 					() => self.camera?.getState().pictureInfo?.Sharpness,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Sharpness: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust image sharpness',
 				)
 				createValueAction(
 					'hue',
-					'Hue',
+					'Picture - Hue',
 					() => self.camera?.getState().pictureInfo?.Hue,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Hue: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust color hue',
 				)
 				createValueAction(
 					'contrast',
-					'Contrast',
+					'Picture - Contrast',
 					() => self.camera?.getState().pictureInfo?.Contrast,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Contrast: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust image contrast',
 				)
 				createValueAction(
 					'saturation',
-					'Saturation',
+					'Picture - Saturation',
 					() => self.camera?.getState().pictureInfo?.Saturation,
 					async (value) => {
 						await self.camera!.setPictureInfo({ Saturation: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust color saturation',
 				)
 				createValueAction(
 					'defogLevel',
-					'Defog Level',
+					'Picture - Defog Level',
 					() => self.camera?.getState().pictureInfo?.DefogLevel,
 					async (value) => {
 						await self.camera!.setPictureInfo({ DefogLevel: value } as Partial<PictureInfo>)
 					},
+					50,
+					1,
+					'Adjust defog level',
 				)
+				actions['deflicker'] = {
+					name: 'Picture - Deflicker',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							choices: [
+								{ label: 'OFF', id: 0 },
+								{ label: '50HZ', id: 1 },
+								{ label: '60HZ', id: 2 },
+							],
+							default: 'OFF',
+							id: 'mode',
+						},
+					],
+					description: 'Set the deflicker',
+					callback: async (action) => {
+						if (!self.camera) return
+						await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
+					},
+				}
+
 				const ColorMatrixOptions = [
 					{ label: 'Magenta Hue', id: 'MagentaHue' },
 					{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
@@ -1005,28 +1048,6 @@ export function UpdateActions(self: ModuleInstance): void {
 						}
 					},
 				}
-
-				actions['deflicker'] = {
-					name: 'Deflicker',
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Mode',
-							choices: [
-								{ label: 'OFF', id: 0 },
-								{ label: '50HZ', id: 1 },
-								{ label: '60HZ', id: 2 },
-							],
-							default: 'OFF',
-							id: 'mode',
-						},
-					],
-					description: 'Set the deflicker',
-					callback: async (action) => {
-						if (!self.camera) return
-						await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
-					},
-				}
 			},
 		},
 		{
@@ -1039,39 +1060,50 @@ export function UpdateActions(self: ModuleInstance): void {
 					async (value) => {
 						await self.camera!.setGammaInfo({ WDR: value } as Partial<GammaInfo>)
 					},
+					'Enable or disable wide dynamic range',
 				)
 
 				createValueAction(
 					'gain',
-					'Gain',
+					'Exposure - Gain',
 					() => self.camera?.getState().exposureInfo?.Gain,
 					async (value) => {
 						await self.camera!.setExposureInfo({ Gain: value } as Partial<ExposureInfo>)
 					},
+					50,
+					1,
+					'Adjust camera gain',
 				)
 				createValueAction(
 					'gainLimit',
-					'Gain Limit',
+					'Exposure - Gain Limit',
 					() => self.camera?.getState().exposureInfo?.GainLimit,
 					async (value) => {
 						await self.camera!.setExposureInfo({ GainLimit: value } as Partial<ExposureInfo>)
 					},
+					50,
+					1,
+					'Set maximum gain limit',
 				)
 				createValueAction(
 					'expCompLevel',
-					'Exposure Compensation Level',
+					'Exposure - Compensation Level',
 					() => self.camera?.getState().exposureInfo?.ExCompLevel,
 					async (value) => {
 						await self.camera!.setExposureInfo({ ExCompLevel: value } as Partial<ExposureInfo>)
 					},
+					50,
+					1,
+					'Adjust exposure compensation',
 				)
 				createToggleAction(
 					'smartExposure',
-					'Smart Exposure',
+					'Exposure - Smart Exposure',
 					() => self.camera?.getState().exposureInfo?.SmartExposure,
 					async (value) => {
 						await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
 					},
+					'Enable or disable smart exposure',
 				)
 			},
 		},
@@ -1090,7 +1122,7 @@ export function UpdateActions(self: ModuleInstance): void {
 
 				if (shutterSpeedChoices.length > 0) {
 					actions['shutterSpeed'] = {
-						name: 'Shutter Speed',
+						name: 'Exposure - Shutter Speed',
 						options: [
 							{
 								type: 'dropdown',
@@ -1151,7 +1183,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					)
 
 					actions['iris'] = {
-						name: 'Iris',
+						name: 'Exposure - Iris',
 						options: [
 							{
 								type: 'dropdown',
@@ -1191,7 +1223,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['PTZFPosition'],
 			createActions: () => {
 				actions['ptzPosition'] = {
-					name: 'Set PTZ Position (Absolute)',
+					name: 'PTZ - Set Position (Absolute)',
 					options: [
 						{
 							type: 'textinput',
@@ -1229,7 +1261,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							useVariables: true,
 						},
 					],
-					description: 'Set the PTZ position',
+					description: 'Set the PTZ position using absolute numerical values',
 					callback: async (action) => {
 						if (!self.camera) return
 						const panPosition = parseInt(action.options.panPosition as string)
@@ -1259,7 +1291,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 				}
 				actions['ptzRelPosition'] = {
-					name: 'Adjust PTZ Position (Relative)',
+					name: 'PTZ - Adjust Position (Relative)',
 					options: [
 						{
 							type: 'textinput',
@@ -1283,7 +1315,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							useVariables: true,
 						},
 					],
-					description: 'Set the PTZ position',
+					description: 'Adjust the PTZ position using relative numerical values',
 					callback: async (action) => {
 						if (!self.camera) return
 						const panPosition = parseInt(action.options.panPosition as string)
