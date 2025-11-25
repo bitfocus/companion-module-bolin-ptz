@@ -233,7 +233,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
 			createActions: () => {
 				actions['setPresetSpeed'] = {
-					name: 'Presets -Set Preset Speed',
+					name: 'Presets - Set Preset Speed',
 					options: [
 						{
 							type: 'textinput',
@@ -521,7 +521,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				)
 				createToggleAction(
 					'digitalZoom',
-					'Lens -Digital Zoom',
+					'Lens - Digital Zoom',
 					() => self.camera?.getState().lensInfo?.DigitalZoom,
 					async (value) => {
 						await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
@@ -537,6 +537,75 @@ export function UpdateActions(self: ModuleInstance): void {
 					},
 					'Show or hide zoom ratio on OSD',
 				)
+				actions['mfSpeed'] = {
+					name: 'Lens - MF Speed',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Adjustment',
+							choices: setChoices,
+							default: 'increase',
+							id: 'adjustment',
+						},
+						{
+							type: 'textinput',
+							label: 'Value',
+							default: '1',
+							id: 'value',
+							useVariables: true,
+							description: '(0 - 7)',
+						},
+					],
+					description: 'Set manual focus speed (0-7)',
+					callback: async (action) => {
+						if (!self.camera) return
+						const currentValue = self.camera?.getState().lensInfo?.MFSpeed ?? 0
+						let newValue: number
+
+						if (action.options.adjustment === 'increase') {
+							newValue = Math.min(7, currentValue + 1)
+						} else if (action.options.adjustment === 'decrease') {
+							newValue = Math.max(0, currentValue - 1)
+						} else {
+							const parsedValue = parseInteger(action.options.value as string, 'MF Speed value', self)
+							if (parsedValue === null) return
+							newValue = Math.max(0, Math.min(7, parsedValue))
+						}
+
+						await self.camera.setLensInfo({ MFSpeed: newValue } as Partial<LensInfo>)
+					},
+				}
+				actions['afSensitivity'] = {
+					name: 'Lens - AF Sensitivity',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Sensitivity',
+							choices: [
+								{ label: 'Low', id: 'Low' },
+								{ label: 'Middle', id: 'Middle' },
+								{ label: 'High', id: 'High' },
+							],
+							default: 'Middle',
+							id: 'sensitivity',
+						},
+					],
+					description: 'Set the AF sensitivity level',
+					callback: async (action) => {
+						if (!self.camera) return
+						// Convert string value to number for API (0=Low, 1=Middle, 2=High)
+						const sensitivityMap: Record<string, number> = {
+							Low: 0,
+							Middle: 1,
+							High: 2,
+						}
+						const sensitivityValue = sensitivityMap[action.options.sensitivity as string] ?? 1
+						// Send as any to allow numeric value (API expects number, not string)
+						await self.camera.setLensInfo({
+							AFSensitivity: sensitivityValue,
+						} as any)
+					},
+				}
 			},
 		},
 		{

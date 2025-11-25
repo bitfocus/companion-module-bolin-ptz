@@ -155,15 +155,88 @@ export function UpdatePresets(self: ModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-	presets['ptzControlHeaderFocus'] = {
-		category: 'PTZ Control',
-		name: 'Camera Focus',
+	presets['presetFocusModeHeader'] = {
+		category: 'Focus',
+		name: 'Focus Mode',
+		type: 'text',
+		text: '',
+	}
+	presets[`presetFocusAuto`] = {
+		type: 'button',
+		category: 'Focus',
+		name: 'Focus Auto',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO\\nFOCUS`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'focusMode',
+						options: {
+							mode: 'Auto',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'focusMode',
+				options: {},
+				style: {
+					bgcolor: 0x009900,
+				},
+			},
+		],
+	}
+	presets[`presetFocusManual`] = {
+		type: 'button',
+		category: 'Focus',
+		name: 'Focus Manual',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `MANUAL\\nFOCUS`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'focusMode',
+						options: {
+							mode: 'Manual',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'focusMode',
+				isInverted: true,
+				options: {},
+				style: {
+					bgcolor: 0x009900,
+				},
+			},
+		],
+	}
+	presets['presetMFHeader'] = {
+		category: 'Focus',
+		name: 'Manual Focus Control',
 		type: 'text',
 		text: '',
 	}
 	presets[`presetFocusNear`] = {
 		type: 'button',
-		category: 'PTZ Control',
+		category: 'Focus',
 		name: 'Focus Near',
 		style: {
 			bgcolor: 0x000000,
@@ -195,7 +268,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 	}
 	presets[`presetFocusFar`] = {
 		type: 'button',
-		category: 'PTZ Control',
+		category: 'Focus',
 		name: 'Focus Far',
 		style: {
 			bgcolor: 0x000000,
@@ -233,72 +306,131 @@ export function UpdatePresets(self: ModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-	presets[`presetFocusAuto`] = {
-		type: 'button',
-		category: 'PTZ Control',
-		name: 'Focus Auto',
-		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
-			text: `AUTO\\nFOCUS`,
-			size: '14',
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'focusMode',
-						options: {
-							mode: 'Auto',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: 'focusMode',
-				options: {},
-				style: {
-					bgcolor: 0x009900,
-				},
-			},
-		],
+
+	presets['presetMFSpeedHeader'] = {
+		category: 'Focus',
+		name: 'Manual Focus Speed',
+		type: 'text',
+		text: '',
 	}
-	presets[`presetFocusManual`] = {
+	presets['presetMFSpeedIncrease'] = {
 		type: 'button',
-		category: 'PTZ Control',
-		name: 'Focus Manual',
+		category: 'Focus',
+		name: 'MF Speed Increase',
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `MANUAL\\nFOCUS`,
-			size: '14',
+			text: `INCREASE\\nMF SPEED`,
+			size: 12,
 		},
 		steps: [
 			{
 				down: [
 					{
-						actionId: 'focusMode',
+						actionId: 'mfSpeed',
 						options: {
-							mode: 'Manual',
+							adjustment: 'increase',
+							value: '1',
 						},
 					},
 				],
 				up: [],
 			},
 		],
-		feedbacks: [
+		feedbacks: [],
+	}
+	presets['presetMFSpeedValue'] = {
+		type: 'button',
+		category: 'Focus',
+		name: 'MF Speed Value',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `MF SPEED\\n$(bolin-ptz:mf_speed)`,
+			size: 12,
+		},
+		steps: [
 			{
-				feedbackId: 'focusMode',
-				isInverted: true,
-				options: {},
-				style: {
-					bgcolor: 0x009900,
-				},
+				down: [],
+				up: [],
 			},
 		],
+		feedbacks: [],
+	}
+	presets['presetMFSpeedDecrease'] = {
+		type: 'button',
+		category: 'Focus',
+		name: 'MF Speed Decrease',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `DECREASE\\nMF SPEED`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'mfSpeed',
+						options: {
+							adjustment: 'decrease',
+							value: '1',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['presetAFSensitivityHeader'] = {
+		category: 'Focus',
+		name: 'Auto Focus Sensitivity',
+		type: 'text',
+		text: '',
+	}
+	const afSensitivityModes = {
+		Low: 'Low',
+		Middle: 'Middle',
+		High: 'High',
+	}
+	for (const [key, value] of Object.entries(afSensitivityModes)) {
+		presets[`presetAFSensitivity${key}`] = {
+			type: 'button',
+			category: 'Focus',
+			name: `AF Sensitivity ${key}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `AF SENS\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'afSensitivity',
+							options: {
+								sensitivity: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'afSensitivity',
+					options: {
+						sensitivity: value,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
 	}
 
 	presets['ptzControlHeaderpositionLimit'] = {

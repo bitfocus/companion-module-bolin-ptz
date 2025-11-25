@@ -483,6 +483,39 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				createToggleFeedback('zoomRatioOSD', 'Lens - Zoom Ratio OSD', 'Zoom ratio OSD is enabled', () => {
 					return self.camera?.getState().lensInfo?.ZoomRatioOSD ?? false
 				})
+
+				createValueFeedback(
+					'mfSpeed',
+					'Lens - MF Speed',
+					'MF speed matches selected value',
+					0,
+					self.camera?.getState().lensInfo?.MFSpeed ?? 0,
+				)
+				feedbacks['afSensitivity'] = {
+					name: 'Lens - AF Sensitivity',
+					description: 'AF sensitivity matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Sensitivity',
+							id: 'sensitivity',
+							choices: [
+								{ label: 'Low', id: 'Low' },
+								{ label: 'Middle', id: 'Middle' },
+								{ label: 'High', id: 'High' },
+							],
+							default: 'Middle',
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const sensitivity = feedback.options.sensitivity as string
+						return self.camera?.getState().lensInfo?.AFSensitivity === sensitivity
+					},
+				}
 			},
 		},
 		{
