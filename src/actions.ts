@@ -850,6 +850,11 @@ export function UpdateActions(self: ModuleInstance): void {
 					'White Balance - Color Temperature',
 					() => self.camera?.getState().whiteBalanceInfo?.ColorTemperature,
 					async (value) => {
+						// Check if white balance mode is ManualColorTemperature, if not set it first
+						const currentMode = self.camera?.getState().whiteBalanceInfo?.Mode
+						if (currentMode !== 'ManualColorTemperature') {
+							await self.camera!.setWhiteBalanceInfo({ Mode: 'ManualColorTemperature' } as WhiteBalanceInfo)
+						}
 						await self.camera!.setWhiteBalanceInfo({ ColorTemperature: value } as Partial<WhiteBalanceInfo>)
 					},
 					5500,
