@@ -1985,5 +1985,64 @@ export function UpdatePresets(self: ModuleInstance): void {
 		feedbacks: [],
 	}
 
+	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
+	const hasOverlayCapability = !capabilitiesLoaded || (self.camera?.hasCapability('OverlayInfo') ?? false)
+
+	if (hasOverlayCapability) {
+		const overlayInfo = self.camera?.getState().overlayInfo ?? []
+
+		presets['overlayHeader'] = {
+			category: 'Overlay',
+			name: 'Overlay Control',
+			type: 'text',
+			text: '',
+		}
+
+		// Create a preset for each overlay (1-8, but only if they exist in the state)
+		for (let overlayNumber = 1; overlayNumber <= 8; overlayNumber++) {
+			const overlay = overlayInfo.find((o) => o.Channel === overlayNumber)
+			// Create preset even if overlay doesn't exist in state yet (it might be created later)
+			const overlayName = overlay?.Text ? `Overlay ${overlayNumber} (${overlay.Text})` : `Overlay ${overlayNumber}`
+
+			presets[`presetOverlay${overlayNumber}`] = {
+				type: 'button',
+				category: 'Overlay',
+				name: overlayName,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: `OVERLAY\\n${overlayNumber}`,
+					size: '14',
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'overlayControl',
+								options: {
+									overlay: overlayNumber,
+									props: ['enable'],
+									mode: 'toggle',
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'overlayEnabled',
+						options: {
+							channel: overlayNumber.toString(),
+						},
+						style: {
+							bgcolor: 0x009900,
+						},
+					},
+				],
+			}
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }
