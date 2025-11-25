@@ -155,7 +155,6 @@ export function UpdatePresets(self: ModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-
 	presets['ptzControlHeaderFocus'] = {
 		category: 'PTZ Control',
 		name: 'Camera Focus',
@@ -342,6 +341,97 @@ export function UpdatePresets(self: ModuleInstance): void {
 					style: {
 						bgcolor: 0xcc0000,
 						text: `${limit} LOCKED`,
+					},
+				},
+			],
+		}
+	}
+
+	presets['ptzControlHeaderDirection'] = {
+		category: 'PTZ Control',
+		name: 'Direction Invert',
+		type: 'text',
+		text: '',
+	}
+
+	// Pan Direction Invert presets
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'PAN\\nINVERT\\n$(bolin-ptz:pan_direction)' },
+		{ id: 'true', label: 'On', text: 'PAN\\nINVERT\\nON' },
+		{ id: 'false', label: 'Off', text: 'PAN\\nINVERT\\nOFF' },
+	]) {
+		presets[`presetPanDirectionInvert${mode.label}`] = {
+			type: 'button',
+			category: 'PTZ Control',
+			name: `Pan Direction Invert ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'panDirectionInverted',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'panDirectionInverted',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Tilt Direction Invert presets
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'TILT\\nINVERT\\n$(bolin-ptz:tilt_direction)' },
+		{ id: 'true', label: 'On', text: 'TILT\\nINVERT\\nON' },
+		{ id: 'false', label: 'Off', text: 'TILT\\nINVERT\\nOFF' },
+	]) {
+		presets[`presetTiltDirectionInvert${mode.label}`] = {
+			type: 'button',
+			category: 'PTZ Control',
+			name: `Tilt Direction Invert ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'tiltDirectionInverted',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'tiltDirectionInverted',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
 					},
 				},
 			],

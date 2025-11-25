@@ -182,7 +182,7 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 			],
 		},
 		{
-			capabilities: ['PanTiltInfo'],
+			capabilities: ['PanTiltInfo', 'PTZFMoveInfo'],
 			variables: [
 				{ name: 'Pan Direction', variableId: 'pan_direction' },
 				{ name: 'Tilt Direction', variableId: 'tilt_direction' },

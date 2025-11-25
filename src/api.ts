@@ -986,7 +986,7 @@ export class BolinCamera {
 				capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
 				method: async () => this.getPresetSpeed(),
 			},
-			{ capabilities: ['PanTiltInfo'], method: async () => this.getPTInfo() },
+			{ capabilities: ['PanTiltInfo', 'PTZFMoveInfo'], method: async () => this.getPTInfo() },
 			{ capabilities: ['OverlayInfo'], method: async () => this.getOverlayInfo() },
 		]
 

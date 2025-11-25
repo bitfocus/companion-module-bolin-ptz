@@ -303,7 +303,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			},
 		},
 		{
-			capabilities: ['PanTiltInfo'],
+			capabilities: ['PanTiltInfo', 'PTZFMoveInfo'],
 			createFeedbacks: () => {
 				createToggleFeedback('panDirectionInverted', 'Pan Direction Inverted', 'Pan direction inverted', () => {
 					return self.camera?.getState().panTiltInfo?.PanDirection === 1

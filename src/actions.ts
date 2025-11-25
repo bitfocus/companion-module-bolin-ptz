@@ -280,7 +280,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			},
 		},
 		{
-			capabilities: ['PanTiltInfo'],
+			capabilities: ['PanTiltInfo', 'PTZFMoveInfo'],
 			createActions: () => {
 				createToggleAction(
 					'panDirectionInverted',
