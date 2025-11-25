@@ -1639,6 +1639,60 @@ export function UpdatePresets(self: ModuleInstance): void {
 			}
 		}
 	}
+	presets['systemDeviceName'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Device Name',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `CAMERA\n$(bolin-ptz:device_name)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['systemModel'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Model',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `MODEL\n$(bolin-ptz:model_name)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['systemFormat'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Format',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `FORMAT\n$(bolin-ptz:system_format)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
 
 	self.setPresetDefinitions(presets)
 }
