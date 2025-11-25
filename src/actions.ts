@@ -21,6 +21,7 @@ import {
 	getAdjacentIrisValue,
 	sortShutterSpeedChoices,
 	getAdjacentShutterSpeedValue,
+	convertIrisRangeToMap,
 } from './utils.js'
 
 /**
@@ -1114,10 +1115,15 @@ export function UpdateActions(self: ModuleInstance): void {
 					}
 				}
 
-				const irisMap = self.camera?.getIrisMapForActions() ?? {}
+				let irisMap = self.camera?.getIrisMapForActions() ?? {}
 				const irisRange = self.camera?.getIrisRangeForActions()
 
-				// If it's an enum type, create dropdown action
+				// If we have a range but no map, convert the range to a map
+				if (Object.keys(irisMap).length === 0 && irisRange) {
+					irisMap = convertIrisRangeToMap(irisRange)
+				}
+
+				// If we have a map (either from enum or converted from range), create dropdown action
 				// Note: irisMap is already filtered to common f-stops at build time
 				if (Object.keys(irisMap).length > 0) {
 					// Create sorted list of standard f-stop values for increase/decrease operations
@@ -1162,20 +1168,6 @@ export function UpdateActions(self: ModuleInstance): void {
 							await self.camera.setExposureInfo({ Iris: irisValue } as Partial<ExposureInfo>)
 						},
 					}
-				} else if (irisRange) {
-					// If it's a range type, create value action
-					createValueAction(
-						'iris',
-						'Iris',
-						() => self.camera?.getState().exposureInfo?.Iris,
-						async (value) => {
-							// Clamp value to range
-							const clampedValue = Math.max(irisRange.min, Math.min(irisRange.max, value))
-							await self.camera!.setExposureInfo({ Iris: clampedValue } as Partial<ExposureInfo>)
-						},
-						irisRange.min + Math.floor((irisRange.max - irisRange.min) / 2),
-						1,
-					)
 				}
 			},
 		},

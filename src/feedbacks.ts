@@ -2,7 +2,7 @@ import type { ModuleInstance } from './main.js'
 import type { PositionLimitations } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
-import { sortIrisChoices, sortShutterSpeedChoices } from './utils.js'
+import { sortIrisChoices, sortShutterSpeedChoices, convertIrisRangeToMap, convertIrisValueToFStop } from './utils.js'
 
 export function UpdateFeedbacks(self: ModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
@@ -125,12 +125,17 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				}
 
 				// Iris feedback - uses dynamic map from capabilities (enum) or range
-				const irisMap = self.camera?.getIrisMapForActions() ?? {}
+				let irisMap = self.camera?.getIrisMapForActions() ?? {}
 				const irisRange = self.camera?.getIrisRangeForActions()
 
+				// If we have a range but no map, convert the range to a map
+				if (Object.keys(irisMap).length === 0 && irisRange) {
+					irisMap = convertIrisRangeToMap(irisRange)
+				}
+
+				// If we have a map (either from enum or converted from range), create dropdown feedback
+				// Note: irisMap is already filtered to common f-stops at build time
 				if (Object.keys(irisMap).length > 0) {
-					// Enum type - create dropdown
-					// Note: irisMap is already filtered to common f-stops at build time
 					const irisChoices = sortIrisChoices(
 						Object.entries(irisMap).map(([_value, label]) => ({
 							label: label,
@@ -158,20 +163,23 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							const selectedIris = feedback.options.iris as string
 							const currentIris = self.camera?.getState().exposureInfo?.Iris
 							if (currentIris === undefined) return false
+
 							// Look up the current numeric value in the map
 							const currentIrisLabel = irisMap[currentIris]
-							return currentIrisLabel === selectedIris
+							if (currentIrisLabel) {
+								// Found in map (enum type or converted range)
+								return currentIrisLabel === selectedIris
+							}
+
+							// If not in map but we have a range, convert to F-stop for comparison
+							if (irisRange) {
+								const convertedLabel = convertIrisValueToFStop(currentIris)
+								return convertedLabel === selectedIris
+							}
+
+							return false
 						},
 					}
-				} else if (irisRange) {
-					// Range type - create value feedback with comparison
-					createValueFeedback(
-						'iris',
-						'Iris',
-						'Iris value',
-						irisRange.min + Math.floor((irisRange.max - irisRange.min) / 2),
-						self.camera?.getState().exposureInfo?.Iris ?? irisRange.min,
-					)
 				}
 			},
 		},

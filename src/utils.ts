@@ -298,3 +298,158 @@ export function getAdjacentShutterSpeedValue(
 		? (shutterSpeedMap[choices[choices.length - 1]?.id] ?? '1/60')
 		: (shutterSpeedMap[choices[0]?.id] ?? '1/60')
 }
+
+/**
+ * Converts a numeric iris value to an f-stop label
+ * Based on mapping: 0 = F1.8, 119 = F3.2, 224 = F18, 254 = CLOSE
+ * @param value Numeric iris value (0-254)
+ * @returns F-stop label string
+ */
+export function convertIrisValueToFStop(value: number): string {
+	// Special case for maximum value (CLOSE)
+	if (value >= 254) return 'CLOSE'
+
+	// Known mapping points: [numericValue, fStopNumber]
+	const mappingPoints: Array<[number, number]> = [
+		[0, 1.8], // F1.8
+		[119, 3.2], // F3.2
+		[224, 18], // F18
+		[254, Infinity], // CLOSE (handled above)
+	]
+
+	// Find the two points to interpolate between
+	let lowerPoint: [number, number] | null = null
+	let upperPoint: [number, number] | null = null
+
+	for (let i = 0; i < mappingPoints.length - 1; i++) {
+		const current = mappingPoints[i]
+		const next = mappingPoints[i + 1]
+
+		if (value >= current[0] && value <= next[0]) {
+			lowerPoint = current
+			upperPoint = next
+			break
+		}
+	}
+
+	// If value is before first point, use first point
+	if (!lowerPoint) {
+		lowerPoint = mappingPoints[0]
+		upperPoint = mappingPoints[1]
+	}
+
+	// Linear interpolation to find f-stop number
+	const [lowerValue, lowerFStop] = lowerPoint
+	const [upperValue, upperFStop] = upperPoint!
+
+	if (upperFStop === Infinity) {
+		// Approaching CLOSE, interpolate to higher f-stops
+		const ratio = (value - lowerValue) / (upperValue - lowerValue)
+		const fStop = lowerFStop + ratio * (32 - lowerFStop) // Interpolate up to F32
+		return `F${fStop.toFixed(1)}`
+	}
+
+	const ratio = (value - lowerValue) / (upperValue - lowerValue)
+	const fStop = lowerFStop + ratio * (upperFStop - lowerFStop)
+
+	// Round to nearest standard f-stop
+	const standardFStops = [
+		1.8, 2.0, 2.2, 2.4, 2.8, 3.2, 3.5, 4.0, 4.5, 5.0, 5.6, 6.3, 7.1, 8.0, 9.0, 10, 11, 13, 14, 16, 18, 20, 22, 25, 29,
+		32,
+	]
+	const nearestFStop = standardFStops.reduce((prev, curr) =>
+		Math.abs(curr - fStop) < Math.abs(prev - fStop) ? curr : prev,
+	)
+
+	// Format the f-stop label
+	if (nearestFStop >= 10 && nearestFStop % 1 === 0) {
+		return `F${nearestFStop}`
+	}
+	return `F${nearestFStop.toFixed(1)}`
+}
+
+/**
+ * Converts an iris range to an iris map by generating standard f-stop values
+ * Based on mapping: 0 = F1.8, 119 = F3.2, 224 = F18, 254 = CLOSE
+ * @param irisRange Range with min and max values
+ * @returns Iris map with numeric values mapped to f-stop labels
+ */
+export function convertIrisRangeToMap(irisRange: { min: number; max: number }): Record<number, string> {
+	const map: Record<number, string> = {}
+
+	// Known exact mapping points: [numericValue, fStopNumber]
+	const knownMappings: Array<[number, number]> = [
+		[0, 1.8], // F1.8
+		[119, 3.2], // F3.2
+		[224, 18], // F18
+	]
+
+	// Standard f-stop values to include (between known points)
+	const standardFStops = [
+		1.8, 2.0, 2.2, 2.4, 2.8, 3.2, 3.5, 4.0, 4.5, 5.0, 5.6, 6.3, 7.1, 8.0, 9.0, 10, 11, 13, 14, 16, 18, 20, 22, 25, 29,
+		32,
+	]
+
+	// Include known exact mappings if within range
+	for (const [numericValue, fStop] of knownMappings) {
+		if (numericValue >= irisRange.min && numericValue <= irisRange.max) {
+			const label = fStop >= 10 && fStop % 1 === 0 ? `F${fStop}` : `F${fStop.toFixed(1)}`
+			map[numericValue] = label
+		}
+	}
+
+	// Mapping points for interpolation (including CLOSE at 254)
+	const mappingPoints: Array<[number, number]> = [
+		[0, 1.8],
+		[119, 3.2],
+		[224, 18],
+		[254, 32], // Approximate for interpolation to CLOSE
+	]
+
+	// For each standard f-stop, find the corresponding numeric value
+	for (const fStop of standardFStops) {
+		// Skip if already included as a known mapping
+		if (knownMappings.some(([, knownFStop]) => Math.abs(knownFStop - fStop) < 0.01)) {
+			continue
+		}
+
+		// Find interpolation points
+		let lowerPoint: [number, number] | null = null
+		let upperPoint: [number, number] | null = null
+
+		for (let i = 0; i < mappingPoints.length - 1; i++) {
+			const current = mappingPoints[i]
+			const next = mappingPoints[i + 1]
+
+			if (fStop >= current[1] && fStop <= next[1]) {
+				lowerPoint = current
+				upperPoint = next
+				break
+			}
+		}
+
+		if (lowerPoint && upperPoint) {
+			// Interpolate to find numeric value
+			const [lowerValue, lowerFStop] = lowerPoint
+			const [upperValue, upperFStop] = upperPoint
+			const ratio = (fStop - lowerFStop) / (upperFStop - lowerFStop)
+			const numericValue = Math.round(lowerValue + ratio * (upperValue - lowerValue))
+
+			// Only include if within range and not already mapped
+			if (numericValue >= irisRange.min && numericValue <= irisRange.max && !map[numericValue]) {
+				const label = fStop >= 10 && fStop % 1 === 0 ? `F${fStop}` : `F${fStop.toFixed(1)}`
+				map[numericValue] = label
+			}
+		}
+	}
+
+	// Always include CLOSE at max value (or 254 if max >= 254)
+	if (irisRange.max >= 254) {
+		map[254] = 'CLOSE'
+	} else {
+		// If max is less than 254, use max value for CLOSE
+		map[irisRange.max] = 'CLOSE'
+	}
+
+	return map
+}

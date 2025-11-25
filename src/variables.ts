@@ -1,5 +1,6 @@
 import type { ModuleInstance } from './main.js'
 import type { CameraState } from './types.js'
+import { convertIrisValueToFStop } from './utils.js'
 
 /**
  * Helper function to check if a value has changed between previous and current state
@@ -321,11 +322,26 @@ export function UpdateVariablesOnStateChange(
 			{ getValue: (e) => e.SmartExposure, variableId: 'smart_exposure' },
 			{ getValue: (e) => e.ShutterSpeed, variableId: 'shutter_speed' },
 		])
-		// Special handling for Iris (needs map lookup)
+		// Special handling for Iris (needs map lookup or range conversion)
 		if (!previousState?.exposureInfo || previousState.exposureInfo.Iris !== currentState.exposureInfo.Iris) {
 			const irisMap = self.camera?.getIrisMapForActions() ?? {}
+			const irisRange = self.camera?.getIrisRangeForActions()
 			const irisValue = currentState.exposureInfo.Iris
-			variables.iris = irisMap[irisValue] ?? (irisValue !== undefined ? irisValue.toString() : '')
+
+			if (irisValue !== undefined) {
+				// First try the map (for enum types)
+				if (irisMap[irisValue]) {
+					variables.iris = irisMap[irisValue]
+				} else if (irisRange) {
+					// If it's a range type, convert to F-stop
+					variables.iris = convertIrisValueToFStop(irisValue)
+				} else {
+					// Fallback to numeric string
+					variables.iris = irisValue.toString()
+				}
+			} else {
+				variables.iris = ''
+			}
 		}
 	}
 

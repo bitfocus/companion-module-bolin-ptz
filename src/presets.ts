@@ -1,7 +1,7 @@
 import { CompanionPresetDefinitions } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
 import { graphics } from 'companion-module-utils'
-import { sortIrisChoices } from './utils.js'
+import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
 
 export function UpdatePresets(self: ModuleInstance): void {
 	const presets: CompanionPresetDefinitions = {}
@@ -654,7 +654,15 @@ export function UpdatePresets(self: ModuleInstance): void {
 		text: '',
 	}
 	// Create presets for each common iris value
-	const irisMap = self.camera?.getIrisMapForActions() ?? {}
+	let irisMap = self.camera?.getIrisMapForActions() ?? {}
+	const irisRange = self.camera?.getIrisRangeForActions()
+
+	// If we have a range but no map, convert the range to a map
+	if (Object.keys(irisMap).length === 0 && irisRange) {
+		irisMap = convertIrisRangeToMap(irisRange)
+	}
+
+	// If we have a map (either from enum or converted from range), create presets
 	if (Object.keys(irisMap).length > 0) {
 		const irisEntries = sortIrisChoices(
 			Object.entries(irisMap).map(([value, label]) => ({
