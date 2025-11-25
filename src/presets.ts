@@ -663,6 +663,110 @@ export function UpdatePresets(self: ModuleInstance): void {
 		],
 		feedbacks: [],
 	}
+	// Helper function to create white balance value presets
+	function createWhiteBalanceValuePresets(
+		color: string,
+		type: string,
+		actionId: string,
+		variableId: string,
+		textColor: number,
+	): void {
+		const baseName = `White Balance ${color} ${type}`
+		const baseKey = `presetWhiteBalance${color}${type}`
+		const colorUpper = color.toUpperCase()
+		const typeUpper = type.toUpperCase()
+
+		// Header
+		presets[`${baseKey}Header`] = {
+			category: 'White Balance',
+			name: baseName,
+			type: 'text',
+			text: '',
+		}
+
+		// Increase
+		presets[`${baseKey}Increase`] = {
+			type: 'button',
+			category: 'White Balance',
+			name: `${baseName} Increase`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `INCREASE\\n${colorUpper}\\n${typeUpper}`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: actionId,
+							options: {
+								adjustment: 'increase',
+								value: '1',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Value Display
+		presets[`${baseKey}Value`] = {
+			type: 'button',
+			category: 'White Balance',
+			name: `${baseName} Value`,
+			style: {
+				bgcolor: 0x000000,
+				color: textColor,
+				text: `${colorUpper}\\n${typeUpper}\\n$(bolin-ptz:${variableId})`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Decrease
+		presets[`${baseKey}Decrease`] = {
+			type: 'button',
+			category: 'White Balance',
+			name: `${baseName} Decrease`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `DECREASE\\n${colorUpper}\\n${typeUpper}`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: actionId,
+							options: {
+								adjustment: 'decrease',
+								value: '1',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
+	// Create white balance value presets
+	createWhiteBalanceValuePresets('Red', 'Gain', 'rGain', 'wb_r_gain', 0xff0000)
+	createWhiteBalanceValuePresets('Blue', 'Gain', 'bGain', 'wb_b_gain', 0x0000ff)
+	createWhiteBalanceValuePresets('Red', 'Tuning', 'rTuning', 'wb_r_tuning', 0xff0000)
+	createWhiteBalanceValuePresets('Blue', 'Tuning', 'bTuning', 'wb_b_tuning', 0x0000ff)
+	createWhiteBalanceValuePresets('Green', 'Tuning', 'gTuning', 'wb_g_tuning', 0x00ff00)
 	presets['irisAdjustmentsHeader'] = {
 		category: 'Iris',
 		name: 'Iris Adjustments',
