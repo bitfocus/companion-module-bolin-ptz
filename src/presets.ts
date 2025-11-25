@@ -955,7 +955,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 	// Picture Scene presets
 	presets['presetPictureSceneHeader'] = {
 		category: 'Picture',
-		name: 'Picture Scene',
+		name: 'Scene',
 		type: 'text',
 		text: '',
 	}
@@ -1006,7 +1006,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 	// Picture Defog Mode presets
 	presets['presetPictureDefogModeHeader'] = {
 		category: 'Picture',
-		name: 'Picture Defog Mode',
+		name: 'Defog Mode',
 		type: 'text',
 		text: '',
 	}
@@ -1056,7 +1056,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 	// Picture Effect presets
 	presets['presetPictureEffectHeader'] = {
 		category: 'Picture',
-		name: 'Picture Effect',
+		name: 'Effect',
 		type: 'text',
 		text: '',
 	}
@@ -1101,6 +1101,297 @@ export function UpdatePresets(self: ModuleInstance): void {
 			],
 		}
 	}
+
+	// Picture Flip presets
+	presets['presetPictureFlipHeader'] = {
+		category: 'Picture',
+		name: 'Flip',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'FLIP\\n$(bolin-ptz:flip)' },
+		{ id: 'true', label: 'On', text: 'FLIP\\nON' },
+		{ id: 'false', label: 'Off', text: 'FLIP\\nOFF' },
+	]) {
+		presets[`presetPictureFlip${mode.label}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture Flip ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'flip',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'flip',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Picture Mirror presets
+	presets['presetPictureMirrorHeader'] = {
+		category: 'Picture',
+		name: 'Mirror',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'MIRROR\\n$(bolin-ptz:mirror)' },
+		{ id: 'true', label: 'On', text: 'MIRROR\\nON' },
+		{ id: 'false', label: 'Off', text: 'MIRROR\\nOFF' },
+	]) {
+		presets[`presetPictureMirror${mode.label}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture Mirror ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'mirror',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'mirror',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Picture HLC Mode presets
+	presets['presetPictureHLCModeHeader'] = {
+		category: 'Picture',
+		name: 'HLC Mode',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'HLC MODE\\n$(bolin-ptz:hlc_mode)' },
+		{ id: 'true', label: 'On', text: 'HLC MODE\\nON' },
+		{ id: 'false', label: 'Off', text: 'HLC MODE\\nOFF' },
+	]) {
+		presets[`presetPictureHLCMode${mode.label}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture HLC Mode ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'hlcMode',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'hlcMode',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Picture BLC presets
+	presets['presetPictureBLCHeader'] = {
+		category: 'Picture',
+		name: 'BLC',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'BLC\\n$(bolin-ptz:blc)' },
+		{ id: 'true', label: 'On', text: 'BLC\\nON' },
+		{ id: 'false', label: 'Off', text: 'BLC\\nOFF' },
+	]) {
+		presets[`presetPictureBLC${mode.label}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture BLC ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'blcMode',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'blcMode',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Helper function to create picture value presets
+	function createPictureValuePresets(name: string, actionId: string, variableId: string, displayName: string): void {
+		const baseKey = `presetPicture${name}`
+		const displayUpper = displayName.toUpperCase().replace(/\s+/g, '\\n')
+
+		// Header
+		presets[`${baseKey}Header`] = {
+			category: 'Picture',
+			name: `${name}`,
+			type: 'text',
+			text: '',
+		}
+
+		// Increase
+		presets[`${baseKey}Increase`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture ${name} Increase`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `INCREASE\\n${displayUpper}`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: actionId,
+							options: {
+								adjustment: 'increase',
+								value: '1',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Value Display
+		presets[`${baseKey}Value`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture ${name} Value`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Decrease
+		presets[`${baseKey}Decrease`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture ${name} Decrease`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `DECREASE\\n${displayUpper}`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: actionId,
+							options: {
+								adjustment: 'decrease',
+								value: '1',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
+	// Create picture value presets
+	createPictureValuePresets('2DNR', '2dnr', '2dnr', '2DNR')
+	createPictureValuePresets('3DNR', '3dnr', '3dnr', '3DNR')
+	createPictureValuePresets('Sharpness', 'sharpness', 'sharpness', 'Sharpness')
+	createPictureValuePresets('Hue', 'hue', 'hue', 'Hue')
+	createPictureValuePresets('Contrast', 'contrast', 'contrast', 'Contrast')
+	createPictureValuePresets('Saturation', 'saturation', 'saturation', 'Saturation')
+	createPictureValuePresets('Defog Level', 'defogLevel', 'defog_level', 'Defog Level')
 
 	// Gamma Level presets
 	presets['presetGammaLevelHeader'] = {
