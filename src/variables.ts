@@ -294,11 +294,11 @@ export function UpdateVariablesOnStateChange(
 	if (currentState.systemInfo) {
 		updateIfChanged(variables, previousState?.systemInfo, currentState.systemInfo, (s) => s.DeviceName, 'device_name')
 		if (variables.device_name === undefined) {
-			variables.device_name = ''
+			variables.device_name = currentState.systemInfo.DeviceName ?? ''
 		}
 		updateIfChanged(variables, previousState?.systemInfo, currentState.systemInfo, (s) => s.ModelName, 'model_name')
 		if (variables.model_name === undefined) {
-			variables.model_name = ''
+			variables.model_name = currentState.systemInfo.ModelName ?? ''
 		}
 	}
 
@@ -462,15 +462,20 @@ export function UpdateVariablesOnStateChange(
 	])
 
 	// Update video output info variables if changed
-	updateFields(variables, previousState?.videoOutputInfo, currentState.videoOutputInfo, [
-		{ getValue: (v) => v.SystemFormat ?? '', variableId: 'system_format', defaultValue: '' },
-		{ getValue: (v) => v.HDMIResolution ?? '', variableId: 'hdmi_resolution', defaultValue: '' },
-		{ getValue: (v) => v.HDMIColorSpace, variableId: 'hdmi_color_space' },
-		{ getValue: (v) => v.HDMIBitDepth, variableId: 'hdmi_bit_depth' },
-		{ getValue: (v) => v.SDIResolution, variableId: 'sdi_resolution' },
-		{ getValue: (v) => v.SDIBitDepth, variableId: 'sdi_bit_depth' },
-		{ getValue: (v) => v.SDIColorSpace, variableId: 'sdi_color_space' },
-	])
+	if (currentState.videoOutputInfo) {
+		updateFields(variables, previousState?.videoOutputInfo, currentState.videoOutputInfo, [
+			{ getValue: (v) => v.SystemFormat ?? '', variableId: 'system_format', defaultValue: '' },
+			{ getValue: (v) => v.HDMIResolution ?? '', variableId: 'hdmi_resolution', defaultValue: '' },
+			{ getValue: (v) => v.HDMIColorSpace, variableId: 'hdmi_color_space' },
+			{ getValue: (v) => v.HDMIBitDepth, variableId: 'hdmi_bit_depth' },
+			{ getValue: (v) => v.SDIResolution, variableId: 'sdi_resolution' },
+			{ getValue: (v) => v.SDIBitDepth, variableId: 'sdi_bit_depth' },
+			{ getValue: (v) => v.SDIColorSpace, variableId: 'sdi_color_space' },
+		])
+		if (variables.system_format === undefined) {
+			variables.system_format = currentState.videoOutputInfo.SystemFormat ?? ''
+		}
+	}
 
 	// Update pan/tilt info variables if changed
 	if (currentState.panTiltInfo) {
