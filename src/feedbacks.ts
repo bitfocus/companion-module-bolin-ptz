@@ -1,5 +1,5 @@
 import type { ModuleInstance } from './main.js'
-import type { PositionLimitations } from './types.js'
+import type { PositionLimitations, PictureInfo } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
 import { sortIrisChoices, sortShutterSpeedChoices, convertIrisRangeToMap, convertIrisValueToFStop } from './utils.js'
@@ -229,6 +229,31 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 						return self.camera?.getState().whiteBalanceInfo?.Mode === mode
 					},
 				}
+				feedbacks['whiteBalanceSensitivity'] = {
+					name: 'White Balance - Sensitivity',
+					description: 'White balance sensitivity matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Sensitivity',
+							id: 'sensitivity',
+							choices: [
+								{ label: 'Low', id: 0 },
+								{ label: 'Middle', id: 1 },
+								{ label: 'High', id: 2 },
+							],
+							default: 1,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const sensitivity = feedback.options.sensitivity as number
+						return self.camera?.getState().whiteBalanceInfo?.WBSensitivity === sensitivity
+					},
+				}
 			},
 		},
 		{
@@ -278,6 +303,156 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				createToggleFeedback('blcMode', 'Picture - BLC', 'BLC mode is enabled', () => {
 					return self.camera?.getState().pictureInfo?.BLC ?? false
 				})
+				feedbacks['scene'] = {
+					name: 'Picture - Scene',
+					description: 'Scene mode matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Scene',
+							id: 'scene',
+							choices: [
+								{ label: 'Standard', id: 1 },
+								{ label: 'Bright', id: 3 },
+								{ label: 'Clarity', id: 4 },
+								{ label: 'Soft', id: 5 },
+							],
+							default: 1,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const sceneNumber = feedback.options.scene as number
+						const currentScene = self.camera?.getState().pictureInfo?.Scene
+						// Convert current scene string to number for comparison
+						const sceneMap: Record<string, number> = {
+							Standard: 1,
+							Bright: 3,
+							Clarity: 4,
+							Soft: 5,
+						}
+						const currentSceneNumber = typeof currentScene === 'string' ? (sceneMap[currentScene] ?? -1) : currentScene
+						return currentSceneNumber === sceneNumber
+					},
+				}
+				feedbacks['defogMode'] = {
+					name: 'Picture - Defog Mode',
+					description: 'Defog mode matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							id: 'mode',
+							choices: [
+								{ label: 'OFF', id: 0 },
+								{ label: 'Auto', id: 1 },
+								{ label: 'Manual', id: 2 },
+							],
+							default: 0,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const modeNumber = feedback.options.mode as number
+						const currentMode = self.camera?.getState().pictureInfo?.DefogMode
+						// Convert current mode string to number for comparison
+						const defogMap: Record<string, number> = {
+							OFF: 0,
+							Auto: 1,
+							Manual: 2,
+						}
+						const currentModeNumber = typeof currentMode === 'string' ? (defogMap[currentMode] ?? -1) : currentMode
+						return currentModeNumber === modeNumber
+					},
+				}
+				feedbacks['effect'] = {
+					name: 'Picture - Effect',
+					description: 'Effect matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Effect',
+							id: 'effect',
+							choices: [
+								{ label: 'Day', id: 0 },
+								{ label: 'Night', id: 1 },
+							],
+							default: 0,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const effectNumber = feedback.options.effect as number
+						const currentEffect = self.camera?.getState().pictureInfo?.Effect
+						// Convert current effect string to number for comparison
+						const effectMap: Record<string, number> = {
+							Day: 0,
+							Night: 1,
+						}
+						const currentEffectNumber =
+							typeof currentEffect === 'string' ? (effectMap[currentEffect] ?? -1) : currentEffect
+						return currentEffectNumber === effectNumber
+					},
+				}
+				feedbacks['colorMatrix'] = {
+					name: 'Picture - Color Matrix',
+					description: 'Color matrix value matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Matrix Option',
+							id: 'matrix',
+							choices: [
+								{ label: 'Magenta Hue', id: 'MagentaHue' },
+								{ label: 'Magenta Saturation', id: 'MagentaSaturation' },
+								{ label: 'Magenta Value', id: 'MagentaValue' },
+								{ label: 'Red Hue', id: 'RedHue' },
+								{ label: 'Red Saturation', id: 'RedSaturation' },
+								{ label: 'Red Value', id: 'RedValue' },
+								{ label: 'Yellow Hue', id: 'YellowHue' },
+								{ label: 'Yellow Saturation', id: 'YellowSaturation' },
+								{ label: 'Yellow Value', id: 'YellowValue' },
+								{ label: 'Green Hue', id: 'GreenHue' },
+								{ label: 'Green Saturation', id: 'GreenSaturation' },
+								{ label: 'Green Value', id: 'GreenValue' },
+								{ label: 'Cyan Hue', id: 'CyanHue' },
+								{ label: 'Cyan Saturation', id: 'CyanSaturation' },
+								{ label: 'Cyan Value', id: 'CyanValue' },
+								{ label: 'Blue Hue', id: 'BlueHue' },
+								{ label: 'Blue Saturation', id: 'BlueSaturation' },
+								{ label: 'Blue Value', id: 'BlueValue' },
+							],
+							default: 'MagentaSaturation',
+						},
+						{
+							type: 'textinput',
+							label: 'Value',
+							id: 'value',
+							default: '0',
+							useVariables: true,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const matrixOption = feedback.options.matrix as keyof PictureInfo
+						const value = parseInt(feedback.options.value as string)
+						if (isNaN(value)) return false
+						const currentValue = self.camera?.getState().pictureInfo?.[matrixOption] as number
+						return currentValue === value
+					},
+				}
 			},
 		},
 		{
@@ -306,6 +481,57 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				createToggleFeedback('wdr', 'Gamma - WDR', 'WDR is enabled', () => {
 					return self.camera?.getState().gammaInfo?.WDR ?? false
 				})
+				feedbacks['gammaLevel'] = {
+					name: 'Gamma - Level',
+					description: 'Gamma level matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Level',
+							id: 'level',
+							choices: [
+								{ label: 'Default', id: 0 },
+								{ label: '0.45', id: 1 },
+								{ label: '0.50', id: 2 },
+								{ label: '0.55', id: 3 },
+								{ label: '0.63', id: 4 },
+							],
+							default: 0,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const levelNumber = feedback.options.level as number
+						const currentLevel = self.camera?.getState().gammaInfo?.Level
+						// Convert current level string to number for comparison
+						const levelMap: Record<string, number> = {
+							Default: 0,
+							'0.45': 1,
+							'0.50': 2,
+							'0.55': 3,
+							'0.63': 4,
+						}
+						const currentLevelNumber = typeof currentLevel === 'string' ? (levelMap[currentLevel] ?? -1) : currentLevel
+						return currentLevelNumber === levelNumber
+					},
+				}
+				createValueFeedback(
+					'gammaBright',
+					'Gamma - Bright',
+					'Gamma brightness matches selected value',
+					50,
+					self.camera?.getState().gammaInfo?.Bright ?? 0,
+				)
+				createValueFeedback(
+					'wdrLevel',
+					'Gamma - WDR Level',
+					'WDR level matches selected value',
+					50,
+					self.camera?.getState().gammaInfo?.WDRLevel ?? 0,
+				)
 			},
 		},
 		{

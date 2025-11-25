@@ -587,6 +587,56 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
+	presets['presetWhiteBalanceSensitivityHeader'] = {
+		category: 'White Balance',
+		name: 'White Balance Sensitivity',
+		type: 'text',
+		text: '',
+	}
+
+	const whiteBalanceSensitivityModes = {
+		Low: 0,
+		Middle: 1,
+		High: 2,
+	}
+	for (const [key, value] of Object.entries(whiteBalanceSensitivityModes)) {
+		presets[`presetWhiteBalanceSensitivity${key}`] = {
+			type: 'button',
+			category: 'White Balance',
+			name: 'White Balance Sensitivity ' + key,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `WB SENS\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'whiteBalanceSensitivity',
+							options: {
+								sensitivity: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'whiteBalanceSensitivity',
+					options: {
+						sensitivity: value,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
 	presets['presetWhiteBalanceColorTemperatureHeader'] = {
 		category: 'White Balance',
 		name: 'White Balance Color Temperature',
@@ -769,6 +819,412 @@ export function UpdatePresets(self: ModuleInstance): void {
 	createWhiteBalanceValuePresets('Red', 'Tuning', 'RTuning', 'wb_r_tuning', 0xff0000)
 	createWhiteBalanceValuePresets('Blue', 'Tuning', 'BTuning', 'wb_b_tuning', 0x0000ff)
 	createWhiteBalanceValuePresets('Green', 'Tuning', 'GTuning', 'wb_g_tuning', 0x00ff00)
+
+	// Picture Scene presets
+	presets['presetPictureSceneHeader'] = {
+		category: 'Picture',
+		name: 'Picture Scene',
+		type: 'text',
+		text: '',
+	}
+	const pictureScenes = {
+		Standard: 1,
+		Bright: 3,
+		Clarity: 4,
+		Soft: 5,
+	}
+	for (const [key, value] of Object.entries(pictureScenes)) {
+		presets[`presetPictureScene${key}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture Scene ${key}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `SCENE\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'scene',
+							options: {
+								scene: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'scene',
+					options: {
+						scene: value,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Picture Defog Mode presets
+	presets['presetPictureDefogModeHeader'] = {
+		category: 'Picture',
+		name: 'Picture Defog Mode',
+		type: 'text',
+		text: '',
+	}
+	const defogModes = {
+		OFF: 0,
+		Auto: 1,
+		Manual: 2,
+	}
+	for (const [key, value] of Object.entries(defogModes)) {
+		presets[`presetPictureDefogMode${key}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture Defog Mode ${key}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `DEFOG\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'defogMode',
+							options: {
+								mode: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'defogMode',
+					options: {
+						mode: value,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Picture Effect presets
+	presets['presetPictureEffectHeader'] = {
+		category: 'Picture',
+		name: 'Picture Effect',
+		type: 'text',
+		text: '',
+	}
+	const pictureEffects = {
+		Day: 0,
+		Night: 1,
+	}
+	for (const [key, value] of Object.entries(pictureEffects)) {
+		presets[`presetPictureEffect${key}`] = {
+			type: 'button',
+			category: 'Picture',
+			name: `Picture Effect ${key}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `EFFECT\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'effect',
+							options: {
+								effect: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'effect',
+					options: {
+						effect: value,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Gamma Level presets
+	presets['presetGammaLevelHeader'] = {
+		category: 'Gamma',
+		name: 'Gamma Level',
+		type: 'text',
+		text: '',
+	}
+	const gammaLevels = {
+		Default: 0,
+		'0.45': 1,
+		'0.50': 2,
+		'0.55': 3,
+		'0.63': 4,
+	}
+	for (const [key, value] of Object.entries(gammaLevels)) {
+		presets[`presetGammaLevel${key.replace('.', '_')}`] = {
+			type: 'button',
+			category: 'Gamma',
+			name: `Gamma Level ${key}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `GAMMA\\n${key}`,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'gammaLevel',
+							options: {
+								level: value,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'gammaLevel',
+					options: {
+						level: value,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Gamma Bright presets
+	presets['presetGammaBrightHeader'] = {
+		category: 'Gamma',
+		name: 'Gamma Bright',
+		type: 'text',
+		text: '',
+	}
+	presets['presetGammaBrightIncrease'] = {
+		type: 'button',
+		category: 'Gamma',
+		name: 'Gamma Bright Increase',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `INCREASE\\nGAMMA\\nBRIGHT`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'gammaBright',
+						options: {
+							adjustment: 'increase',
+							value: '1',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetGammaBrightValue'] = {
+		type: 'button',
+		category: 'Gamma',
+		name: 'Gamma Bright Value',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `GAMMA\\nBRIGHT\\n$(bolin-ptz:gamma_bright)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetGammaBrightDecrease'] = {
+		type: 'button',
+		category: 'Gamma',
+		name: 'Gamma Bright Decrease',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `DECREASE\\nGAMMA\\nBRIGHT`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'gammaBright',
+						options: {
+							adjustment: 'decrease',
+							value: '1',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	// Gamma WDR presets
+	presets['presetGammaWDRHeader'] = {
+		category: 'Gamma',
+		name: 'Gamma WDR',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'GAMMA\\nWDR\\n$(bolin-ptz:wdr)' },
+		{ id: 'true', label: 'On', text: 'GAMMA\\nWDR\\nON' },
+		{ id: 'false', label: 'Off', text: 'GAMMA\\nWDR\\nOFF' },
+	]) {
+		presets[`presetGammaWDR${mode.label}`] = {
+			type: 'button',
+			category: 'Gamma',
+			name: `Gamma WDR ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'wdr',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'wdr',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Gamma WDR Level presets
+	presets['presetGammaWDRLevelHeader'] = {
+		category: 'Gamma',
+		name: 'Gamma WDR Level',
+		type: 'text',
+		text: '',
+	}
+	presets['presetGammaWDRLevelIncrease'] = {
+		type: 'button',
+		category: 'Gamma',
+		name: 'Gamma WDR Level Increase',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `INCREASE\\nWDR\\nLEVEL`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'wdrLevel',
+						options: {
+							adjustment: 'increase',
+							value: '1',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetGammaWDRLevelValue'] = {
+		type: 'button',
+		category: 'Gamma',
+		name: 'Gamma WDR Level Value',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `WDR\\nLEVEL\\n$(bolin-ptz:wdr_level)`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['presetGammaWDRLevelDecrease'] = {
+		type: 'button',
+		category: 'Gamma',
+		name: 'Gamma WDR Level Decrease',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `DECREASE\\nWDR\\nLEVEL`,
+			size: 12,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'wdrLevel',
+						options: {
+							adjustment: 'decrease',
+							value: '1',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
 
 	presets['irisAdjustmentsHeader'] = {
 		category: 'Iris',

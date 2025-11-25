@@ -765,6 +765,29 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera.setWhiteBalanceInfo({ Mode: action.options.mode } as WhiteBalanceInfo)
 					},
 				}
+				actions['whiteBalanceSensitivity'] = {
+					name: 'White Balance - Sensitivity',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Sensitivity',
+							choices: [
+								{ label: 'Low', id: 0 },
+								{ label: 'Middle', id: 1 },
+								{ label: 'High', id: 2 },
+							],
+							default: 1,
+							id: 'sensitivity',
+						},
+					],
+					description: 'Set the white balance sensitivity level',
+					callback: async (action) => {
+						if (!self.camera) return
+						await self.camera.setWhiteBalanceInfo({
+							WBSensitivity: action.options.sensitivity,
+						} as Partial<WhiteBalanceInfo>)
+					},
+				}
 				const WhiteBalanceOptions = [
 					{ label: 'Red Gain', id: 'RGain' },
 					{ label: 'Blue Gain', id: 'BGain' },
@@ -976,6 +999,72 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera.setPictureInfo({ DeFlicker: action.options.mode } as PictureInfo)
 					},
 				}
+				actions['scene'] = {
+					name: 'Picture - Scene',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Scene',
+							choices: [
+								{ label: 'Standard', id: 1 },
+								{ label: 'Bright', id: 3 },
+								{ label: 'Clarity', id: 4 },
+								{ label: 'Soft', id: 5 },
+							],
+							default: 1,
+							id: 'scene',
+						},
+					],
+					description: 'Set the scene mode',
+					callback: async (action) => {
+						if (!self.camera) return
+						const sceneNumber = action.options.scene as number
+						await self.camera.setPictureInfo({ Scene: sceneNumber } as unknown as PictureInfo)
+					},
+				}
+				actions['defogMode'] = {
+					name: 'Picture - Defog Mode',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							choices: [
+								{ label: 'OFF', id: 0 },
+								{ label: 'Auto', id: 1 },
+								{ label: 'Manual', id: 2 },
+							],
+							default: 0,
+							id: 'mode',
+						},
+					],
+					description: 'Set the defog mode',
+					callback: async (action) => {
+						if (!self.camera) return
+						const modeNumber = action.options.mode as number
+						await self.camera.setPictureInfo({ DefogMode: modeNumber } as unknown as PictureInfo)
+					},
+				}
+				actions['effect'] = {
+					name: 'Picture - Effect',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Effect',
+							choices: [
+								{ label: 'Day', id: 0 },
+								{ label: 'Night', id: 1 },
+							],
+							default: 0,
+							id: 'effect',
+						},
+					],
+					description: 'Set the picture effect',
+					callback: async (action) => {
+						if (!self.camera) return
+						const effectNumber = action.options.effect as number
+						await self.camera.setPictureInfo({ Effect: effectNumber } as unknown as PictureInfo)
+					},
+				}
 
 				const ColorMatrixOptions = [
 					{ label: 'Magenta Hue', id: 'MagentaHue' },
@@ -1061,6 +1150,52 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera!.setGammaInfo({ WDR: value } as Partial<GammaInfo>)
 					},
 					'Enable or disable wide dynamic range',
+				)
+				actions['gammaLevel'] = {
+					name: 'Gamma - Level',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Level',
+							choices: [
+								{ label: 'Default', id: 0 },
+								{ label: '0.45', id: 1 },
+								{ label: '0.50', id: 2 },
+								{ label: '0.55', id: 3 },
+								{ label: '0.63', id: 4 },
+							],
+							default: 0,
+							id: 'level',
+						},
+					],
+					description: 'Set the gamma level',
+					callback: async (action) => {
+						if (!self.camera) return
+						const levelNumber = action.options.level as number
+						await self.camera.setGammaInfo({ Level: levelNumber } as unknown as Partial<GammaInfo>)
+					},
+				}
+				createValueAction(
+					'gammaBright',
+					'Gamma - Bright',
+					() => self.camera?.getState().gammaInfo?.Bright,
+					async (value) => {
+						await self.camera!.setGammaInfo({ Bright: value } as Partial<GammaInfo>)
+					},
+					50,
+					1,
+					'Set the gamma brightness level',
+				)
+				createValueAction(
+					'wdrLevel',
+					'Gamma - WDR Level',
+					() => self.camera?.getState().gammaInfo?.WDRLevel,
+					async (value) => {
+						await self.camera!.setGammaInfo({ WDRLevel: value } as Partial<GammaInfo>)
+					},
+					50,
+					1,
+					'Set the wide dynamic range level',
 				)
 
 				createValueAction(

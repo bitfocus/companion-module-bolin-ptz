@@ -418,14 +418,32 @@ export class BolinCamera {
 	}
 
 	async setGammaInfo(gammaInfo: Partial<GammaInfo>): Promise<void> {
+		// Convert Level enum string to number if present
+		const apiPayload: Partial<{ Level: number; Bright: number; WDR: boolean; WDRLevel: number }> = {}
+		if (gammaInfo.Bright !== undefined) apiPayload.Bright = gammaInfo.Bright
+		if (gammaInfo.WDR !== undefined) apiPayload.WDR = gammaInfo.WDR
+		if (gammaInfo.WDRLevel !== undefined) apiPayload.WDRLevel = gammaInfo.WDRLevel
+		if (gammaInfo.Level !== undefined) {
+			// Convert string enum to number using reverse lookup, or use number directly
+			const levelMap: Record<string, number> = {
+				Default: 0,
+				'0.45': 1,
+				'0.50': 2,
+				'0.55': 3,
+				'0.63': 4,
+			}
+			apiPayload.Level = typeof gammaInfo.Level === 'string' ? (levelMap[gammaInfo.Level] ?? 0) : gammaInfo.Level
+		}
+
 		await this.sendRequest('/apiv2/image', 'ReqSetGammaInfo', {
-			GammaInfo: gammaInfo,
+			GammaInfo: apiPayload,
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.gammaInfo) {
 			this.state.gammaInfo = { ...this.state.gammaInfo, ...gammaInfo }
 		}
 		this.updateVariablesOnStateChange()
+		this.self.checkFeedbacks('wdr', 'gammaLevel', 'gammaBright', 'wdrLevel')
 	}
 
 	/**
@@ -461,18 +479,54 @@ export class BolinCamera {
 			this.state.whiteBalanceInfo = { ...this.state.whiteBalanceInfo, ...whiteBalanceInfo }
 		}
 		this.updateVariablesOnStateChange()
-		this.self.checkFeedbacks('whiteBalanceMode')
+		this.self.checkFeedbacks('whiteBalanceMode', 'whiteBalanceSensitivity')
 	}
 
 	async setPictureInfo(pictureInfo: Partial<PictureInfo>): Promise<void> {
+		// Convert enum strings to numbers if present
+		const apiPayload: Record<string, unknown> = { ...pictureInfo }
+
+		// Convert Scene enum string to number
+		if (pictureInfo.Scene !== undefined) {
+			const sceneMap: Record<string, number> = {
+				Standard: 1,
+				Bright: 3,
+				Clarity: 4,
+				Soft: 5,
+			}
+			apiPayload.Scene = typeof pictureInfo.Scene === 'string' ? (sceneMap[pictureInfo.Scene] ?? 1) : pictureInfo.Scene
+		}
+
+		// Convert DefogMode enum string to number
+		if (pictureInfo.DefogMode !== undefined) {
+			const defogMap: Record<string, number> = {
+				OFF: 0,
+				Auto: 1,
+				Manual: 2,
+			}
+			apiPayload.DefogMode =
+				typeof pictureInfo.DefogMode === 'string' ? (defogMap[pictureInfo.DefogMode] ?? 0) : pictureInfo.DefogMode
+		}
+
+		// Convert Effect enum string to number
+		if (pictureInfo.Effect !== undefined) {
+			const effectMap: Record<string, number> = {
+				Day: 0,
+				Night: 1,
+			}
+			apiPayload.Effect =
+				typeof pictureInfo.Effect === 'string' ? (effectMap[pictureInfo.Effect] ?? 0) : pictureInfo.Effect
+		}
+
 		await this.sendRequest('/apiv2/image', 'ReqSetPictureInfo', {
-			PictureInfo: pictureInfo,
+			PictureInfo: apiPayload,
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.pictureInfo) {
 			this.state.pictureInfo = { ...this.state.pictureInfo, ...pictureInfo }
 		}
 		this.updateVariablesOnStateChange()
+		this.self.checkFeedbacks('flip', 'mirror', 'hlcMode', 'blcMode', 'scene', 'defogMode', 'effect', 'colorMatrix')
 	}
 
 	/**
@@ -981,7 +1035,7 @@ export class BolinCamera {
 			{ capabilities: ['ExposureInfo', 'Exposure'], method: async () => this.getExposureInfo() },
 			{ capabilities: ['PositionLimitations'], method: async () => this.getPositionLimits() },
 			{ capabilities: ['VideoOutputInfo'], method: async () => this.getVideoOutput() },
-			{ capabilities: ['VideoOutputInfo'], method: async () => this.getGeneralCapabilities() },
+			{ capabilities: [], method: async () => this.getGeneralCapabilities() },
 			{
 				capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
 				method: async () => this.getPresetSpeed(),
@@ -994,6 +1048,8 @@ export class BolinCamera {
 			.filter((mapping) => {
 				// If capabilities aren't loaded, try all calls
 				if (!capabilitiesLoaded) return true
+				// Empty capabilities array means always run
+				if (mapping.capabilities.length === 0) return true
 				// Otherwise, check if any of the required capabilities exist
 				return mapping.capabilities.some((cap) => this.hasCapability(cap))
 			})
