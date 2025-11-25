@@ -6,6 +6,9 @@ import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
 export function UpdatePresets(self: ModuleInstance): void {
 	const presets: CompanionPresetDefinitions = {}
 
+	// Check if capabilities have been loaded (used for conditional preset creation)
+	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
+
 	const ptzDirections = [
 		{ key: 'ptzUp', name: 'PTZ Up', iconType: 'directionUp' as const, direction: 'Up' },
 		{ key: 'ptzDown', name: 'PTZ Down', iconType: 'directionDown' as const, direction: 'Down' },
@@ -1985,7 +1988,149 @@ export function UpdatePresets(self: ModuleInstance): void {
 		feedbacks: [],
 	}
 
-	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
+	// Helper function to create exposure value presets
+	function createExposureValuePresets(name: string, actionId: string, variableId: string, displayName: string): void {
+		const baseKey = `presetExposure${name}`
+		const displayUpper = displayName.toUpperCase().replace(/\s+/g, '\\n')
+
+		// Header
+		presets[`${baseKey}Header`] = {
+			category: 'Exposure',
+			name: `${name}`,
+			type: 'text',
+			text: '',
+		}
+
+		// Increase
+		presets[`${baseKey}Increase`] = {
+			type: 'button',
+			category: 'Exposure',
+			name: `Exposure ${name} Increase`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `INCREASE\\n${displayUpper}`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: actionId,
+							options: {
+								adjustment: 'increase',
+								value: '1',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Value Display
+		presets[`${baseKey}Value`] = {
+			type: 'button',
+			category: 'Exposure',
+			name: `Exposure ${name} Value`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Decrease
+		presets[`${baseKey}Decrease`] = {
+			type: 'button',
+			category: 'Exposure',
+			name: `Exposure ${name} Decrease`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `DECREASE\\n${displayUpper}`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: actionId,
+							options: {
+								adjustment: 'decrease',
+								value: '1',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
+	// Create exposure value presets
+	createExposureValuePresets('Gain', 'gain', 'gain', 'Gain')
+	createExposureValuePresets('GainLimit', 'gainLimit', 'gain_limit', 'Gain Limit')
+	createExposureValuePresets('ExpCompLevel', 'expCompLevel', 'ex_comp_level', 'Exp Comp Level')
+
+	// Smart Exposure presets
+	presets['presetExposureSmartExposureHeader'] = {
+		category: 'Exposure',
+		name: 'Smart Exposure',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 'toggle', label: 'Toggle', text: 'SMART\\nEXP\\n$(bolin-ptz:smart_exposure)' },
+		{ id: 'true', label: 'On', text: 'SMART\\nEXP\\nON' },
+		{ id: 'false', label: 'Off', text: 'SMART\\nEXP\\nOFF' },
+	]) {
+		presets[`presetExposureSmartExposure${mode.label}`] = {
+			type: 'button',
+			category: 'Exposure',
+			name: `Exposure Smart Exposure ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'smartExposure',
+							options: {
+								mode: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'smartExposure',
+					isInverted: mode.id === 'false' ? true : false,
+					options: {},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
 	const hasOverlayCapability = !capabilitiesLoaded || (self.camera?.hasCapability('OverlayInfo') ?? false)
 
 	if (hasOverlayCapability) {
