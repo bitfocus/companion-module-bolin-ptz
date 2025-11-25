@@ -521,7 +521,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 								preset: presetNumber,
 								customPreset: preset?.Name ? false : true,
 								customPresetNumber: presetNumber,
-								customPresetName: 'Preset $(options:customPresetNumber)',
+								customPresetName: `Preset ${presetNumber}`,
 							},
 						},
 					],
@@ -557,7 +557,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `WHITE\\nBALANCE\\n${key}`,
+				text: `WB MODE\\n${key}`,
 				size: '14',
 			},
 			steps: [
@@ -667,7 +667,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 	function createWhiteBalanceValuePresets(
 		color: string,
 		type: string,
-		actionId: string,
+		option: string,
 		variableId: string,
 		textColor: number,
 	): void {
@@ -699,8 +699,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 				{
 					down: [
 						{
-							actionId: actionId,
+							actionId: 'whiteBalanceAdjustments',
 							options: {
+								option: option,
 								adjustment: 'increase',
 								value: '1',
 							},
@@ -747,8 +748,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 				{
 					down: [
 						{
-							actionId: actionId,
+							actionId: 'whiteBalanceAdjustments',
 							options: {
+								option: option,
 								adjustment: 'decrease',
 								value: '1',
 							},
@@ -762,11 +764,12 @@ export function UpdatePresets(self: ModuleInstance): void {
 	}
 
 	// Create white balance value presets
-	createWhiteBalanceValuePresets('Red', 'Gain', 'rGain', 'wb_r_gain', 0xff0000)
-	createWhiteBalanceValuePresets('Blue', 'Gain', 'bGain', 'wb_b_gain', 0x0000ff)
-	createWhiteBalanceValuePresets('Red', 'Tuning', 'rTuning', 'wb_r_tuning', 0xff0000)
-	createWhiteBalanceValuePresets('Blue', 'Tuning', 'bTuning', 'wb_b_tuning', 0x0000ff)
-	createWhiteBalanceValuePresets('Green', 'Tuning', 'gTuning', 'wb_g_tuning', 0x00ff00)
+	createWhiteBalanceValuePresets('Red', 'Gain', 'RGain', 'wb_r_gain', 0xff0000)
+	createWhiteBalanceValuePresets('Blue', 'Gain', 'BGain', 'wb_b_gain', 0x0000ff)
+	createWhiteBalanceValuePresets('Red', 'Tuning', 'RTuning', 'wb_r_tuning', 0xff0000)
+	createWhiteBalanceValuePresets('Blue', 'Tuning', 'BTuning', 'wb_b_tuning', 0x0000ff)
+	createWhiteBalanceValuePresets('Green', 'Tuning', 'GTuning', 'wb_g_tuning', 0x00ff00)
+
 	presets['irisAdjustmentsHeader'] = {
 		category: 'Iris',
 		name: 'Iris Adjustments',

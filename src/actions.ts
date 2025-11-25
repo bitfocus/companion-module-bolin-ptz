@@ -745,7 +745,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['WhiteBalanceInfo', 'WhiteBalance'],
 			createActions: () => {
 				actions['whiteBalanceMode'] = {
-					name: 'White Balance Mode',
+					name: 'White Balance - Mode',
 					options: [
 						{
 							type: 'dropdown',
@@ -770,47 +770,63 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera.setWhiteBalanceInfo({ Mode: action.options.mode } as WhiteBalanceInfo)
 					},
 				}
-				createValueAction(
-					'rGain',
-					'White Balance - Red Gain',
-					() => self.camera?.getState().whiteBalanceInfo?.RGain,
-					async (value) => {
-						await self.camera!.setWhiteBalanceInfo({ RGain: value } as Partial<WhiteBalanceInfo>)
-					},
-				)
-				createValueAction(
-					'bGain',
-					'White Balance - Blue Gain',
-					() => self.camera?.getState().whiteBalanceInfo?.BGain,
-					async (value) => {
-						await self.camera!.setWhiteBalanceInfo({ BGain: value } as Partial<WhiteBalanceInfo>)
-					},
-				)
-				createValueAction(
-					'rTuning',
-					'White Balance - Red Tuning',
-					() => self.camera?.getState().whiteBalanceInfo?.RTuning,
-					async (value) => {
-						await self.camera!.setWhiteBalanceInfo({ RTuning: value } as Partial<WhiteBalanceInfo>)
-					},
-				)
-				createValueAction(
-					'bTuning',
-					'White Balance - Blue Tuning',
-					() => self.camera?.getState().whiteBalanceInfo?.BTuning,
-					async (value) => {
-						await self.camera!.setWhiteBalanceInfo({ BTuning: value } as Partial<WhiteBalanceInfo>)
-					},
-				)
+				const WhiteBalanceOptions = [
+					{ label: 'Red Gain', id: 'RGain' },
+					{ label: 'Blue Gain', id: 'BGain' },
+					{ label: 'Red Tuning', id: 'RTuning' },
+					{ label: 'Blue Tuning', id: 'BTuning' },
+					{ label: 'Green Tuning', id: 'GTuning' },
+				]
 
-				createValueAction(
-					'gTuning',
-					'White Balance - Green Tuning',
-					() => self.camera?.getState().whiteBalanceInfo?.GTuning,
-					async (value) => {
-						await self.camera!.setWhiteBalanceInfo({ GTuning: value } as Partial<WhiteBalanceInfo>)
+				actions['whiteBalanceAdjustments'] = {
+					name: 'White Balance - Color Tuning / Gain',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'White Balance Option',
+							choices: WhiteBalanceOptions,
+							default: 'RGain',
+							id: 'option',
+						},
+						{
+							type: 'dropdown',
+							label: 'Adjustment',
+							choices: setChoices,
+							default: 'increase',
+							id: 'adjustment',
+						},
+						{
+							type: 'textinput',
+							label: 'Value',
+							default: '0',
+							id: 'value',
+							useVariables: true,
+							isVisibleExpression: `$(options:adjustment) === 'set'`,
+						},
+					],
+					description: 'Adjust the white balance color tuning / gain',
+					callback: async (action) => {
+						if (!self.camera) return
+						const whiteBalanceOption = action.options.option as keyof WhiteBalanceInfo
+						if (action.options.adjustment === 'increase') {
+							await self.camera.setWhiteBalanceInfo({
+								[whiteBalanceOption]:
+									((self.camera.getState().whiteBalanceInfo?.[whiteBalanceOption] as number) ?? 0) + 1,
+							} as Partial<WhiteBalanceInfo>)
+						} else if (action.options.adjustment === 'decrease') {
+							await self.camera.setWhiteBalanceInfo({
+								[whiteBalanceOption]:
+									((self.camera.getState().whiteBalanceInfo?.[whiteBalanceOption] as number) ?? 0) - 1,
+							} as Partial<WhiteBalanceInfo>)
+						} else {
+							const parsedValue = parseInteger(action.options.value as string, 'White balance value', self)
+							if (parsedValue === null) return
+							await self.camera.setWhiteBalanceInfo({
+								[whiteBalanceOption]: parsedValue,
+							} as Partial<WhiteBalanceInfo>)
+						}
 					},
-				)
+				}
 				createValueAction(
 					'colorTemperature',
 					'White Balance - Color Temperature',
@@ -910,7 +926,6 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera!.setPictureInfo({ Saturation: value } as Partial<PictureInfo>)
 					},
 				)
-
 				createValueAction(
 					'defogLevel',
 					'Defog Level',
@@ -963,6 +978,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							default: '0',
 							id: 'value',
 							useVariables: true,
+							isVisibleExpression: `$(options:adjustment) === 'set'`,
 						},
 					],
 					description: 'Set the color matrix',
