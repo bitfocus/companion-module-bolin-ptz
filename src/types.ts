@@ -483,6 +483,55 @@ export interface CameraCapabilities {
 }
 
 /**
+ * Network fallback information
+ */
+export interface NetworkFallback {
+	IPAddress: string
+	Gateway: string
+	SubnetMask: string
+	Timeout: number
+}
+
+/**
+ * Network information
+ */
+export interface NetworkInfo {
+	NetworkInfo: {
+		Pattern: number
+		IPAddress: string
+		IPVersion: number
+		SubnetMask: string
+		NetMAC: string
+		Gateway: string
+		DNS1: string
+		DNS2: string
+	}
+	Fallback: NetworkFallback
+	Status: number
+}
+
+/**
+ * OSD System information
+ */
+export interface OSDSystemInfo {
+	PelcoID: number
+	VISCAID: number
+	IRID: number
+	IRReceive: boolean
+	BaudRate: number
+	MonitorInfo: number
+	TemperatureDegree: number
+	DisplayInfo: boolean
+	VideoParametersOSD: boolean
+	TallyMode: boolean
+	Audio: boolean
+	InputType: number
+	VolumeLevel: number
+	PhantomPower: boolean
+	ColorSpace: number
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -500,4 +549,6 @@ export interface CameraState {
 	generalCapabilities: GeneralCapabilities | null
 	panTiltInfo: PanTiltInfo | null
 	overlayInfo: OverlayInfo[] | null
+	networkInfo: NetworkInfo | null
+	osdSystemInfo: OSDSystemInfo | null
 }

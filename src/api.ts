@@ -29,6 +29,8 @@ import type {
 	GeneralCapabilities,
 	PanTiltInfo,
 	OverlayInfo,
+	NetworkInfo,
+	OSDSystemInfo,
 	CameraCapabilities,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
@@ -68,6 +70,8 @@ function createEmptyState(): CameraState {
 		generalCapabilities: null,
 		panTiltInfo: null,
 		overlayInfo: null,
+		networkInfo: null,
+		osdSystemInfo: null,
 	} satisfies CameraState
 }
 
@@ -872,6 +876,40 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Gets network information from the camera and stores it in state
+	 */
+	async getNetworkInfo(): Promise<NetworkInfo | null> {
+		try {
+			const response = await this.sendRequest('/apiv2/network', 'ReqGetNetworkInfo', undefined, '2.0.000')
+			// Check if the response has the expected structure
+			if (response.Content.Status !== 0 || !response.Content.NetworkInfo) {
+				this.self.log('debug', 'NetworkInfo not available or request failed')
+				return null
+			}
+			this.state.networkInfo = {
+				NetworkInfo: response.Content.NetworkInfo as NetworkInfo['NetworkInfo'],
+				Fallback: response.Content.Fallback as NetworkInfo['Fallback'],
+				Status: response.Content.Status,
+			}
+			this.updateVariablesOnStateChange()
+			return this.state.networkInfo
+		} catch (error) {
+			this.self.log('debug', `Failed to get network info: ${this.getErrorMessage(error)}`)
+			return null
+		}
+	}
+
+	/**
+	 * Gets OSD system information from the camera and stores it in state
+	 */
+	async getOSDSystemInfo(): Promise<OSDSystemInfo> {
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetOSDSystemInfo', undefined, '2.0.000')
+		this.state.osdSystemInfo = response.Content.OSDSystemInfo as OSDSystemInfo
+		this.updateVariablesOnStateChange()
+		return this.state.osdSystemInfo
+	}
+
+	/**
 	 * Sets overlay information on the camera
 	 * @param overlayInfo The overlay information array
 	 */
@@ -950,7 +988,7 @@ export class BolinCamera {
 				this.self.log('debug', `Failed to get image capabilities: ${this.getErrorMessage(error)}`)
 				return null
 			}),
-			this.fetchCapabilities('/apiv2/avstream', 'ReqGetAVStreamCapabilities', 'AV stream capabilities'),
+			this.fetchCapabilities('/apiv2/av', 'ReqGetAVStreamCapabilities', 'AV stream capabilities'),
 			this.fetchCapabilities('/apiv2/network', 'ReqGetNetworkCapabilities', 'network capabilities'),
 			this.fetchCapabilities('/apiv2/general', 'ReqGetGeneralCapabilities', 'general capabilities'),
 		])
@@ -1042,6 +1080,7 @@ export class BolinCamera {
 			},
 			{ capabilities: ['PanTiltInfo', 'PTZFMoveInfo'], method: async () => this.getPTInfo() },
 			{ capabilities: ['OverlayInfo'], method: async () => this.getOverlayInfo() },
+			{ capabilities: ['OSDSystemInfo'], method: async () => this.getOSDSystemInfo() },
 		]
 
 		const promises = capabilityMappings
@@ -1053,8 +1092,15 @@ export class BolinCamera {
 				// Otherwise, check if any of the required capabilities exist
 				return mapping.capabilities.some((cap) => this.hasCapability(cap))
 			})
-			.map(async (mapping) => mapping.method())
+			.map(async (mapping) => {
+				try {
+					await mapping.method()
+				} catch (error) {
+					// Log but don't throw - allow other calls to continue
+					this.self.log('debug', `Failed to fetch ${mapping.capabilities.join(', ')}: ${this.getErrorMessage(error)}`)
+				}
+			})
 
-		await Promise.all(promises)
+		await Promise.allSettled(promises)
 	}
 }

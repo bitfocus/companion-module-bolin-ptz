@@ -224,6 +224,24 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 				{ name: 'PTZ - Tilt Direction', variableId: 'tilt_direction' },
 			],
 		},
+		{
+			capabilities: ['NetworkInfo'],
+			variables: [
+				{ name: 'Network - IP Address', variableId: 'ip_address' },
+				{ name: 'Network - Subnet Mask', variableId: 'subnet_mask' },
+				{ name: 'Network - MAC Address', variableId: 'mac_address' },
+				{ name: 'Network - Gateway', variableId: 'gateway' },
+				{ name: 'Network - Fallback IP Address', variableId: 'fallback_ip_address' },
+			],
+		},
+		{
+			capabilities: ['OSDSystemInfo'],
+			variables: [
+				{ name: 'System - Pelco ID', variableId: 'pelco_id' },
+				{ name: 'System - VISCA ID', variableId: 'visca_id' },
+				{ name: 'System - Tally Mode', variableId: 'tally' },
+			],
+		},
 	]
 
 	// Filter and collect variables based on capabilities
@@ -508,6 +526,26 @@ export function UpdateVariablesOnStateChange(
 				variables[`overlay_${i}_enabled`] = currentOverlay.Enable
 			}
 		}
+	}
+
+	// Update network info variables if changed
+	if (currentState.networkInfo) {
+		updateFields(variables, previousState?.networkInfo, currentState.networkInfo, [
+			{ getValue: (n) => n.NetworkInfo?.IPAddress ?? '', variableId: 'ip_address', defaultValue: '' },
+			{ getValue: (n) => n.NetworkInfo?.SubnetMask ?? '', variableId: 'subnet_mask', defaultValue: '' },
+			{ getValue: (n) => n.NetworkInfo?.NetMAC ?? '', variableId: 'mac_address', defaultValue: '' },
+			{ getValue: (n) => n.NetworkInfo?.Gateway ?? '', variableId: 'gateway', defaultValue: '' },
+			{ getValue: (n) => n.Fallback?.IPAddress ?? '', variableId: 'fallback_ip_address', defaultValue: '' },
+		])
+	}
+
+	// Update OSD system info variables if changed
+	if (currentState.osdSystemInfo) {
+		updateFields(variables, previousState?.osdSystemInfo, currentState.osdSystemInfo, [
+			{ getValue: (o) => o.PelcoID, variableId: 'pelco_id' },
+			{ getValue: (o) => o.VISCAID, variableId: 'visca_id' },
+			{ getValue: (o) => o.TallyMode, variableId: 'tally' },
+		])
 	}
 
 	// Only update variables if something changed
