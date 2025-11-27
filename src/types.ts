@@ -532,6 +532,80 @@ export interface OSDSystemInfo {
 }
 
 /**
+ * RTSP stream information
+ */
+export interface RTSPInfo {
+	Channel: number
+	Enable: boolean
+	Port: number
+	TransMode?: string // Note: API may return "Transmode" (typo)
+	Transmode?: string
+	MaxClientNum: number
+	StreamKey: string
+	AuthEnable: boolean
+}
+
+/**
+ * RTMP stream information
+ */
+export interface RTMPInfo {
+	Channel: number
+	Enable: boolean
+	Port: number
+	VideoTagHeader: number
+	Url: string
+	StreamKey: string
+}
+
+/**
+ * AV over UDP stream information
+ */
+export interface AVOverUDPInfo {
+	Channel: number
+	Address: string
+	Port: number
+	Enable: boolean
+}
+
+/**
+ * AV over RTP stream information
+ */
+export interface AVOverRTPInfo {
+	Channel: number
+	Address: string
+	Port: number
+	Enable: boolean
+}
+
+/**
+ * NDI stream information
+ */
+export interface NDIInfo {
+	NDIEnable: boolean
+	NDISDKVer: string
+	NDIName: string
+	NDIChnName: string
+	NDIHX: number
+	NDIHXBandwidth: number
+	WebCtrl: boolean
+	FailoverEnable: boolean
+	FailoverSourceName: string
+	FailoverIpAddress: string
+	MulticastEnable: boolean
+	MulticastIP: string
+	MulticastMask: string
+	MulticastTTL: number
+	GroupName: string
+	DiscoverServerEnable: boolean
+	DiscoverServerIP: string
+	BridgeEnable: boolean
+	BridgeName: string
+	BridgeIPAddress: string
+	BridgePort: number
+	BridgeKey: string
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -551,4 +625,9 @@ export interface CameraState {
 	overlayInfo: OverlayInfo[] | null
 	networkInfo: NetworkInfo | null
 	osdSystemInfo: OSDSystemInfo | null
+	rtspInfo: RTSPInfo[] | null
+	rtmpInfo: RTMPInfo[] | null
+	avOverUDPInfo: AVOverUDPInfo[] | null
+	avOverRTPInfo: AVOverRTPInfo[] | null
+	ndiInfo: NDIInfo | null
 }

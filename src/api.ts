@@ -32,6 +32,11 @@ import type {
 	NetworkInfo,
 	OSDSystemInfo,
 	CameraCapabilities,
+	RTSPInfo,
+	RTMPInfo,
+	AVOverUDPInfo,
+	AVOverRTPInfo,
+	NDIInfo,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -72,6 +77,11 @@ function createEmptyState(): CameraState {
 		overlayInfo: null,
 		networkInfo: null,
 		osdSystemInfo: null,
+		rtspInfo: null,
+		rtmpInfo: null,
+		avOverUDPInfo: null,
+		avOverRTPInfo: null,
+		ndiInfo: null,
 	} satisfies CameraState
 }
 
@@ -910,6 +920,56 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Gets RTSP stream information from the camera and stores it in state
+	 */
+	async getRTSPInfo(): Promise<RTSPInfo[]> {
+		const response = await this.sendRequest('/apiv2/av', 'AswGetRTSPInfo')
+		this.state.rtspInfo = response.Content.RTSPInfo as RTSPInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.rtspInfo
+	}
+
+	/**
+	 * Gets RTMP stream information from the camera and stores it in state
+	 */
+	async getRTMPInfo(): Promise<RTMPInfo[]> {
+		const response = await this.sendRequest('/apiv2/av', 'AswGetRTMPInfo')
+		this.state.rtmpInfo = response.Content.RTMPInfo as RTMPInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.rtmpInfo
+	}
+
+	/**
+	 * Gets AV over UDP stream information from the camera and stores it in state
+	 */
+	async getAVOverUDPInfo(): Promise<AVOverUDPInfo[]> {
+		const response = await this.sendRequest('/apiv2/av', 'AswGetAVOverUDPInfo')
+		this.state.avOverUDPInfo = response.Content.AVOverUDPInfo as AVOverUDPInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.avOverUDPInfo
+	}
+
+	/**
+	 * Gets AV over RTP stream information from the camera and stores it in state
+	 */
+	async getAVOverRTPInfo(): Promise<AVOverRTPInfo[]> {
+		const response = await this.sendRequest('/apiv2/av', 'AswGetAVOverRTPInfo')
+		this.state.avOverRTPInfo = response.Content.AVOverRTPInfo as AVOverRTPInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.avOverRTPInfo
+	}
+
+	/**
+	 * Gets NDI stream information from the camera and stores it in state
+	 */
+	async getNDIInfo(): Promise<NDIInfo> {
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetNDIInfo')
+		this.state.ndiInfo = response.Content.NDIInfo as NDIInfo
+		this.updateVariablesOnStateChange()
+		return this.state.ndiInfo
+	}
+
+	/**
 	 * Sets overlay information on the camera
 	 * @param overlayInfo The overlay information array
 	 */
@@ -1081,6 +1141,11 @@ export class BolinCamera {
 			{ capabilities: ['PanTiltInfo', 'PTZFMoveInfo'], method: async () => this.getPTInfo() },
 			{ capabilities: ['OverlayInfo'], method: async () => this.getOverlayInfo() },
 			{ capabilities: ['OSDSystemInfo'], method: async () => this.getOSDSystemInfo() },
+			{ capabilities: ['RTSPInfo'], method: async () => this.getRTSPInfo() },
+			{ capabilities: ['RTMPInfo'], method: async () => this.getRTMPInfo() },
+			{ capabilities: ['AVOverUDPInfo'], method: async () => this.getAVOverUDPInfo() },
+			{ capabilities: ['AVOverRTPInfo'], method: async () => this.getAVOverRTPInfo() },
+			{ capabilities: ['NDIInfo'], method: async () => this.getNDIInfo() },
 		]
 
 		const promises = capabilityMappings
