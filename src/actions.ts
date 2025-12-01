@@ -2243,7 +2243,7 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Mode',
 							choices: [
-								{ label: 'Caller', id: 0 },
+								{ label: 'Caller', id: 1 },
 								{ label: 'Listener', id: 2 },
 							],
 							default: 0,

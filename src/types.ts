@@ -610,7 +610,7 @@ export interface NDIInfo {
 export interface SRTInfo {
 	Channel: number
 	Enable: boolean
-	Mode: number // 0 or 1 = Caller, 2 = Listener
+	Mode: number // 1 = Caller, 2 = Listener
 	IPAddress: string
 	Port: number
 	StreamID: string

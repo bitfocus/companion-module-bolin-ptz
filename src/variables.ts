@@ -718,7 +718,7 @@ export function UpdateVariablesOnStateChange(
 				variables[`${channelPrefix}_port`] = stream.Port
 			}
 			if (!previousStream || previousStream.Mode !== stream.Mode) {
-				variables[`${channelPrefix}_mode`] = stream.Mode === 0 || stream.Mode === 1 ? 'Caller' : 'Listener'
+				variables[`${channelPrefix}_mode`] = stream.Mode === 1 || stream.Mode === 2 ? 'Caller' : 'Listener'
 			}
 			if (!previousStream || previousStream.IPAddress !== stream.IPAddress) {
 				variables[`${channelPrefix}_ip_address`] = stream.IPAddress ?? ''
