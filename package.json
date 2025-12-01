@@ -23,7 +23,7 @@
 		"yarn": "^4"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.13.4",
+		"@companion-module/base": "~1.13.5",
 		"companion-module-utils": "^0.5.0"
 	},
 	"devDependencies": {
@@ -32,7 +32,7 @@
 		"eslint": "^9.39.1",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
-		"prettier": "^3.6.2",
+		"prettier": "^3.7.3",
 		"rimraf": "^6.1.2",
 		"typescript": "~5.8.3",
 		"typescript-eslint": "^8.48.0"
