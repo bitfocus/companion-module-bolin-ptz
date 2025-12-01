@@ -37,6 +37,7 @@ import type {
 	AVOverUDPInfo,
 	AVOverRTPInfo,
 	NDIInfo,
+	SRTInfo,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -82,6 +83,7 @@ function createEmptyState(): CameraState {
 		avOverUDPInfo: null,
 		avOverRTPInfo: null,
 		ndiInfo: null,
+		srtInfo: null,
 	} satisfies CameraState
 }
 
@@ -987,6 +989,16 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Gets SRT stream information from the camera and stores it in state
+	 */
+	async getSRTInfo(): Promise<SRTInfo[]> {
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetSRTInfo')
+		this.state.srtInfo = response.Content.SRTInfo as SRTInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.srtInfo
+	}
+
+	/**
 	 * Sets RTSP stream information on the camera
 	 * @param channel The channel number (0 = Main Stream, 1 = Substream)
 	 * @param info The RTSP stream information parameters (all fields optional)
@@ -1057,6 +1069,22 @@ export class BolinCamera {
 	async setNDIInfo(info: Partial<NDIInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/av', 'ReqSetNDIInfo', {
 			NDIInfo: info,
+		})
+	}
+
+	/**
+	 * Sets SRT stream information on the camera
+	 * @param channel The channel number (0 = Main Stream, 1 = Substream)
+	 * @param info The SRT stream information parameters (all fields optional)
+	 */
+	async setSRTInfo(channel: number, info: Partial<SRTInfo>): Promise<void> {
+		// Only send channel and the fields that are actually being updated
+		const payload: Partial<SRTInfo> = {
+			Channel: channel,
+			...info,
+		}
+		await this.sendRequest('/apiv2/av', 'ReqSetSRTInfo', {
+			SRTInfo: [payload],
 		})
 	}
 
@@ -1258,6 +1286,7 @@ export class BolinCamera {
 			{ capabilities: ['AVOverUDPInfo'], method: async () => this.getAVOverUDPInfo() },
 			{ capabilities: ['AVOverRTPInfo'], method: async () => this.getAVOverRTPInfo() },
 			{ capabilities: ['NDIInfo'], method: async () => this.getNDIInfo() },
+			{ capabilities: ['SRTInfo'], method: async () => this.getSRTInfo() },
 		]
 
 		const promises = capabilityMappings

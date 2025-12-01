@@ -645,8 +645,8 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -677,8 +677,8 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -709,8 +709,8 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -741,8 +741,8 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -764,6 +764,38 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				createToggleFeedback('ndiEnabled', 'Stream - NDI Enabled', 'NDI stream is enabled', () => {
 					return self.camera?.getState().ndiInfo?.NDIEnable ?? false
 				})
+			},
+		},
+		{
+			capabilities: ['SRTInfo'],
+			createFeedbacks: () => {
+				feedbacks['srtEnabled'] = {
+					name: 'Stream - SRT Enabled',
+					description: 'SRT stream is enabled for selected channel',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const channel = feedback.options.channel as number
+						const srtInfo = self.camera?.getState().srtInfo
+						if (!srtInfo) return false
+						const stream = srtInfo.find((s) => s.Channel === channel)
+						return stream?.Enable ?? false
+					},
+				}
 			},
 		},
 	]

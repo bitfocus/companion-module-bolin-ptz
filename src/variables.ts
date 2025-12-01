@@ -296,6 +296,25 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 				{ name: 'Stream - NDI HX Bandwidth', variableId: 'ndi_hx_bandwidth' },
 			],
 		},
+		{
+			capabilities: ['SRTInfo'],
+			variables: [
+				{ name: 'Stream - SRT Main Enable', variableId: 'srt_main_enable' },
+				{ name: 'Stream - SRT Main Port', variableId: 'srt_main_port' },
+				{ name: 'Stream - SRT Main Mode', variableId: 'srt_main_mode' },
+				{ name: 'Stream - SRT Main IP Address', variableId: 'srt_main_ip_address' },
+				{ name: 'Stream - SRT Main Stream ID', variableId: 'srt_main_stream_id' },
+				{ name: 'Stream - SRT Main Latency', variableId: 'srt_main_latency' },
+				{ name: 'Stream - SRT Main Overhead Bandwidth', variableId: 'srt_main_overhead_bandwidth' },
+				{ name: 'Stream - SRT Sub Enable', variableId: 'srt_sub_enable' },
+				{ name: 'Stream - SRT Sub Port', variableId: 'srt_sub_port' },
+				{ name: 'Stream - SRT Sub Mode', variableId: 'srt_sub_mode' },
+				{ name: 'Stream - SRT Sub IP Address', variableId: 'srt_sub_ip_address' },
+				{ name: 'Stream - SRT Sub Stream ID', variableId: 'srt_sub_stream_id' },
+				{ name: 'Stream - SRT Sub Latency', variableId: 'srt_sub_latency' },
+				{ name: 'Stream - SRT Sub Overhead Bandwidth', variableId: 'srt_sub_overhead_bandwidth' },
+			],
+		},
 	]
 
 	// Filter and collect variables based on capabilities
@@ -684,6 +703,36 @@ export function UpdateVariablesOnStateChange(
 			{ getValue: (n) => n.NDIName ?? '', variableId: 'ndi_name', defaultValue: '' },
 			{ getValue: (n) => n.NDIHXBandwidth, variableId: 'ndi_hx_bandwidth' },
 		])
+	}
+
+	// Update SRT stream variables if changed
+	if (currentState.srtInfo) {
+		for (const stream of currentState.srtInfo) {
+			const channelPrefix = stream.Channel === 0 ? 'srt_main' : 'srt_sub'
+			const previousStream = previousState?.srtInfo?.find((s) => s.Channel === stream.Channel)
+
+			if (!previousStream || previousStream.Enable !== stream.Enable) {
+				variables[`${channelPrefix}_enable`] = stream.Enable
+			}
+			if (!previousStream || previousStream.Port !== stream.Port) {
+				variables[`${channelPrefix}_port`] = stream.Port
+			}
+			if (!previousStream || previousStream.Mode !== stream.Mode) {
+				variables[`${channelPrefix}_mode`] = stream.Mode === 0 || stream.Mode === 1 ? 'Caller' : 'Listener'
+			}
+			if (!previousStream || previousStream.IPAddress !== stream.IPAddress) {
+				variables[`${channelPrefix}_ip_address`] = stream.IPAddress ?? ''
+			}
+			if (!previousStream || previousStream.StreamID !== stream.StreamID) {
+				variables[`${channelPrefix}_stream_id`] = stream.StreamID ?? ''
+			}
+			if (!previousStream || previousStream.Latency !== stream.Latency) {
+				variables[`${channelPrefix}_latency`] = stream.Latency
+			}
+			if (!previousStream || previousStream.OverheadBandwidth !== stream.OverheadBandwidth) {
+				variables[`${channelPrefix}_overhead_bandwidth`] = stream.OverheadBandwidth
+			}
+		}
 	}
 
 	// Only update variables if something changed

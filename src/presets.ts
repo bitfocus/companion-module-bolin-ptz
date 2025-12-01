@@ -2529,5 +2529,68 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
+	const hasSRTCapability = !capabilitiesLoaded || (self.camera?.hasCapability('SRTInfo') ?? false)
+	if (hasSRTCapability) {
+		presets['streamSRTHeader'] = {
+			category: 'Streams',
+			name: 'SRT Control',
+			type: 'text',
+			text: '',
+		}
+		for (const channel of [
+			{ id: 0, label: 'Main' },
+			{ id: 1, label: 'Sub' },
+		]) {
+			for (const mode of [
+				{
+					id: 'toggle',
+					label: 'Toggle',
+					text: `SRT\\n${channel.label}\\n$(bolin-ptz:srt_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+				},
+				{ id: 'true', label: 'On', text: `SRT\\n${channel.label}\\nON` },
+				{ id: 'false', label: 'Off', text: `SRT\\n${channel.label}\\nOFF` },
+			]) {
+				presets[`streamSRT${channel.label}${mode.label}`] = {
+					type: 'button',
+					category: 'Streams',
+					name: `SRT ${channel.label} Stream ${mode.label}`,
+					style: {
+						bgcolor: 0x000000,
+						color: 0xffffff,
+						text: mode.text,
+						size: '14',
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'srtControl',
+									options: {
+										channel: channel.id,
+										props: ['enable'],
+										enable: mode.id,
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'srtEnabled',
+							isInverted: mode.id === 'false' ? true : false,
+							options: {
+								channel: channel.id,
+							},
+							style: {
+								bgcolor: 0x009900,
+							},
+						},
+					],
+				}
+			}
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }

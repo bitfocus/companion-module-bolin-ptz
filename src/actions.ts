@@ -19,6 +19,7 @@ import type {
 	AVOverUDPInfo,
 	AVOverRTPInfo,
 	NDIInfo,
+	SRTInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -1708,8 +1709,8 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -1813,8 +1814,8 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -1936,8 +1937,8 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -2028,8 +2029,8 @@ export function UpdateActions(self: ModuleInstance): void {
 							type: 'dropdown',
 							label: 'Channel',
 							choices: [
-								{ label: 'Main Stream (0)', id: 0 },
-								{ label: 'Substream (1)', id: 1 },
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
 							],
 							default: 0,
 							id: 'channel',
@@ -2186,6 +2187,163 @@ export function UpdateActions(self: ModuleInstance): void {
 						}
 
 						await self.camera.setNDIInfo(updateInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['SRTInfo'],
+			createActions: () => {
+				actions['srtControl'] = {
+					name: 'Stream - SRT Control',
+					description: 'Control SRT stream settings',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream', id: 0 },
+								{ label: 'Sub Stream', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'Enable', id: 'enable' },
+								{ label: 'Port', id: 'port' },
+								{ label: 'Mode', id: 'mode' },
+								{ label: 'IP Address', id: 'ipAddress' },
+								{ label: 'Stream ID', id: 'streamID' },
+								{ label: 'Latency', id: 'latency' },
+								{ label: 'Overhead Bandwidth', id: 'overheadBandwidth' },
+							],
+							default: ['enable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'Enable',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'enable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Port',
+							default: '',
+							id: 'port',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'port')`,
+						},
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							choices: [
+								{ label: 'Caller', id: 0 },
+								{ label: 'Listener', id: 2 },
+							],
+							default: 0,
+							id: 'mode',
+							isVisibleExpression: `arrayIncludes($(options:props), 'mode')`,
+						},
+						{
+							type: 'textinput',
+							label: 'IP Address',
+							default: '',
+							id: 'ipAddress',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'ipAddress')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Stream ID',
+							default: '',
+							id: 'streamID',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'streamID')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Latency',
+							default: '50',
+							id: 'latency',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'latency')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Overhead Bandwidth',
+							default: '25',
+							id: 'overheadBandwidth',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'overheadBandwidth')`,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const channel = action.options.channel as number
+						const props = action.options.props as string[]
+						const currentStream = self.camera.getState().srtInfo?.find((s) => s.Channel === channel)
+						const currentEnable = currentStream?.Enable ?? false
+
+						const updateInfo: Partial<SRTInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'enable') {
+								let newEnable: boolean
+								if (action.options.enable === 'toggle') {
+									newEnable = !currentEnable
+								} else {
+									newEnable = action.options.enable === 'true' ? true : false
+								}
+								updateInfo.Enable = newEnable
+							}
+							if (prop === 'port') {
+								if (action.options.port) {
+									const port = parseInt(action.options.port as string)
+									if (!isNaN(port)) {
+										updateInfo.Port = port
+									}
+								}
+							}
+							if (prop === 'mode') {
+								if (action.options.mode !== undefined) {
+									updateInfo.Mode = action.options.mode as number
+								}
+							}
+							if (prop === 'ipAddress') {
+								if (action.options.ipAddress) {
+									updateInfo.IPAddress = action.options.ipAddress as string
+								}
+							}
+							if (prop === 'streamID') {
+								if (action.options.streamID) {
+									updateInfo.StreamID = action.options.streamID as string
+								}
+							}
+							if (prop === 'latency') {
+								if (action.options.latency) {
+									const latency = parseInt(action.options.latency as string)
+									if (!isNaN(latency)) {
+										updateInfo.Latency = latency
+									}
+								}
+							}
+							if (prop === 'overheadBandwidth') {
+								if (action.options.overheadBandwidth) {
+									const overheadBandwidth = parseInt(action.options.overheadBandwidth as string)
+									if (!isNaN(overheadBandwidth)) {
+										updateInfo.OverheadBandwidth = overheadBandwidth
+									}
+								}
+							}
+						}
+
+						await self.camera.setSRTInfo(channel, updateInfo)
 					},
 				}
 			},

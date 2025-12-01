@@ -605,6 +605,22 @@ export interface NDIInfo {
 }
 
 /**
+ * SRT stream information
+ */
+export interface SRTInfo {
+	Channel: number
+	Enable: boolean
+	Mode: number // 0 or 1 = Caller, 2 = Listener
+	IPAddress: string
+	Port: number
+	StreamID: string
+	Latency: number
+	OverheadBandwidth: number
+	Encryption: number
+	Passphrase: string
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -629,4 +645,5 @@ export interface CameraState {
 	avOverUDPInfo: AVOverUDPInfo[] | null
 	avOverRTPInfo: AVOverRTPInfo[] | null
 	ndiInfo: NDIInfo | null
+	srtInfo: SRTInfo[] | null
 }
