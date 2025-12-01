@@ -1722,7 +1722,6 @@ export function UpdateActions(self: ModuleInstance): void {
 								{ label: 'Port', id: 'port' },
 								{ label: 'Stream Key', id: 'streamKey' },
 								{ label: 'Auth Enable', id: 'authEnable' },
-								{ label: 'Trans Mode', id: 'transMode' },
 							],
 							default: ['enable'],
 							id: 'props',
@@ -1757,14 +1756,6 @@ export function UpdateActions(self: ModuleInstance): void {
 							default: false,
 							id: 'authEnable',
 							isVisibleExpression: `arrayIncludes($(options:props), 'authEnable')`,
-						},
-						{
-							type: 'textinput',
-							label: 'Trans Mode',
-							default: '',
-							id: 'transMode',
-							useVariables: true,
-							isVisibleExpression: `arrayIncludes($(options:props), 'transMode')`,
 						},
 					],
 					callback: async (action) => {
@@ -1802,11 +1793,6 @@ export function UpdateActions(self: ModuleInstance): void {
 							if (prop === 'authEnable') {
 								if (action.options.authEnable !== undefined) {
 									updateInfo.AuthEnable = action.options.authEnable as boolean
-								}
-							}
-							if (prop === 'transMode') {
-								if (action.options.transMode) {
-									updateInfo.TransMode = action.options.transMode as string
 								}
 							}
 						}

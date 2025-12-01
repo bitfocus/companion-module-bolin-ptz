@@ -538,7 +538,6 @@ export interface RTSPInfo {
 	Channel: number
 	Enable: boolean
 	Port: number
-	TransMode?: string // Note: API may return "Transmode" (typo)
 	Transmode?: string
 	MaxClientNum: number
 	StreamKey: string

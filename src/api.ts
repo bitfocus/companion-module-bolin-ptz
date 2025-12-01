@@ -997,7 +997,7 @@ export class BolinCamera {
 			Channel: channel,
 			...info,
 		}
-		await this.sendRequest('/apiv2/av', 'AswSetRTSPInfo', {
+		await this.sendRequest('/apiv2/av', 'ReqSetRTSPInfo', {
 			RTSPInfo: [payload],
 		})
 	}
@@ -1013,7 +1013,7 @@ export class BolinCamera {
 			Channel: channel,
 			...info,
 		}
-		await this.sendRequest('/apiv2/av', 'AswSetRTMPInfo', {
+		await this.sendRequest('/apiv2/av', 'ReqSetRTMPInfo', {
 			RTMPInfo: [payload],
 		})
 	}
@@ -1029,7 +1029,7 @@ export class BolinCamera {
 			Channel: channel,
 			...info,
 		}
-		await this.sendRequest('/apiv2/av', 'AswSetAVOverUDPInfo', {
+		await this.sendRequest('/apiv2/av', 'ReqSetAVOverUDPInfo', {
 			AVOverUDPInfo: [payload],
 		})
 	}
@@ -1045,7 +1045,7 @@ export class BolinCamera {
 			Channel: channel,
 			...info,
 		}
-		await this.sendRequest('/apiv2/av', 'AswSetAVOverRTPInfo', {
+		await this.sendRequest('/apiv2/av', 'ReqSetAVOverRTPInfo', {
 			AVOverRTPInfo: [payload],
 		})
 	}
