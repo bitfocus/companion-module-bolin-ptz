@@ -14,6 +14,11 @@ import type {
 	PTZFPosition,
 	PanTiltInfo,
 	OverlayInfo,
+	RTSPInfo,
+	RTMPInfo,
+	AVOverUDPInfo,
+	AVOverRTPInfo,
+	NDIInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -1688,6 +1693,513 @@ export function UpdateActions(self: ModuleInstance): void {
 						}
 
 						await self.camera.setOverlayInfo(overlayInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['RTSPInfo'],
+			createActions: () => {
+				actions['rtspControl'] = {
+					name: 'Stream - RTSP Control',
+					description: 'Control RTSP stream settings',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'Enable', id: 'enable' },
+								{ label: 'Port', id: 'port' },
+								{ label: 'Stream Key', id: 'streamKey' },
+								{ label: 'Auth Enable', id: 'authEnable' },
+								{ label: 'Trans Mode', id: 'transMode' },
+							],
+							default: ['enable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'Enable',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'enable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Port',
+							default: '',
+							id: 'port',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'port')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Stream Key',
+							default: '',
+							id: 'streamKey',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'streamKey')`,
+						},
+						{
+							type: 'checkbox',
+							label: 'Auth Enable',
+							default: false,
+							id: 'authEnable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'authEnable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Trans Mode',
+							default: '',
+							id: 'transMode',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'transMode')`,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const channel = action.options.channel as number
+						const props = action.options.props as string[]
+						const currentStream = self.camera.getState().rtspInfo?.find((s) => s.Channel === channel)
+						const currentEnable = currentStream?.Enable ?? false
+
+						const updateInfo: Partial<RTSPInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'enable') {
+								let newEnable: boolean
+								if (action.options.enable === 'toggle') {
+									newEnable = !currentEnable
+								} else {
+									newEnable = action.options.enable === 'true' ? true : false
+								}
+								updateInfo.Enable = newEnable
+							}
+							if (prop === 'port') {
+								if (action.options.port) {
+									const port = parseInt(action.options.port as string)
+									if (!isNaN(port)) {
+										updateInfo.Port = port
+									}
+								}
+							}
+							if (prop === 'streamKey') {
+								if (action.options.streamKey) {
+									updateInfo.StreamKey = action.options.streamKey as string
+								}
+							}
+							if (prop === 'authEnable') {
+								if (action.options.authEnable !== undefined) {
+									updateInfo.AuthEnable = action.options.authEnable as boolean
+								}
+							}
+							if (prop === 'transMode') {
+								if (action.options.transMode) {
+									updateInfo.TransMode = action.options.transMode as string
+								}
+							}
+						}
+
+						await self.camera.setRTSPInfo(channel, updateInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['RTMPInfo'],
+			createActions: () => {
+				actions['rtmpControl'] = {
+					name: 'Stream - RTMP Control',
+					description: 'Control RTMP stream settings',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'Enable', id: 'enable' },
+								{ label: 'Port', id: 'port' },
+								{ label: 'Url', id: 'url' },
+								{ label: 'Stream Key', id: 'streamKey' },
+								{ label: 'Video Tag Header', id: 'videoTagHeader' },
+							],
+							default: ['enable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'Enable',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'enable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Port',
+							default: '',
+							id: 'port',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'port')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Url',
+							default: '',
+							id: 'url',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'url')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Stream Key',
+							default: '',
+							id: 'streamKey',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'streamKey')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Video Tag Header',
+							default: '',
+							id: 'videoTagHeader',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'videoTagHeader')`,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const channel = action.options.channel as number
+						const props = action.options.props as string[]
+						const currentStream = self.camera.getState().rtmpInfo?.find((s) => s.Channel === channel)
+						const currentEnable = currentStream?.Enable ?? false
+
+						const updateInfo: Partial<RTMPInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'enable') {
+								let newEnable: boolean
+								if (action.options.enable === 'toggle') {
+									newEnable = !currentEnable
+								} else {
+									newEnable = action.options.enable === 'true' ? true : false
+								}
+								updateInfo.Enable = newEnable
+							}
+							if (prop === 'port') {
+								if (action.options.port) {
+									const port = parseInt(action.options.port as string)
+									if (!isNaN(port)) {
+										updateInfo.Port = port
+									}
+								}
+							}
+							if (prop === 'url') {
+								if (action.options.url) {
+									updateInfo.Url = action.options.url as string
+								}
+							}
+							if (prop === 'streamKey') {
+								if (action.options.streamKey) {
+									updateInfo.StreamKey = action.options.streamKey as string
+								}
+							}
+							if (prop === 'videoTagHeader') {
+								if (action.options.videoTagHeader) {
+									const videoTagHeader = parseInt(action.options.videoTagHeader as string)
+									if (!isNaN(videoTagHeader)) {
+										updateInfo.VideoTagHeader = videoTagHeader
+									}
+								}
+							}
+						}
+
+						await self.camera.setRTMPInfo(channel, updateInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['AVOverUDPInfo'],
+			createActions: () => {
+				actions['avOverUDPControl'] = {
+					name: 'Stream - AV Over UDP Control',
+					description: 'Control AV over UDP stream settings',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'Enable', id: 'enable' },
+								{ label: 'Address', id: 'address' },
+								{ label: 'Port', id: 'port' },
+							],
+							default: ['enable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'Enable',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'enable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Address',
+							default: '',
+							id: 'address',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'address')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Port',
+							default: '',
+							id: 'port',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'port')`,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const channel = action.options.channel as number
+						const props = action.options.props as string[]
+						const currentStream = self.camera.getState().avOverUDPInfo?.find((s) => s.Channel === channel)
+						const currentEnable = currentStream?.Enable ?? false
+
+						const updateInfo: Partial<AVOverUDPInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'enable') {
+								let newEnable: boolean
+								if (action.options.enable === 'toggle') {
+									newEnable = !currentEnable
+								} else {
+									newEnable = action.options.enable === 'true' ? true : false
+								}
+								updateInfo.Enable = newEnable
+							}
+							if (prop === 'address') {
+								if (action.options.address) {
+									updateInfo.Address = action.options.address as string
+								}
+							}
+							if (prop === 'port') {
+								if (action.options.port) {
+									const port = parseInt(action.options.port as string)
+									if (!isNaN(port)) {
+										updateInfo.Port = port
+									}
+								}
+							}
+						}
+
+						await self.camera.setAVOverUDPInfo(channel, updateInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['AVOverRTPInfo'],
+			createActions: () => {
+				actions['avOverRTPControl'] = {
+					name: 'Stream - AV Over RTP Control',
+					description: 'Control AV over RTP stream settings',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'Enable', id: 'enable' },
+								{ label: 'Address', id: 'address' },
+								{ label: 'Port', id: 'port' },
+							],
+							default: ['enable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'Enable',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'enable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Address',
+							default: '',
+							id: 'address',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'address')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Port',
+							default: '',
+							id: 'port',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'port')`,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const channel = action.options.channel as number
+						const props = action.options.props as string[]
+						const currentStream = self.camera.getState().avOverRTPInfo?.find((s) => s.Channel === channel)
+						const currentEnable = currentStream?.Enable ?? false
+
+						const updateInfo: Partial<AVOverRTPInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'enable') {
+								let newEnable: boolean
+								if (action.options.enable === 'toggle') {
+									newEnable = !currentEnable
+								} else {
+									newEnable = action.options.enable === 'true' ? true : false
+								}
+								updateInfo.Enable = newEnable
+							}
+							if (prop === 'address') {
+								if (action.options.address) {
+									updateInfo.Address = action.options.address as string
+								}
+							}
+							if (prop === 'port') {
+								if (action.options.port) {
+									const port = parseInt(action.options.port as string)
+									if (!isNaN(port)) {
+										updateInfo.Port = port
+									}
+								}
+							}
+						}
+
+						await self.camera.setAVOverRTPInfo(channel, updateInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['NDIInfo'],
+			createActions: () => {
+				actions['ndiControl'] = {
+					name: 'Stream - NDI Control',
+					description: 'Control NDI stream settings',
+					options: [
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'NDI Enable', id: 'ndiEnable' },
+								{ label: 'NDI Name', id: 'ndiName' },
+								{ label: 'NDI HX Bandwidth', id: 'ndiHXBandwidth' },
+							],
+							default: ['ndiEnable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'NDI Enable',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'ndiEnable',
+							isVisibleExpression: `arrayIncludes($(options:props), 'ndiEnable')`,
+						},
+						{
+							type: 'textinput',
+							label: 'NDI Name',
+							default: '',
+							id: 'ndiName',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'ndiName')`,
+						},
+						{
+							type: 'textinput',
+							label: 'NDI HX Bandwidth',
+							default: '0',
+							id: 'ndiHXBandwidth',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'ndiHXBandwidth')`,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const props = action.options.props as string[]
+						const currentNDI = self.camera.getState().ndiInfo
+						const currentEnable = currentNDI?.NDIEnable ?? false
+
+						const updateInfo: Partial<NDIInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'ndiEnable') {
+								let newEnable: boolean
+								if (action.options.ndiEnable === 'toggle') {
+									newEnable = !currentEnable
+								} else {
+									newEnable = action.options.ndiEnable === 'true' ? true : false
+								}
+								updateInfo.NDIEnable = newEnable
+							}
+							if (prop === 'ndiName') {
+								if (action.options.ndiName) {
+									updateInfo.NDIName = action.options.ndiName as string
+								}
+							}
+							if (prop === 'ndiHXBandwidth') {
+								if (action.options.ndiHXBandwidth) {
+									const bandwidth = parseInt(action.options.ndiHXBandwidth as string)
+									if (!isNaN(bandwidth)) {
+										updateInfo.NDIHXBandwidth = bandwidth
+									}
+								}
+							}
+						}
+
+						await self.camera.setNDIInfo(updateInfo)
 					},
 				}
 			},

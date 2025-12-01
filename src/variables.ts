@@ -242,6 +242,60 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 				{ name: 'System - Tally Mode', variableId: 'tally' },
 			],
 		},
+		{
+			capabilities: ['RTSPInfo'],
+			variables: [
+				{ name: 'Stream - RTSP Main Enable', variableId: 'rtsp_main_enable' },
+				{ name: 'Stream - RTSP Main Port', variableId: 'rtsp_main_port' },
+				{ name: 'Stream - RTSP Main Stream Key', variableId: 'rtsp_main_stream_key' },
+				{ name: 'Stream - RTSP Sub Enable', variableId: 'rtsp_sub_enable' },
+				{ name: 'Stream - RTSP Sub Port', variableId: 'rtsp_sub_port' },
+				{ name: 'Stream - RTSP Sub Stream Key', variableId: 'rtsp_sub_stream_key' },
+			],
+		},
+		{
+			capabilities: ['RTMPInfo'],
+			variables: [
+				{ name: 'Stream - RTMP Main Enable', variableId: 'rtmp_main_enable' },
+				{ name: 'Stream - RTMP Main Port', variableId: 'rtmp_main_port' },
+				{ name: 'Stream - RTMP Main Url', variableId: 'rtmp_main_url' },
+				{ name: 'Stream - RTMP Main Stream Key', variableId: 'rtmp_main_stream_key' },
+				{ name: 'Stream - RTMP Sub Enable', variableId: 'rtmp_sub_enable' },
+				{ name: 'Stream - RTMP Sub Port', variableId: 'rtmp_sub_port' },
+				{ name: 'Stream - RTMP Sub Url', variableId: 'rtmp_sub_url' },
+				{ name: 'Stream - RTMP Sub Stream Key', variableId: 'rtmp_sub_stream_key' },
+			],
+		},
+		{
+			capabilities: ['AVOverUDPInfo'],
+			variables: [
+				{ name: 'Stream - AV Over UDP Main Enable', variableId: 'av_over_udp_main_enable' },
+				{ name: 'Stream - AV Over UDP Main Address', variableId: 'av_over_udp_main_address' },
+				{ name: 'Stream - AV Over UDP Main Port', variableId: 'av_over_udp_main_port' },
+				{ name: 'Stream - AV Over UDP Sub Enable', variableId: 'av_over_udp_sub_enable' },
+				{ name: 'Stream - AV Over UDP Sub Address', variableId: 'av_over_udp_sub_address' },
+				{ name: 'Stream - AV Over UDP Sub Port', variableId: 'av_over_udp_sub_port' },
+			],
+		},
+		{
+			capabilities: ['AVOverRTPInfo'],
+			variables: [
+				{ name: 'Stream - AV Over RTP Main Enable', variableId: 'av_over_rtp_main_enable' },
+				{ name: 'Stream - AV Over RTP Main Address', variableId: 'av_over_rtp_main_address' },
+				{ name: 'Stream - AV Over RTP Main Port', variableId: 'av_over_rtp_main_port' },
+				{ name: 'Stream - AV Over RTP Sub Enable', variableId: 'av_over_rtp_sub_enable' },
+				{ name: 'Stream - AV Over RTP Sub Address', variableId: 'av_over_rtp_sub_address' },
+				{ name: 'Stream - AV Over RTP Sub Port', variableId: 'av_over_rtp_sub_port' },
+			],
+		},
+		{
+			capabilities: ['NDIInfo'],
+			variables: [
+				{ name: 'Stream - NDI Enable', variableId: 'ndi_enable' },
+				{ name: 'Stream - NDI Name', variableId: 'ndi_name' },
+				{ name: 'Stream - NDI HX Bandwidth', variableId: 'ndi_hx_bandwidth' },
+			],
+		},
 	]
 
 	// Filter and collect variables based on capabilities
@@ -545,6 +599,90 @@ export function UpdateVariablesOnStateChange(
 			{ getValue: (o) => o.PelcoID, variableId: 'pelco_id' },
 			{ getValue: (o) => o.VISCAID, variableId: 'visca_id' },
 			{ getValue: (o) => o.TallyMode, variableId: 'tally' },
+		])
+	}
+
+	// Update RTSP stream variables if changed
+	if (currentState.rtspInfo) {
+		for (const stream of currentState.rtspInfo) {
+			const channelPrefix = stream.Channel === 0 ? 'rtsp_main' : 'rtsp_sub'
+			const previousStream = previousState?.rtspInfo?.find((s) => s.Channel === stream.Channel)
+
+			if (!previousStream || previousStream.Enable !== stream.Enable) {
+				variables[`${channelPrefix}_enable`] = stream.Enable
+			}
+			if (!previousStream || previousStream.Port !== stream.Port) {
+				variables[`${channelPrefix}_port`] = stream.Port
+			}
+			if (!previousStream || previousStream.StreamKey !== stream.StreamKey) {
+				variables[`${channelPrefix}_stream_key`] = stream.StreamKey ?? ''
+			}
+		}
+	}
+
+	// Update RTMP stream variables if changed
+	if (currentState.rtmpInfo) {
+		for (const stream of currentState.rtmpInfo) {
+			const channelPrefix = stream.Channel === 0 ? 'rtmp_main' : 'rtmp_sub'
+			const previousStream = previousState?.rtmpInfo?.find((s) => s.Channel === stream.Channel)
+
+			if (!previousStream || previousStream.Enable !== stream.Enable) {
+				variables[`${channelPrefix}_enable`] = stream.Enable
+			}
+			if (!previousStream || previousStream.Port !== stream.Port) {
+				variables[`${channelPrefix}_port`] = stream.Port
+			}
+			if (!previousStream || previousStream.Url !== stream.Url) {
+				variables[`${channelPrefix}_url`] = stream.Url ?? ''
+			}
+			if (!previousStream || previousStream.StreamKey !== stream.StreamKey) {
+				variables[`${channelPrefix}_stream_key`] = stream.StreamKey ?? ''
+			}
+		}
+	}
+
+	// Update AV over UDP stream variables if changed
+	if (currentState.avOverUDPInfo) {
+		for (const stream of currentState.avOverUDPInfo) {
+			const channelPrefix = stream.Channel === 0 ? 'av_over_udp_main' : 'av_over_udp_sub'
+			const previousStream = previousState?.avOverUDPInfo?.find((s) => s.Channel === stream.Channel)
+
+			if (!previousStream || previousStream.Enable !== stream.Enable) {
+				variables[`${channelPrefix}_enable`] = stream.Enable
+			}
+			if (!previousStream || previousStream.Address !== stream.Address) {
+				variables[`${channelPrefix}_address`] = stream.Address ?? ''
+			}
+			if (!previousStream || previousStream.Port !== stream.Port) {
+				variables[`${channelPrefix}_port`] = stream.Port
+			}
+		}
+	}
+
+	// Update AV over RTP stream variables if changed
+	if (currentState.avOverRTPInfo) {
+		for (const stream of currentState.avOverRTPInfo) {
+			const channelPrefix = stream.Channel === 0 ? 'av_over_rtp_main' : 'av_over_rtp_sub'
+			const previousStream = previousState?.avOverRTPInfo?.find((s) => s.Channel === stream.Channel)
+
+			if (!previousStream || previousStream.Enable !== stream.Enable) {
+				variables[`${channelPrefix}_enable`] = stream.Enable
+			}
+			if (!previousStream || previousStream.Address !== stream.Address) {
+				variables[`${channelPrefix}_address`] = stream.Address ?? ''
+			}
+			if (!previousStream || previousStream.Port !== stream.Port) {
+				variables[`${channelPrefix}_port`] = stream.Port
+			}
+		}
+	}
+
+	// Update NDI stream variables if changed
+	if (currentState.ndiInfo) {
+		updateFields(variables, previousState?.ndiInfo, currentState.ndiInfo, [
+			{ getValue: (n) => n.NDIEnable, variableId: 'ndi_enable' },
+			{ getValue: (n) => n.NDIName ?? '', variableId: 'ndi_name', defaultValue: '' },
+			{ getValue: (n) => n.NDIHXBandwidth, variableId: 'ndi_hx_bandwidth' },
 		])
 	}
 

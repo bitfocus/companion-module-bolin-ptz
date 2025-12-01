@@ -80,7 +80,9 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 					try {
 						const systemInfo = await this.camera.getSystemInfo()
 						this.log('debug', 'System info: ' + JSON.stringify(systemInfo))
-						await Promise.all([this.getCameraInfo(true), this.camera.getCameraCapabilities()])
+						// Load capabilities first, then fetch all info based on capabilities
+						await this.camera.getCameraCapabilities()
+						await this.getCameraInfo(true)
 						// Fetch network info once during initialization (not polled)
 						await this.camera.getNetworkInfo().catch(() => {
 							// Silently fail if network info is not supported

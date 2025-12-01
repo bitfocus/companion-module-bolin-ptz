@@ -630,6 +630,142 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				}
 			},
 		},
+		{
+			capabilities: ['RTSPInfo'],
+			createFeedbacks: () => {
+				feedbacks['rtspEnabled'] = {
+					name: 'Stream - RTSP Enabled',
+					description: 'RTSP stream is enabled for selected channel',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const channel = feedback.options.channel as number
+						const rtspInfo = self.camera?.getState().rtspInfo
+						if (!rtspInfo) return false
+						const stream = rtspInfo.find((s) => s.Channel === channel)
+						return stream?.Enable ?? false
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['RTMPInfo'],
+			createFeedbacks: () => {
+				feedbacks['rtmpEnabled'] = {
+					name: 'Stream - RTMP Enabled',
+					description: 'RTMP stream is enabled for selected channel',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const channel = feedback.options.channel as number
+						const rtmpInfo = self.camera?.getState().rtmpInfo
+						if (!rtmpInfo) return false
+						const stream = rtmpInfo.find((s) => s.Channel === channel)
+						return stream?.Enable ?? false
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['AVOverUDPInfo'],
+			createFeedbacks: () => {
+				feedbacks['avOverUDPEnabled'] = {
+					name: 'Stream - AV Over UDP Enabled',
+					description: 'AV over UDP stream is enabled for selected channel',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const channel = feedback.options.channel as number
+						const avOverUDPInfo = self.camera?.getState().avOverUDPInfo
+						if (!avOverUDPInfo) return false
+						const stream = avOverUDPInfo.find((s) => s.Channel === channel)
+						return stream?.Enable ?? false
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['AVOverRTPInfo'],
+			createFeedbacks: () => {
+				feedbacks['avOverRTPEnabled'] = {
+					name: 'Stream - AV Over RTP Enabled',
+					description: 'AV over RTP stream is enabled for selected channel',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Channel',
+							choices: [
+								{ label: 'Main Stream (0)', id: 0 },
+								{ label: 'Substream (1)', id: 1 },
+							],
+							default: 0,
+							id: 'channel',
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const channel = feedback.options.channel as number
+						const avOverRTPInfo = self.camera?.getState().avOverRTPInfo
+						if (!avOverRTPInfo) return false
+						const stream = avOverRTPInfo.find((s) => s.Channel === channel)
+						return stream?.Enable ?? false
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['NDIInfo'],
+			createFeedbacks: () => {
+				createToggleFeedback('ndiEnabled', 'Stream - NDI Enabled', 'NDI stream is enabled', () => {
+					return self.camera?.getState().ndiInfo?.NDIEnable ?? false
+				})
+			},
+		},
 	]
 
 	// Filter and create feedbacks based on capabilities

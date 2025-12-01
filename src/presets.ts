@@ -2189,5 +2189,345 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
+	// Stream control presets
+	const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
+	if (hasRTSPCapability) {
+		presets['streamRTSPHeader'] = {
+			category: 'Streams',
+			name: 'RTSP Control',
+			type: 'text',
+			text: '',
+		}
+		for (const channel of [
+			{ id: 0, label: 'Main' },
+			{ id: 1, label: 'Sub' },
+		]) {
+			for (const mode of [
+				{
+					id: 'toggle',
+					label: 'Toggle',
+					text: `RTSP\\n${channel.label}\\n$(bolin-ptz:rtsp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+				},
+				{ id: 'true', label: 'On', text: `RTSP\\n${channel.label}\\nON` },
+				{ id: 'false', label: 'Off', text: `RTSP\\n${channel.label}\\nOFF` },
+			]) {
+				presets[`streamRTSP${channel.label}${mode.label}`] = {
+					type: 'button',
+					category: 'Streams',
+					name: `RTSP ${channel.label} Stream ${mode.label}`,
+					style: {
+						bgcolor: 0x000000,
+						color: 0xffffff,
+						text: mode.text,
+						size: '14',
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'rtspControl',
+									options: {
+										channel: channel.id,
+										props: ['enable'],
+										enable: mode.id,
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'rtspEnabled',
+							isInverted: mode.id === 'false' ? true : false,
+							options: {
+								channel: channel.id,
+							},
+							style: {
+								bgcolor: 0x009900,
+							},
+						},
+					],
+				}
+			}
+		}
+	}
+
+	const hasRTMPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTMPInfo') ?? false)
+	if (hasRTMPCapability) {
+		presets['streamRTMPHeader'] = {
+			category: 'Streams',
+			name: 'RTMP Control',
+			type: 'text',
+			text: '',
+		}
+		for (const channel of [
+			{ id: 0, label: 'Main' },
+			{ id: 1, label: 'Sub' },
+		]) {
+			for (const mode of [
+				{
+					id: 'toggle',
+					label: 'Toggle',
+					text: `RTMP\\n${channel.label}\\n$(bolin-ptz:rtmp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+				},
+				{ id: 'true', label: 'On', text: `RTMP\\n${channel.label}\\nON` },
+				{ id: 'false', label: 'Off', text: `RTMP\\n${channel.label}\\nOFF` },
+			]) {
+				presets[`streamRTMP${channel.label}${mode.label}`] = {
+					type: 'button',
+					category: 'Streams',
+					name: `RTMP ${channel.label} Stream ${mode.label}`,
+					style: {
+						bgcolor: 0x000000,
+						color: 0xffffff,
+						text: mode.text,
+						size: '14',
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'rtmpControl',
+									options: {
+										channel: channel.id,
+										props: ['enable'],
+										enable: mode.id,
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'rtmpEnabled',
+							isInverted: mode.id === 'false' ? true : false,
+							options: {
+								channel: channel.id,
+							},
+							style: {
+								bgcolor: 0x009900,
+							},
+						},
+					],
+				}
+			}
+		}
+	}
+
+	const hasAVOverUDPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('AVOverUDPInfo') ?? false)
+	if (hasAVOverUDPCapability) {
+		presets['streamAVOverUDPHeader'] = {
+			category: 'Streams',
+			name: 'AV Over UDP Control',
+			type: 'text',
+			text: '',
+		}
+		for (const channel of [
+			{ id: 0, label: 'Main' },
+			{ id: 1, label: 'Sub' },
+		]) {
+			for (const mode of [
+				{
+					id: 'toggle',
+					label: 'Toggle',
+					text: `AV UDP\\n${channel.label}\\n$(bolin-ptz:av_over_udp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+				},
+				{ id: 'true', label: 'On', text: `AV UDP\\n${channel.label}\\nON` },
+				{ id: 'false', label: 'Off', text: `AV UDP\\n${channel.label}\\nOFF` },
+			]) {
+				presets[`streamAVOverUDP${channel.label}${mode.label}`] = {
+					type: 'button',
+					category: 'Streams',
+					name: `AV Over UDP ${channel.label} Stream ${mode.label}`,
+					style: {
+						bgcolor: 0x000000,
+						color: 0xffffff,
+						text: mode.text,
+						size: '14',
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'avOverUDPControl',
+									options: {
+										channel: channel.id,
+										props: ['enable'],
+										enable: mode.id,
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'avOverUDPEnabled',
+							isInverted: mode.id === 'false' ? true : false,
+							options: {
+								channel: channel.id,
+							},
+							style: {
+								bgcolor: 0x009900,
+							},
+						},
+					],
+				}
+			}
+		}
+	}
+
+	const hasAVOverRTPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('AVOverRTPInfo') ?? false)
+	if (hasAVOverRTPCapability) {
+		presets['streamAVOverRTPHeader'] = {
+			category: 'Streams',
+			name: 'AV Over RTP Control',
+			type: 'text',
+			text: '',
+		}
+		for (const channel of [
+			{ id: 0, label: 'Main' },
+			{ id: 1, label: 'Sub' },
+		]) {
+			for (const mode of [
+				{
+					id: 'toggle',
+					label: 'Toggle',
+					text: `AV RTP\\n${channel.label}\\n$(bolin-ptz:av_over_rtp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+				},
+				{ id: 'true', label: 'On', text: `AV RTP\\n${channel.label}\\nON` },
+				{ id: 'false', label: 'Off', text: `AV RTP\\n${channel.label}\\nOFF` },
+			]) {
+				presets[`streamAVOverRTP${channel.label}${mode.label}`] = {
+					type: 'button',
+					category: 'Streams',
+					name: `AV Over RTP ${channel.label} Stream ${mode.label}`,
+					style: {
+						bgcolor: 0x000000,
+						color: 0xffffff,
+						text: mode.text,
+						size: '14',
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'avOverRTPControl',
+									options: {
+										channel: channel.id,
+										props: ['enable'],
+										enable: mode.id,
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'avOverRTPEnabled',
+							isInverted: mode.id === 'false' ? true : false,
+							options: {
+								channel: channel.id,
+							},
+							style: {
+								bgcolor: 0x009900,
+							},
+						},
+					],
+				}
+			}
+		}
+	}
+
+	const hasNDICapability = !capabilitiesLoaded || (self.camera?.hasCapability('NDIInfo') ?? false)
+	if (hasNDICapability) {
+		presets['streamNDIHeader'] = {
+			category: 'Streams',
+			name: 'NDI Control',
+			type: 'text',
+			text: '',
+		}
+		for (const mode of [
+			{ id: 'toggle', label: 'Toggle', text: 'NDI\\n$(bolin-ptz:ndi_enable)' },
+			{ id: 'true', label: 'On', text: 'NDI\\nON' },
+			{ id: 'false', label: 'Off', text: 'NDI\\nOFF' },
+		]) {
+			presets[`streamNDI${mode.label}`] = {
+				type: 'button',
+				category: 'Streams',
+				name: `NDI ${mode.label}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: mode.text,
+					size: '14',
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'ndiControl',
+								options: {
+									props: ['ndiEnable'],
+									ndiEnable: mode.id,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'ndiEnabled',
+						isInverted: mode.id === 'false' ? true : false,
+						options: {},
+						style: {
+							bgcolor: 0x009900,
+						},
+					},
+				],
+			}
+		}
+		presets['streamNDIName'] = {
+			type: 'button',
+			category: 'Streams',
+			name: 'NDI Name',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `NDI NAME\\n$(bolin-ptz:ndi_name)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['streamNDIHXBandwidthValue'] = {
+			type: 'button',
+			category: 'Streams',
+			name: 'NDI HX Bandwidth Value',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `NDI HX\\nBANDWIDTH\\n$(bolin-ptz:ndi_hx_bandwidth)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }

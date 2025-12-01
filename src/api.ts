@@ -923,7 +923,7 @@ export class BolinCamera {
 	 * Gets RTSP stream information from the camera and stores it in state
 	 */
 	async getRTSPInfo(): Promise<RTSPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'AswGetRTSPInfo')
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetRTSPInfo')
 		this.state.rtspInfo = response.Content.RTSPInfo as RTSPInfo[]
 		this.updateVariablesOnStateChange()
 		return this.state.rtspInfo
@@ -933,7 +933,7 @@ export class BolinCamera {
 	 * Gets RTMP stream information from the camera and stores it in state
 	 */
 	async getRTMPInfo(): Promise<RTMPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'AswGetRTMPInfo')
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetRTMPInfo')
 		this.state.rtmpInfo = response.Content.RTMPInfo as RTMPInfo[]
 		this.updateVariablesOnStateChange()
 		return this.state.rtmpInfo
@@ -943,7 +943,7 @@ export class BolinCamera {
 	 * Gets AV over UDP stream information from the camera and stores it in state
 	 */
 	async getAVOverUDPInfo(): Promise<AVOverUDPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'AswGetAVOverUDPInfo')
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetAVOverUDPInfo')
 		this.state.avOverUDPInfo = response.Content.AVOverUDPInfo as AVOverUDPInfo[]
 		this.updateVariablesOnStateChange()
 		return this.state.avOverUDPInfo
@@ -953,7 +953,7 @@ export class BolinCamera {
 	 * Gets AV over RTP stream information from the camera and stores it in state
 	 */
 	async getAVOverRTPInfo(): Promise<AVOverRTPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'AswGetAVOverRTPInfo')
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetAVOverRTPInfo')
 		this.state.avOverRTPInfo = response.Content.AVOverRTPInfo as AVOverRTPInfo[]
 		this.updateVariablesOnStateChange()
 		return this.state.avOverRTPInfo
@@ -967,6 +967,157 @@ export class BolinCamera {
 		this.state.ndiInfo = response.Content.NDIInfo as NDIInfo
 		this.updateVariablesOnStateChange()
 		return this.state.ndiInfo
+	}
+
+	/**
+	 * Sets RTSP stream information on the camera
+	 * @param channel The channel number (0 = Main Stream, 1 = Substream)
+	 * @param info The RTSP stream information parameters (all fields optional)
+	 */
+	async setRTSPInfo(channel: number, info: Partial<RTSPInfo>): Promise<void> {
+		// Get existing stream info to merge with updates
+		const existingStream = this.state.rtspInfo?.find((r) => r.Channel === channel)
+		const rtspInfo: RTSPInfo = {
+			Channel: channel,
+			Enable: false,
+			Port: 554,
+			MaxClientNum: 0,
+			StreamKey: '',
+			AuthEnable: false,
+			...existingStream,
+			...info,
+		}
+		await this.sendRequest('/apiv2/av', 'AswSetRTSPInfo', {
+			RTSPInfo: [rtspInfo],
+		})
+		// Update state optimistically - merge with existing state
+		if (this.state.rtspInfo) {
+			const existingIndex = this.state.rtspInfo.findIndex((r) => r.Channel === channel)
+			if (existingIndex >= 0) {
+				this.state.rtspInfo[existingIndex] = { ...this.state.rtspInfo[existingIndex], ...rtspInfo }
+			} else {
+				this.state.rtspInfo.push(rtspInfo)
+			}
+		} else {
+			this.state.rtspInfo = [rtspInfo]
+		}
+		this.updateVariablesOnStateChange()
+	}
+
+	/**
+	 * Sets RTMP stream information on the camera
+	 * @param channel The channel number (0 = Main Stream, 1 = Substream)
+	 * @param info The RTMP stream information parameters (all fields optional)
+	 */
+	async setRTMPInfo(channel: number, info: Partial<RTMPInfo>): Promise<void> {
+		// Get existing stream info to merge with updates
+		const existingStream = this.state.rtmpInfo?.find((r) => r.Channel === channel)
+		const rtmpInfo: RTMPInfo = {
+			Channel: channel,
+			Enable: false,
+			Port: 1935,
+			VideoTagHeader: 0,
+			Url: '',
+			StreamKey: '',
+			...existingStream,
+			...info,
+		}
+		await this.sendRequest('/apiv2/av', 'AswSetRTMPInfo', {
+			RTMPInfo: [rtmpInfo],
+		})
+		// Update state optimistically - merge with existing state
+		if (this.state.rtmpInfo) {
+			const existingIndex = this.state.rtmpInfo.findIndex((r) => r.Channel === channel)
+			if (existingIndex >= 0) {
+				this.state.rtmpInfo[existingIndex] = { ...this.state.rtmpInfo[existingIndex], ...rtmpInfo }
+			} else {
+				this.state.rtmpInfo.push(rtmpInfo)
+			}
+		} else {
+			this.state.rtmpInfo = [rtmpInfo]
+		}
+		this.updateVariablesOnStateChange()
+	}
+
+	/**
+	 * Sets AV over UDP stream information on the camera
+	 * @param channel The channel number (0 = Main Stream, 1 = Substream)
+	 * @param info The AV over UDP stream information parameters (all fields optional)
+	 */
+	async setAVOverUDPInfo(channel: number, info: Partial<AVOverUDPInfo>): Promise<void> {
+		// Get existing stream info to merge with updates
+		const existingStream = this.state.avOverUDPInfo?.find((r) => r.Channel === channel)
+		const avOverUDPInfo: AVOverUDPInfo = {
+			Channel: channel,
+			Address: '',
+			Port: 0,
+			Enable: false,
+			...existingStream,
+			...info,
+		}
+		await this.sendRequest('/apiv2/av', 'AswSetAVOverUDPInfo', {
+			AVOverUDPInfo: [avOverUDPInfo],
+		})
+		// Update state optimistically - merge with existing state
+		if (this.state.avOverUDPInfo) {
+			const existingIndex = this.state.avOverUDPInfo.findIndex((r) => r.Channel === channel)
+			if (existingIndex >= 0) {
+				this.state.avOverUDPInfo[existingIndex] = { ...this.state.avOverUDPInfo[existingIndex], ...avOverUDPInfo }
+			} else {
+				this.state.avOverUDPInfo.push(avOverUDPInfo)
+			}
+		} else {
+			this.state.avOverUDPInfo = [avOverUDPInfo]
+		}
+		this.updateVariablesOnStateChange()
+	}
+
+	/**
+	 * Sets AV over RTP stream information on the camera
+	 * @param channel The channel number (0 = Main Stream, 1 = Substream)
+	 * @param info The AV over RTP stream information parameters (all fields optional)
+	 */
+	async setAVOverRTPInfo(channel: number, info: Partial<AVOverRTPInfo>): Promise<void> {
+		// Get existing stream info to merge with updates
+		const existingStream = this.state.avOverRTPInfo?.find((r) => r.Channel === channel)
+		const avOverRTPInfo: AVOverRTPInfo = {
+			Channel: channel,
+			Address: '',
+			Port: 0,
+			Enable: false,
+			...existingStream,
+			...info,
+		}
+		await this.sendRequest('/apiv2/av', 'AswSetAVOverRTPInfo', {
+			AVOverRTPInfo: [avOverRTPInfo],
+		})
+		// Update state optimistically - merge with existing state
+		if (this.state.avOverRTPInfo) {
+			const existingIndex = this.state.avOverRTPInfo.findIndex((r) => r.Channel === channel)
+			if (existingIndex >= 0) {
+				this.state.avOverRTPInfo[existingIndex] = { ...this.state.avOverRTPInfo[existingIndex], ...avOverRTPInfo }
+			} else {
+				this.state.avOverRTPInfo.push(avOverRTPInfo)
+			}
+		} else {
+			this.state.avOverRTPInfo = [avOverRTPInfo]
+		}
+		this.updateVariablesOnStateChange()
+	}
+
+	/**
+	 * Sets NDI stream information on the camera
+	 * @param info The NDI stream information parameters (all fields optional)
+	 */
+	async setNDIInfo(info: Partial<NDIInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/av', 'ReqSetNDIInfo', {
+			NDIInfo: info,
+		})
+		// Update state optimistically - merge with existing state
+		if (this.state.ndiInfo) {
+			this.state.ndiInfo = { ...this.state.ndiInfo, ...info }
+		}
+		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -1123,6 +1274,7 @@ export class BolinCamera {
 			capabilities: readonly string[]
 			method: () => Promise<unknown>
 		}
+
 		const capabilityMappings: readonly CapabilityMapping[] = [
 			{ capabilities: ['PresetInfo'], method: async () => this.getCurrentPresets() },
 			{ capabilities: ['PTZFPosition'], method: async () => this.getPTZPosition() },
