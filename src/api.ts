@@ -160,7 +160,7 @@ export class BolinCamera {
 		} catch (error) {
 			this.authToken = null
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			throw new Error(`${errorMessage}`)
+			throw new Error(errorMessage)
 		}
 	}
 
@@ -376,7 +376,7 @@ export class BolinCamera {
 	}
 
 	/**
-	 * Gets the current presets from the camera and stores them in state
+	 * Sets a preset on the camera
 	 */
 	async setPreset(preset: PresetRequest): Promise<void> {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPreset', {
@@ -398,9 +398,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPresetSpeed', {
 			PTZFPresetSpeed: presetSpeed,
 		})
-		// Update state optimistically - no need for redundant GET call
-		this.state.presetSpeed = presetSpeed
-		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -434,10 +431,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetLensInfo', {
 			LensInfo: lensInfo,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.lensInfo) {
-			this.updateStateAndNotify('lensInfo', lensInfo)
-		}
 	}
 
 	/**
@@ -533,10 +526,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetGammaInfo', {
 			GammaInfo: apiPayload,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.gammaInfo) {
-			this.updateStateAndNotify('gammaInfo', gammaInfo, ['wdr', 'gammaLevel', 'gammaBright', 'wdrLevel'])
-		}
 	}
 
 	/**
@@ -567,10 +556,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetWhiteBalanceInfo', {
 			WhiteBalanceInfo: whiteBalanceInfo,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.whiteBalanceInfo) {
-			this.updateStateAndNotify('whiteBalanceInfo', whiteBalanceInfo, ['whiteBalanceMode', 'whiteBalanceSensitivity'])
-		}
 	}
 
 	async setPictureInfo(pictureInfo: Partial<PictureInfo>): Promise<void> {
@@ -612,19 +597,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetPictureInfo', {
 			PictureInfo: apiPayload,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.pictureInfo) {
-			this.updateStateAndNotify('pictureInfo', pictureInfo, [
-				'flip',
-				'mirror',
-				'hlcMode',
-				'blcMode',
-				'scene',
-				'defogMode',
-				'effect',
-				'colorMatrix',
-			])
-		}
 	}
 
 	/**
@@ -671,10 +643,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetExposureInfo', {
 			ExposureInfo: requestPayload,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.exposureInfo) {
-			this.updateStateAndNotify('exposureInfo', exposureInfo)
-		}
 	}
 
 	/**
@@ -747,15 +715,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPosition', {
 			PTZFPosition: position,
 		})
-		// Update state if we have current position and new values
-		if (this.state.ptzPosition) {
-			this.state.ptzPosition = {
-				PanPosition: position.PanPosition ?? this.state.ptzPosition.PanPosition,
-				TiltPosition: position.TiltPosition ?? this.state.ptzPosition.TiltPosition,
-				ZoomPosition: position.ZoomPosition ?? this.state.ptzPosition.ZoomPosition,
-			}
-			this.updateVariablesOnStateChange()
-		}
 	}
 
 	/**
@@ -766,15 +725,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFRelPosition', {
 			PTZFRelPosition: position,
 		})
-		// Update state if we have current position and relative values
-		if (this.state.ptzPosition && (position.PanPosition !== undefined || position.TiltPosition !== undefined)) {
-			this.state.ptzPosition = {
-				PanPosition: (this.state.ptzPosition.PanPosition ?? 0) + (position.PanPosition ?? 0),
-				TiltPosition: (this.state.ptzPosition.TiltPosition ?? 0) + (position.TiltPosition ?? 0),
-				ZoomPosition: this.state.ptzPosition.ZoomPosition,
-			}
-			this.updateVariablesOnStateChange()
-		}
 	}
 
 	/**
@@ -785,7 +735,6 @@ export class BolinCamera {
 		const positionLimitations = response.Content.PositionLimitations as PositionLimitations
 		this.state.positionLimitations = positionLimitations
 		this.updateVariablesOnStateChange()
-		this.self.checkFeedbacks('positionLimitEnabled')
 		return positionLimitations
 	}
 
@@ -797,10 +746,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPositionLimitations', {
 			PositionLimitations: limitations,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.positionLimitations) {
-			this.updateStateAndNotify('positionLimitations', limitations, ['positionLimitEnabled'])
-		}
 	}
 
 	/**
@@ -833,10 +778,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/image', 'ReqSetPanTiltInfo', {
 			PanTiltInfo: panTiltInfo,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.panTiltInfo) {
-			this.updateStateAndNotify('panTiltInfo', panTiltInfo)
-		}
 	}
 
 	/**
@@ -853,17 +794,13 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/general', 'ReqSetVideoOutputInfo', {
 			VideoOutputInfo: output,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.videoOutputInfo) {
-			this.updateStateAndNotify('videoOutputInfo', output)
-		}
 	}
 	/**
 	 * Builds the shutter speed map from capabilities data
 	 * @param imageCapabilitiesContent Optional image capabilities content to extract from
 	 */
 	private buildShutterSpeedMap(imageCapabilitiesContent?: Record<string, unknown>): void {
-		// Check image capabilities first (passed as parameter or from state)
+		// Check image capabilities if provided
 		if (imageCapabilitiesContent) {
 			const map = buildShutterSpeedMapFromCapabilities(imageCapabilitiesContent)
 			if (map) {
@@ -887,7 +824,7 @@ export class BolinCamera {
 		this.irisMap = null
 		this.irisRange = null
 
-		// Check image capabilities first (passed as parameter or from state)
+		// Check image capabilities if provided
 		if (imageCapabilitiesContent) {
 			const result = buildIrisMapFromCapabilities(imageCapabilitiesContent)
 			this.irisMap = result.irisMap
@@ -1055,35 +992,14 @@ export class BolinCamera {
 	 * @param info The RTSP stream information parameters (all fields optional)
 	 */
 	async setRTSPInfo(channel: number, info: Partial<RTSPInfo>): Promise<void> {
-		// Get existing stream info to merge with updates
-		const existingStream = this.state.rtspInfo?.find((r) => r.Channel === channel)
-		const rtspInfo: RTSPInfo = {
+		// Only send channel and the fields that are actually being updated
+		const payload: Partial<RTSPInfo> = {
 			Channel: channel,
-			Enable: false,
-			Port: 554,
-			MaxClientNum: 0,
-			StreamKey: '',
-			AuthEnable: false,
-			...existingStream,
 			...info,
 		}
 		await this.sendRequest('/apiv2/av', 'AswSetRTSPInfo', {
-			RTSPInfo: [rtspInfo],
+			RTSPInfo: [payload],
 		})
-		// Update state optimistically - merge with existing state
-		this.updateArrayStateAndNotify<RTSPInfo>(
-			'rtspInfo',
-			(r) => r.Channel === channel,
-			rtspInfo,
-			() => ({
-				Channel: channel,
-				Enable: false,
-				Port: 554,
-				MaxClientNum: 0,
-				StreamKey: '',
-				AuthEnable: false,
-			}),
-		)
 	}
 
 	/**
@@ -1092,35 +1008,14 @@ export class BolinCamera {
 	 * @param info The RTMP stream information parameters (all fields optional)
 	 */
 	async setRTMPInfo(channel: number, info: Partial<RTMPInfo>): Promise<void> {
-		// Get existing stream info to merge with updates
-		const existingStream = this.state.rtmpInfo?.find((r) => r.Channel === channel)
-		const rtmpInfo: RTMPInfo = {
+		// Only send channel and the fields that are actually being updated
+		const payload: Partial<RTMPInfo> = {
 			Channel: channel,
-			Enable: false,
-			Port: 1935,
-			VideoTagHeader: 0,
-			Url: '',
-			StreamKey: '',
-			...existingStream,
 			...info,
 		}
 		await this.sendRequest('/apiv2/av', 'AswSetRTMPInfo', {
-			RTMPInfo: [rtmpInfo],
+			RTMPInfo: [payload],
 		})
-		// Update state optimistically - merge with existing state
-		this.updateArrayStateAndNotify<RTMPInfo>(
-			'rtmpInfo',
-			(r) => r.Channel === channel,
-			rtmpInfo,
-			() => ({
-				Channel: channel,
-				Enable: false,
-				Port: 1935,
-				VideoTagHeader: 0,
-				Url: '',
-				StreamKey: '',
-			}),
-		)
 	}
 
 	/**
@@ -1129,31 +1024,14 @@ export class BolinCamera {
 	 * @param info The AV over UDP stream information parameters (all fields optional)
 	 */
 	async setAVOverUDPInfo(channel: number, info: Partial<AVOverUDPInfo>): Promise<void> {
-		// Get existing stream info to merge with updates
-		const existingStream = this.state.avOverUDPInfo?.find((r) => r.Channel === channel)
-		const avOverUDPInfo: AVOverUDPInfo = {
+		// Only send channel and the fields that are actually being updated
+		const payload: Partial<AVOverUDPInfo> = {
 			Channel: channel,
-			Address: '',
-			Port: 0,
-			Enable: false,
-			...existingStream,
 			...info,
 		}
 		await this.sendRequest('/apiv2/av', 'AswSetAVOverUDPInfo', {
-			AVOverUDPInfo: [avOverUDPInfo],
+			AVOverUDPInfo: [payload],
 		})
-		// Update state optimistically - merge with existing state
-		this.updateArrayStateAndNotify<AVOverUDPInfo>(
-			'avOverUDPInfo',
-			(r) => r.Channel === channel,
-			avOverUDPInfo,
-			() => ({
-				Channel: channel,
-				Address: '',
-				Port: 0,
-				Enable: false,
-			}),
-		)
 	}
 
 	/**
@@ -1162,31 +1040,14 @@ export class BolinCamera {
 	 * @param info The AV over RTP stream information parameters (all fields optional)
 	 */
 	async setAVOverRTPInfo(channel: number, info: Partial<AVOverRTPInfo>): Promise<void> {
-		// Get existing stream info to merge with updates
-		const existingStream = this.state.avOverRTPInfo?.find((r) => r.Channel === channel)
-		const avOverRTPInfo: AVOverRTPInfo = {
+		// Only send channel and the fields that are actually being updated
+		const payload: Partial<AVOverRTPInfo> = {
 			Channel: channel,
-			Address: '',
-			Port: 0,
-			Enable: false,
-			...existingStream,
 			...info,
 		}
 		await this.sendRequest('/apiv2/av', 'AswSetAVOverRTPInfo', {
-			AVOverRTPInfo: [avOverRTPInfo],
+			AVOverRTPInfo: [payload],
 		})
-		// Update state optimistically - merge with existing state
-		this.updateArrayStateAndNotify<AVOverRTPInfo>(
-			'avOverRTPInfo',
-			(r) => r.Channel === channel,
-			avOverRTPInfo,
-			() => ({
-				Channel: channel,
-				Address: '',
-				Port: 0,
-				Enable: false,
-			}),
-		)
 	}
 
 	/**
@@ -1197,10 +1058,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/av', 'ReqSetNDIInfo', {
 			NDIInfo: info,
 		})
-		// Update state optimistically - merge with existing state
-		if (this.state.ndiInfo) {
-			this.updateStateAndNotify('ndiInfo', info)
-		}
 	}
 
 	/**
@@ -1211,9 +1068,6 @@ export class BolinCamera {
 		await this.sendRequest('/apiv2/general', 'ReqSetOverlayInfo', {
 			OverlayInfo: [overlayInfo],
 		})
-		// Note: Overlay updates are complex (array-based), so we refresh state
-		// This could be optimized further if we track which overlay index was updated
-		await this.getOverlayInfo()
 	}
 
 	/**
@@ -1246,57 +1100,6 @@ export class BolinCamera {
 	 */
 	private getErrorMessage(error: unknown): string {
 		return error instanceof Error ? error.message : 'Unknown error'
-	}
-
-	/**
-	 * Helper to update state optimistically and trigger variable updates
-	 * @param stateKey The key in this.state to update
-	 * @param updates The partial updates to merge
-	 * @param feedbackIds Optional feedback IDs to check after update
-	 */
-	private updateStateAndNotify<K extends keyof CameraState>(
-		stateKey: K,
-		updates: Partial<NonNullable<CameraState[K]>> | NonNullable<CameraState[K]>,
-		feedbackIds?: string[],
-	): void {
-		const currentState = this.state[stateKey]
-		if (currentState && typeof currentState === 'object' && !Array.isArray(currentState)) {
-			this.state[stateKey] = { ...currentState, ...updates } as CameraState[K]
-		} else {
-			this.state[stateKey] = updates as CameraState[K]
-		}
-		this.updateVariablesOnStateChange()
-		if (feedbackIds && feedbackIds.length > 0) {
-			this.self.checkFeedbacks(...feedbackIds)
-		}
-	}
-
-	/**
-	 * Helper to update array-based state (like stream info arrays)
-	 * @param stateKey The key in this.state to update
-	 * @param findFn Function to find the item to update
-	 * @param updates The updates to apply
-	 * @param createFn Function to create a new item if not found
-	 */
-	private updateArrayStateAndNotify<T extends { Channel?: number }>(
-		stateKey: 'rtspInfo' | 'rtmpInfo' | 'avOverUDPInfo' | 'avOverRTPInfo',
-		findFn: (item: T) => boolean,
-		updates: Partial<T>,
-		createFn: () => T,
-	): void {
-		const stateArray = this.state[stateKey] as T[] | null | undefined
-		if (stateArray) {
-			const existingIndex = stateArray.findIndex(findFn)
-			if (existingIndex >= 0) {
-				stateArray[existingIndex] = { ...stateArray[existingIndex], ...updates }
-			} else {
-				stateArray.push({ ...createFn(), ...updates })
-			}
-		} else {
-			// Type assertion needed because TypeScript can't narrow the union type properly
-			;(this.state[stateKey] as unknown as T[]) = [{ ...createFn(), ...updates }]
-		}
-		this.updateVariablesOnStateChange()
 	}
 
 	/**
