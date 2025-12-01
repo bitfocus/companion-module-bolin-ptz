@@ -97,6 +97,7 @@ export class BolinCamera {
 	private shutterSpeedMap: Record<number, string> | null = null
 	private irisMap: Record<number, string> | null = null
 	private irisRange: { min: number; max: number } | null = null
+	private capabilitySet: Set<string> | null = null
 
 	constructor(config: ModuleConfig, password: string, self: ModuleInstance) {
 		this.config = config
@@ -191,6 +192,7 @@ export class BolinCamera {
 		this.authToken = null
 		this.state = createEmptyState()
 		this.cameraCapabilities = null
+		this.capabilitySet = null
 		this.previousState = null
 	}
 
@@ -354,9 +356,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.lensInfo) {
-			this.state.lensInfo = { ...this.state.lensInfo, ...lensInfo }
+			this.updateStateAndNotify('lensInfo', lensInfo)
 		}
-		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -454,10 +455,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.gammaInfo) {
-			this.state.gammaInfo = { ...this.state.gammaInfo, ...gammaInfo }
+			this.updateStateAndNotify('gammaInfo', gammaInfo, ['wdr', 'gammaLevel', 'gammaBright', 'wdrLevel'])
 		}
-		this.updateVariablesOnStateChange()
-		this.self.checkFeedbacks('wdr', 'gammaLevel', 'gammaBright', 'wdrLevel')
 	}
 
 	/**
@@ -490,10 +489,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.whiteBalanceInfo) {
-			this.state.whiteBalanceInfo = { ...this.state.whiteBalanceInfo, ...whiteBalanceInfo }
+			this.updateStateAndNotify('whiteBalanceInfo', whiteBalanceInfo, ['whiteBalanceMode', 'whiteBalanceSensitivity'])
 		}
-		this.updateVariablesOnStateChange()
-		this.self.checkFeedbacks('whiteBalanceMode', 'whiteBalanceSensitivity')
 	}
 
 	async setPictureInfo(pictureInfo: Partial<PictureInfo>): Promise<void> {
@@ -537,10 +534,17 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.pictureInfo) {
-			this.state.pictureInfo = { ...this.state.pictureInfo, ...pictureInfo }
+			this.updateStateAndNotify('pictureInfo', pictureInfo, [
+				'flip',
+				'mirror',
+				'hlcMode',
+				'blcMode',
+				'scene',
+				'defogMode',
+				'effect',
+				'colorMatrix',
+			])
 		}
-		this.updateVariablesOnStateChange()
-		this.self.checkFeedbacks('flip', 'mirror', 'hlcMode', 'blcMode', 'scene', 'defogMode', 'effect', 'colorMatrix')
 	}
 
 	/**
@@ -558,6 +562,7 @@ export class BolinCamera {
 			Iris: number
 		}
 
+		// Cache the map lookup to avoid repeated calls
 		const shutterSpeedMap = this.getShutterSpeedMap()
 		const shutterSpeedValue = shutterSpeedMap[rawExposureInfo.ShutterSpeed] ?? '1/60'
 		this.state.exposureInfo = {
@@ -588,9 +593,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.exposureInfo) {
-			this.state.exposureInfo = { ...this.state.exposureInfo, ...exposureInfo }
+			this.updateStateAndNotify('exposureInfo', exposureInfo)
 		}
-		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -715,10 +719,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.positionLimitations) {
-			this.state.positionLimitations = { ...this.state.positionLimitations, ...limitations }
+			this.updateStateAndNotify('positionLimitations', limitations, ['positionLimitEnabled'])
 		}
-		this.updateVariablesOnStateChange()
-		this.self.checkFeedbacks('positionLimitEnabled')
 	}
 
 	/**
@@ -753,9 +755,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.panTiltInfo) {
-			this.state.panTiltInfo = { ...this.state.panTiltInfo, ...panTiltInfo }
+			this.updateStateAndNotify('panTiltInfo', panTiltInfo)
 		}
-		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -774,9 +775,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.videoOutputInfo) {
-			this.state.videoOutputInfo = { ...this.state.videoOutputInfo, ...output }
+			this.updateStateAndNotify('videoOutputInfo', output)
 		}
-		this.updateVariablesOnStateChange()
 	}
 	/**
 	 * Builds the shutter speed map from capabilities data
@@ -991,17 +991,19 @@ export class BolinCamera {
 			RTSPInfo: [rtspInfo],
 		})
 		// Update state optimistically - merge with existing state
-		if (this.state.rtspInfo) {
-			const existingIndex = this.state.rtspInfo.findIndex((r) => r.Channel === channel)
-			if (existingIndex >= 0) {
-				this.state.rtspInfo[existingIndex] = { ...this.state.rtspInfo[existingIndex], ...rtspInfo }
-			} else {
-				this.state.rtspInfo.push(rtspInfo)
-			}
-		} else {
-			this.state.rtspInfo = [rtspInfo]
-		}
-		this.updateVariablesOnStateChange()
+		this.updateArrayStateAndNotify<RTSPInfo>(
+			'rtspInfo',
+			(r) => r.Channel === channel,
+			rtspInfo,
+			() => ({
+				Channel: channel,
+				Enable: false,
+				Port: 554,
+				MaxClientNum: 0,
+				StreamKey: '',
+				AuthEnable: false,
+			}),
+		)
 	}
 
 	/**
@@ -1026,17 +1028,19 @@ export class BolinCamera {
 			RTMPInfo: [rtmpInfo],
 		})
 		// Update state optimistically - merge with existing state
-		if (this.state.rtmpInfo) {
-			const existingIndex = this.state.rtmpInfo.findIndex((r) => r.Channel === channel)
-			if (existingIndex >= 0) {
-				this.state.rtmpInfo[existingIndex] = { ...this.state.rtmpInfo[existingIndex], ...rtmpInfo }
-			} else {
-				this.state.rtmpInfo.push(rtmpInfo)
-			}
-		} else {
-			this.state.rtmpInfo = [rtmpInfo]
-		}
-		this.updateVariablesOnStateChange()
+		this.updateArrayStateAndNotify<RTMPInfo>(
+			'rtmpInfo',
+			(r) => r.Channel === channel,
+			rtmpInfo,
+			() => ({
+				Channel: channel,
+				Enable: false,
+				Port: 1935,
+				VideoTagHeader: 0,
+				Url: '',
+				StreamKey: '',
+			}),
+		)
 	}
 
 	/**
@@ -1059,17 +1063,17 @@ export class BolinCamera {
 			AVOverUDPInfo: [avOverUDPInfo],
 		})
 		// Update state optimistically - merge with existing state
-		if (this.state.avOverUDPInfo) {
-			const existingIndex = this.state.avOverUDPInfo.findIndex((r) => r.Channel === channel)
-			if (existingIndex >= 0) {
-				this.state.avOverUDPInfo[existingIndex] = { ...this.state.avOverUDPInfo[existingIndex], ...avOverUDPInfo }
-			} else {
-				this.state.avOverUDPInfo.push(avOverUDPInfo)
-			}
-		} else {
-			this.state.avOverUDPInfo = [avOverUDPInfo]
-		}
-		this.updateVariablesOnStateChange()
+		this.updateArrayStateAndNotify<AVOverUDPInfo>(
+			'avOverUDPInfo',
+			(r) => r.Channel === channel,
+			avOverUDPInfo,
+			() => ({
+				Channel: channel,
+				Address: '',
+				Port: 0,
+				Enable: false,
+			}),
+		)
 	}
 
 	/**
@@ -1092,17 +1096,17 @@ export class BolinCamera {
 			AVOverRTPInfo: [avOverRTPInfo],
 		})
 		// Update state optimistically - merge with existing state
-		if (this.state.avOverRTPInfo) {
-			const existingIndex = this.state.avOverRTPInfo.findIndex((r) => r.Channel === channel)
-			if (existingIndex >= 0) {
-				this.state.avOverRTPInfo[existingIndex] = { ...this.state.avOverRTPInfo[existingIndex], ...avOverRTPInfo }
-			} else {
-				this.state.avOverRTPInfo.push(avOverRTPInfo)
-			}
-		} else {
-			this.state.avOverRTPInfo = [avOverRTPInfo]
-		}
-		this.updateVariablesOnStateChange()
+		this.updateArrayStateAndNotify<AVOverRTPInfo>(
+			'avOverRTPInfo',
+			(r) => r.Channel === channel,
+			avOverRTPInfo,
+			() => ({
+				Channel: channel,
+				Address: '',
+				Port: 0,
+				Enable: false,
+			}),
+		)
 	}
 
 	/**
@@ -1115,9 +1119,8 @@ export class BolinCamera {
 		})
 		// Update state optimistically - merge with existing state
 		if (this.state.ndiInfo) {
-			this.state.ndiInfo = { ...this.state.ndiInfo, ...info }
+			this.updateStateAndNotify('ndiInfo', info)
 		}
-		this.updateVariablesOnStateChange()
 	}
 
 	/**
@@ -1163,6 +1166,87 @@ export class BolinCamera {
 	 */
 	private getErrorMessage(error: unknown): string {
 		return error instanceof Error ? error.message : 'Unknown error'
+	}
+
+	/**
+	 * Helper to update state optimistically and trigger variable updates
+	 * @param stateKey The key in this.state to update
+	 * @param updates The partial updates to merge
+	 * @param feedbackIds Optional feedback IDs to check after update
+	 */
+	private updateStateAndNotify<K extends keyof CameraState>(
+		stateKey: K,
+		updates: Partial<NonNullable<CameraState[K]>> | NonNullable<CameraState[K]>,
+		feedbackIds?: string[],
+	): void {
+		const currentState = this.state[stateKey]
+		if (currentState && typeof currentState === 'object' && !Array.isArray(currentState)) {
+			this.state[stateKey] = { ...currentState, ...updates } as CameraState[K]
+		} else {
+			this.state[stateKey] = updates as CameraState[K]
+		}
+		this.updateVariablesOnStateChange()
+		if (feedbackIds && feedbackIds.length > 0) {
+			this.self.checkFeedbacks(...feedbackIds)
+		}
+	}
+
+	/**
+	 * Helper to update array-based state (like stream info arrays)
+	 * @param stateKey The key in this.state to update
+	 * @param findFn Function to find the item to update
+	 * @param updates The updates to apply
+	 * @param createFn Function to create a new item if not found
+	 */
+	private updateArrayStateAndNotify<T extends { Channel?: number }>(
+		stateKey: 'rtspInfo' | 'rtmpInfo' | 'avOverUDPInfo' | 'avOverRTPInfo',
+		findFn: (item: T) => boolean,
+		updates: Partial<T>,
+		createFn: () => T,
+	): void {
+		const stateArray = this.state[stateKey] as T[] | null | undefined
+		if (stateArray) {
+			const existingIndex = stateArray.findIndex(findFn)
+			if (existingIndex >= 0) {
+				stateArray[existingIndex] = { ...stateArray[existingIndex], ...updates }
+			} else {
+				stateArray.push({ ...createFn(), ...updates })
+			}
+		} else {
+			// Type assertion needed because TypeScript can't narrow the union type properly
+			;(this.state[stateKey] as unknown as T[]) = [{ ...createFn(), ...updates }]
+		}
+		this.updateVariablesOnStateChange()
+	}
+
+	/**
+	 * Builds a Set of all capabilities for O(1) lookup performance
+	 */
+	private buildCapabilitySet(): void {
+		if (!this.cameraCapabilities) {
+			this.capabilitySet = null
+			return
+		}
+
+		const set = new Set<string>()
+		const categories = [
+			this.cameraCapabilities.systemCapabilities,
+			this.cameraCapabilities.ptzfCapabilities,
+			this.cameraCapabilities.imageCapabilities,
+			this.cameraCapabilities.avStreamCapabilities,
+			this.cameraCapabilities.networkCapabilities,
+			this.cameraCapabilities.generalCapabilities,
+		]
+
+		for (const category of categories) {
+			if (category) {
+				for (const capability of category) {
+					set.add(capability)
+				}
+			}
+		}
+
+		this.capabilitySet = set
 	}
 
 	/**
@@ -1228,6 +1312,8 @@ export class BolinCamera {
 		}
 
 		this.cameraCapabilities = capabilities
+		// Build capability set for efficient lookups
+		this.buildCapabilitySet()
 		// Trigger action update after maps are built so actions can use the dynamic maps
 		this.self.updateActions()
 		return capabilities
@@ -1242,24 +1328,15 @@ export class BolinCamera {
 
 	/**
 	 * Checks if a specific capability is present in any of the capability categories
+	 * Uses a Set for O(1) lookup performance instead of O(n) array searches
 	 * @param capabilityName The name of the capability to check for
 	 * @returns true if the capability is found in any category, false otherwise
 	 */
 	hasCapability(capabilityName: string): boolean {
-		if (!this.cameraCapabilities) {
+		if (!this.capabilitySet) {
 			return false
 		}
-
-		const categories = [
-			this.cameraCapabilities.systemCapabilities,
-			this.cameraCapabilities.ptzfCapabilities,
-			this.cameraCapabilities.imageCapabilities,
-			this.cameraCapabilities.avStreamCapabilities,
-			this.cameraCapabilities.networkCapabilities,
-			this.cameraCapabilities.generalCapabilities,
-		]
-
-		return categories.some((category) => category?.includes(capabilityName) ?? false)
+		return this.capabilitySet.has(capabilityName)
 	}
 
 	/**
