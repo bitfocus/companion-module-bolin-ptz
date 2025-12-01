@@ -206,8 +206,75 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Maps state keys to their corresponding feedback IDs
+	 */
+	private getFeedbackIdsForStateKey(stateKey: keyof CameraState): string[] {
+		const feedbackMap: Partial<Record<keyof CameraState, string[]>> = {
+			exposureInfo: ['gain', 'smartExposure', 'shutterSpeed', 'iris'],
+			whiteBalanceInfo: ['whiteBalanceMode', 'whiteBalanceSensitivity', 'colorTemperature'],
+			pictureInfo: ['flip', 'mirror', 'hlcMode', 'blcMode', 'scene', 'defogMode', 'effect', 'colorMatrix'],
+			lensInfo: ['smart', 'focusMode', 'digitalZoom', 'zoomRatioOSD', 'afSensitivity', 'mfSpeed'],
+			gammaInfo: ['wdr', 'gammaLevel', 'gammaBright', 'wdrLevel'],
+			panTiltInfo: ['panDirectionInverted', 'tiltDirectionInverted'],
+			positionLimitations: ['positionLimitEnabled'],
+			overlayInfo: ['overlayEnabled'],
+			rtspInfo: ['rtspEnabled'],
+			rtmpInfo: ['rtmpEnabled'],
+			avOverUDPInfo: ['avOverUDPEnabled'],
+			avOverRTPInfo: ['avOverRTPEnabled'],
+			ndiInfo: ['ndiEnabled'],
+		}
+		return feedbackMap[stateKey] ?? []
+	}
+
+	/**
+	 * Determines which state keys have changed between previous and current state
+	 */
+	private getChangedStateKeys(currentState: CameraState, previousState: CameraState | null): Array<keyof CameraState> {
+		if (!previousState) {
+			// If no previous state, all non-null keys are considered "changed"
+			return Object.keys(currentState).filter((key) => currentState[key as keyof CameraState] !== null) as Array<
+				keyof CameraState
+			>
+		}
+
+		const changedKeys: Array<keyof CameraState> = []
+		for (const key in currentState) {
+			const stateKey = key as keyof CameraState
+			const current = currentState[stateKey]
+			const previous = previousState[stateKey]
+
+			// Check if the value has changed
+			if (current !== previous) {
+				// For objects/arrays, do a deeper comparison
+				if (current !== null && previous !== null && typeof current === 'object' && typeof previous === 'object') {
+					if (Array.isArray(current) && Array.isArray(previous)) {
+						// For arrays, check if they're different
+						if (JSON.stringify(current) !== JSON.stringify(previous)) {
+							changedKeys.push(stateKey)
+						}
+					} else if (!Array.isArray(current) && !Array.isArray(previous)) {
+						// For objects, check if they're different
+						if (JSON.stringify(current) !== JSON.stringify(previous)) {
+							changedKeys.push(stateKey)
+						}
+					} else {
+						// Type mismatch (array vs object)
+						changedKeys.push(stateKey)
+					}
+				} else {
+					// Simple value change or null/undefined change
+					changedKeys.push(stateKey)
+				}
+			}
+		}
+		return changedKeys
+	}
+
+	/**
 	 * Updates variables when state changes, only updating values that have actually changed
-	 * Uses debouncing to batch multiple rapid updates into a single update (1 second delay)
+	 * Uses debouncing to batch multiple rapid updates into a single update (500ms delay)
+	 * Only checks feedbacks that correspond to changed state properties
 	 */
 	private updateVariablesOnStateChange(): void {
 		// Clear any existing timeout to reset the debounce timer
@@ -215,15 +282,28 @@ export class BolinCamera {
 			clearTimeout(this.updateVariablesTimeout)
 		}
 
-		// Schedule the update to run after 1 second
-		// This batches multiple rapid calls within 1 second into a single update
+		// Schedule the update to run after 500ms
+		// This batches multiple rapid calls within 500ms into a single update
 		this.updateVariablesTimeout = setTimeout(() => {
 			this.updateVariablesTimeout = null
 
-			//lazy feedback check for now
-			this.self.checkFeedbacks()
-
 			const currentState = this.getState()
+			const changedKeys = this.getChangedStateKeys(currentState, this.previousState)
+
+			// Collect all feedback IDs that need to be checked based on changed state keys
+			const feedbackIdsToCheck = new Set<string>()
+			for (const stateKey of changedKeys) {
+				const feedbackIds = this.getFeedbackIdsForStateKey(stateKey)
+				for (const feedbackId of feedbackIds) {
+					feedbackIdsToCheck.add(feedbackId)
+				}
+			}
+
+			// Only check feedbacks that correspond to changed state
+			if (feedbackIdsToCheck.size > 0) {
+				this.self.checkFeedbacks(...Array.from(feedbackIdsToCheck))
+			}
+
 			this.previousState = UpdateVariablesOnStateChange(this.self, currentState, this.previousState)
 		}, 500)
 	}
