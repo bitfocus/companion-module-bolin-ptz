@@ -203,11 +203,7 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 		},
 		{
 			capabilities: ['VideoOutputInfo.HDMIResolution'],
-			variables: [
-				{ name: 'System - HDMI Resolution', variableId: 'hdmi_resolution' },
-				{ name: 'System - HDMI Color Space', variableId: 'hdmi_color_space' },
-				{ name: 'System - HDMI Bit Depth', variableId: 'hdmi_bit_depth' },
-			],
+			variables: [{ name: 'System - HDMI Resolution', variableId: 'hdmi_resolution' }],
 		},
 		{
 			capabilities: ['VideoOutputInfo.SDIResolution'],
@@ -581,8 +577,6 @@ export function UpdateVariablesOnStateChange(
 		updateFields(variables, previousState?.videoOutputInfo, currentState.videoOutputInfo, [
 			{ getValue: (v) => v.SystemFormat ?? '', variableId: 'system_format', defaultValue: '' },
 			{ getValue: (v) => v.HDMIResolution ?? '', variableId: 'hdmi_resolution', defaultValue: '' },
-			{ getValue: (v) => v.HDMIColorSpace, variableId: 'hdmi_color_space' },
-			{ getValue: (v) => v.HDMIBitDepth, variableId: 'hdmi_bit_depth' },
 			{ getValue: (v) => v.SDIResolution, variableId: 'sdi_resolution' },
 			{ getValue: (v) => v.SDIBitDepth, variableId: 'sdi_bit_depth' },
 			{ getValue: (v) => v.SDIColorSpace, variableId: 'sdi_color_space' },
