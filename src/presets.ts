@@ -2851,5 +2851,70 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
+	// PTZ Modes presets
+	presets['ptzModesHeader'] = {
+		category: 'PTZ Modes',
+		name: 'PTZ Modes',
+		type: 'text',
+		text: '',
+	}
+	presets['ptzModesAutoScanningHeader'] = {
+		category: 'PTZ Modes',
+		name: 'Auto Scanning',
+		type: 'text',
+		text: '',
+	}
+	presets['ptzModesAutoScanning'] = {
+		type: 'button',
+		category: 'PTZ Modes',
+		name: 'Auto Scanning',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO\\nSCAN\\nSTART`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'setAutoScanning',
+						options: {
+							speed: '128',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['ptzModesAutoScanningStop'] = {
+		type: 'button',
+		category: 'PTZ Modes',
+		name: 'Auto Scanning Stop',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO\\nSCAN\\nSTOP`,
+			size: '14',
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'ptMove',
+						options: {
+							direction: 'Stop',
+							speed: '128',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
 	self.setPresetDefinitions(presets)
 }

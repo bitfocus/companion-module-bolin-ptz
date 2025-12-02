@@ -422,6 +422,33 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera.restart()
 					},
 				}
+				actions['setAutoScanning'] = {
+					name: 'PTZ - Auto Scanning',
+					options: [
+						{
+							type: 'textinput',
+							label: 'Speed',
+							default: '128',
+							id: 'speed',
+							description: '(1 - 255)',
+							useVariables: true,
+						},
+					],
+					description: 'Enable auto scanning with specified speed',
+					callback: async (action) => {
+						if (!self.camera) return
+						const speed = parseInt(action.options.speed as string)
+						if (isNaN(speed)) {
+							self.log('warn', 'Speed must be a number')
+							return
+						}
+						if (speed < 1 || speed > 255) {
+							self.log('warn', 'Speed must be between 1 and 255')
+							return
+						}
+						await self.camera.setAutoScanning(speed)
+					},
+				}
 				actions['setOSDMenu'] = {
 					name: 'System - OSD Menu Control',
 					options: [

@@ -1139,14 +1139,21 @@ export class BolinCamera {
 	 * @param audioInfo The audio information to set
 	 */
 	async setAudioInfo(audioInfo: Partial<AudioInfo>): Promise<void> {
-		await this.sendRequest(
-			'/apiv2/av',
-			'ReqSetAudioInfo',
-			{
-				AudioInfo: audioInfo,
+		await this.sendRequest('/apiv2/av', 'ReqSetAudioInfo', {
+			AudioInfo: audioInfo,
+		})
+	}
+
+	/**
+	 * Sets auto scanning on the camera
+	 * @param speed The scanning speed (1-255)
+	 */
+	async setAutoScanning(speed: number): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetAutoScanning', {
+			AutoScanningInfo: {
+				Speed: speed,
 			},
-			'2.0.000',
-		)
+		})
 	}
 
 	/**
