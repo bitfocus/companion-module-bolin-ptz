@@ -1047,7 +1047,7 @@ export function UpdateActions(self: ModuleInstance): void {
 								{ label: '50HZ', id: 1 },
 								{ label: '60HZ', id: 2 },
 							],
-							default: 'OFF',
+							default: 0,
 							id: 'mode',
 						},
 					],
