@@ -2592,5 +2592,109 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
+	// Audio Enable presets
+	if (!capabilitiesLoaded || self.camera?.hasCapability('AudioInfo')) {
+		presets['presetAudioEnableHeader'] = {
+			category: 'Audio',
+			name: 'Audio Enable',
+			type: 'text',
+			text: '',
+		}
+		for (const mode of [
+			{ id: 'toggle', label: 'Toggle', text: 'AUDIO\\n$(bolin-ptz:audio_enable)' },
+			{ id: 'true', label: 'On', text: 'AUDIO\\nON' },
+			{ id: 'false', label: 'Off', text: 'AUDIO\\nOFF' },
+		]) {
+			presets[`presetAudioEnable${mode.label}`] = {
+				type: 'button',
+				category: 'Audio',
+				name: `Audio Enable ${mode.label}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: mode.text,
+					size: '14',
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'audioControl',
+								options: {
+									props: ['enable'],
+									mode: mode.id,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'audioEnabled',
+						isInverted: mode.id === 'false' ? true : false,
+						options: {},
+						style: {
+							bgcolor: 0x009900,
+						},
+					},
+				],
+			}
+		}
+
+		// Audio Volume Set Value presets
+		presets['audioVolumeSetValueHeader'] = {
+			category: 'Audio',
+			name: 'Volume Set Value',
+			type: 'text',
+			text: '',
+		}
+		for (const volume of [
+			{ value: 0, label: 'Mute' },
+			{ value: 25, label: '25%' },
+			{ value: 50, label: '50%' },
+			{ value: 75, label: '75%' },
+			{ value: 100, label: '100%' },
+		]) {
+			presets[`presetAudioVolume${volume.label}`] = {
+				type: 'button',
+				category: 'Audio',
+				name: `Audio Volume ${volume.label}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: `VOLUME\\n${volume.label}`,
+					size: 12,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'audioControl',
+								options: {
+									props: ['volume'],
+									volume: volume.value.toString(),
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'audioVolume',
+						options: {
+							comparison: 'equal',
+							value: volume.value.toString(),
+						},
+						style: {
+							bgcolor: 0x009900,
+						},
+					},
+				],
+			}
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }

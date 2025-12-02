@@ -65,7 +65,6 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			callback: (feedback: CompanionFeedbackBooleanEvent) => {
 				const comparison = feedback.options.comparison as string as 'equal' | 'greaterThan' | 'lessThan'
 				const value = Number(feedback.options.value)
-
 				switch (comparison) {
 					case 'equal':
 						return currentValue == value
@@ -796,6 +795,22 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 						return stream?.Enable ?? false
 					},
 				}
+			},
+		},
+		{
+			capabilities: ['AudioInfo'],
+			createFeedbacks: () => {
+				createToggleFeedback('audioEnabled', 'Audio - Enabled', 'Audio is enabled', () => {
+					return self.camera?.getState().audioInfo?.Enable ?? false
+				})
+
+				createValueFeedback(
+					'audioVolume',
+					'Audio - Volume Level',
+					'Audio volume level matches selected value',
+					50,
+					self.camera?.getState().audioInfo?.Volume ?? 0,
+				)
 			},
 		},
 	]

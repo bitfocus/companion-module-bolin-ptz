@@ -20,6 +20,7 @@ import type {
 	AVOverRTPInfo,
 	NDIInfo,
 	SRTInfo,
+	AudioInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -2344,6 +2345,109 @@ export function UpdateActions(self: ModuleInstance): void {
 						}
 
 						await self.camera.setSRTInfo(channel, updateInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['AudioInfo'],
+			createActions: () => {
+				actions['audioControl'] = {
+					name: 'Audio Control',
+					options: [
+						{
+							type: 'multidropdown',
+							label: 'Properties',
+							choices: [
+								{ label: 'Enable', id: 'enable' },
+								{ label: 'Bit Rate', id: 'bitRate' },
+								{ label: 'Sampling Rate', id: 'samplingRate' },
+								{ label: 'Volume', id: 'volume' },
+							],
+							default: ['enable'],
+							id: 'props',
+						},
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							choices: [
+								{ label: 'Toggle', id: 'toggle' },
+								{ label: 'Enable', id: 'true' },
+								{ label: 'Disable', id: 'false' },
+							],
+							default: 'true',
+							id: 'mode',
+							isVisibleExpression: `arrayIncludes($(options:props), 'enable')`,
+						},
+						{
+							type: 'dropdown',
+							label: 'Bit Rate',
+							choices: [
+								{ label: '48K', id: 48000 },
+								{ label: '64K', id: 64000 },
+								{ label: '96K', id: 96000 },
+								{ label: '128K', id: 128000 },
+							],
+							default: 48000,
+							id: 'bitRate',
+							isVisibleExpression: `arrayIncludes($(options:props), 'bitRate')`,
+						},
+						{
+							type: 'dropdown',
+							label: 'Sampling Rate',
+							choices: [
+								{ label: '44.1KHz', id: 44100 },
+								{ label: '48KHz', id: 48000 },
+							],
+							default: 48000,
+							id: 'samplingRate',
+							isVisibleExpression: `arrayIncludes($(options:props), 'samplingRate')`,
+						},
+						{
+							type: 'textinput',
+							label: 'Volume',
+							tooltip: 'Volume level (1-100)',
+							default: '50',
+							id: 'volume',
+							useVariables: true,
+							isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
+						},
+					],
+					description: 'Set the audio control',
+					callback: async (action) => {
+						if (!self.camera) return
+						const props = action.options.props as string[]
+
+						const audioInfo: Partial<AudioInfo> = {}
+
+						for (const prop of props) {
+							if (prop === 'enable') {
+								const enable =
+									action.options.mode === 'toggle'
+										? !self.camera.getState().audioInfo?.Enable
+										: action.options.mode === 'true'
+											? true
+											: false
+								audioInfo.Enable = enable
+							}
+							if (prop === 'bitRate') {
+								audioInfo.BitRate = action.options.bitRate as number
+							}
+							if (prop === 'samplingRate') {
+								audioInfo.SamplingRate = action.options.samplingRate as number
+							}
+							if (prop === 'volume') {
+								const volume = parseInteger(action.options.volume as string, 'Volume', self)
+								if (volume === null) return
+								if (volume < 1 || volume > 100) {
+									self.log('warn', 'Volume must be between 1 and 100')
+									return
+								}
+								audioInfo.Volume = volume
+							}
+						}
+
+						await self.camera.setAudioInfo(audioInfo)
 					},
 				}
 			},

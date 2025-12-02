@@ -480,6 +480,7 @@ export interface CameraCapabilities {
 	avStreamCapabilities?: string[]
 	networkCapabilities?: string[]
 	generalCapabilities?: string[]
+	encodeCapabilities?: string[]
 }
 
 /**
@@ -621,6 +622,46 @@ export interface SRTInfo {
 }
 
 /**
+ * Encode information for a single channel
+ */
+export interface EncodeInfoItem {
+	Channel: number
+	StreamType: number
+	Enable: boolean
+	VideoCompression: number
+	Resolution: string
+	FieldType: number
+	BPFrameType: number
+	FrameRate: number
+	BitrateType: number
+	BitRate: number
+	IFrameInterval: number
+}
+
+/**
+ * Encode information response
+ */
+export interface EncodeInfo {
+	EncodeInfo: EncodeInfoItem[]
+	LowLatency: {
+		Enable: boolean
+	}
+}
+
+/**
+ * Audio information
+ */
+export interface AudioInfo {
+	Enable: boolean
+	Compression: number
+	BitRate: number
+	SamplingRate: number
+	ChannelNumber: number
+	Type: number
+	Volume: number
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -646,4 +687,6 @@ export interface CameraState {
 	avOverRTPInfo: AVOverRTPInfo[] | null
 	ndiInfo: NDIInfo | null
 	srtInfo: SRTInfo[] | null
+	encodeInfo: EncodeInfo | null
+	audioInfo: AudioInfo | null
 }

@@ -315,6 +315,15 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 				{ name: 'Stream - SRT Sub Overhead Bandwidth', variableId: 'srt_sub_overhead_bandwidth' },
 			],
 		},
+		{
+			capabilities: ['AudioInfo'],
+			variables: [
+				{ name: 'Audio - Enable', variableId: 'audio_enable' },
+				{ name: 'Audio - Bit Rate', variableId: 'audio_bit_rate' },
+				{ name: 'Audio - Sampling Rate', variableId: 'audio_sampling_rate' },
+				{ name: 'Audio - Volume', variableId: 'audio_volume' },
+			],
+		},
 	]
 
 	// Filter and collect variables based on capabilities
@@ -732,6 +741,42 @@ export function UpdateVariablesOnStateChange(
 			if (!previousStream || previousStream.OverheadBandwidth !== stream.OverheadBandwidth) {
 				variables[`${channelPrefix}_overhead_bandwidth`] = stream.OverheadBandwidth
 			}
+		}
+	}
+
+	// Update audio info variables if changed
+	if (currentState.audioInfo) {
+		const previousAudio = previousState?.audioInfo
+		const currentAudio = currentState.audioInfo
+
+		// Enable
+		if (!previousAudio || previousAudio.Enable !== currentAudio.Enable) {
+			variables.audio_enable = currentAudio.Enable
+		}
+
+		// BitRate - map numeric values to strings
+		if (!previousAudio || previousAudio.BitRate !== currentAudio.BitRate) {
+			const bitRateMap: Record<number, string> = {
+				48000: '48K',
+				64000: '64K',
+				96000: '96K',
+				128000: '128K',
+			}
+			variables.audio_bit_rate = bitRateMap[currentAudio.BitRate] ?? currentAudio.BitRate.toString()
+		}
+
+		// SamplingRate - map numeric values to strings
+		if (!previousAudio || previousAudio.SamplingRate !== currentAudio.SamplingRate) {
+			const samplingRateMap: Record<number, string> = {
+				44100: '44.1KHz',
+				48000: '48KHz',
+			}
+			variables.audio_sampling_rate = samplingRateMap[currentAudio.SamplingRate] ?? currentAudio.SamplingRate.toString()
+		}
+
+		// Volume
+		if (!previousAudio || previousAudio.Volume !== currentAudio.Volume) {
+			variables.audio_volume = currentAudio.Volume
 		}
 	}
 

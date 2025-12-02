@@ -38,6 +38,8 @@ import type {
 	AVOverRTPInfo,
 	NDIInfo,
 	SRTInfo,
+	EncodeInfo,
+	AudioInfo,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -84,6 +86,8 @@ function createEmptyState(): CameraState {
 		avOverRTPInfo: null,
 		ndiInfo: null,
 		srtInfo: null,
+		encodeInfo: null,
+		audioInfo: null,
 	} satisfies CameraState
 }
 
@@ -225,6 +229,7 @@ export class BolinCamera {
 			avOverUDPInfo: ['avOverUDPEnabled'],
 			avOverRTPInfo: ['avOverRTPEnabled'],
 			ndiInfo: ['ndiEnabled'],
+			audioInfo: ['audioEnabled', 'audioVolume'],
 		}
 		return feedbackMap[stateKey] ?? []
 	}
@@ -1099,6 +1104,52 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Gets encode information from the camera and stores it in state
+	 */
+	async getEncodeInfo(): Promise<EncodeInfo> {
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetEncodeInfo', undefined, '2.0.000')
+		this.state.encodeInfo = {
+			EncodeInfo: response.Content.EncodeInfo as EncodeInfo['EncodeInfo'],
+			LowLatency: response.Content.LowLatency as EncodeInfo['LowLatency'],
+		}
+		this.updateVariablesOnStateChange()
+		return this.state.encodeInfo
+	}
+
+	/**
+	 * Sets encode information on the camera
+	 * @param encodeInfo The encode information to set
+	 */
+	async setEncodeInfo(encodeInfo: Partial<EncodeInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/av', 'ReqSetEncodeInfo', encodeInfo, '2.0.000')
+	}
+
+	/**
+	 * Gets audio information from the camera and stores it in state
+	 */
+	async getAudioInfo(): Promise<AudioInfo> {
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetAudioInfo', undefined, '2.0.000')
+		this.state.audioInfo = response.Content.AudioInfo as AudioInfo
+		this.updateVariablesOnStateChange()
+		return this.state.audioInfo
+	}
+
+	/**
+	 * Sets audio information on the camera
+	 * @param audioInfo The audio information to set
+	 */
+	async setAudioInfo(audioInfo: Partial<AudioInfo>): Promise<void> {
+		await this.sendRequest(
+			'/apiv2/av',
+			'ReqSetAudioInfo',
+			{
+				AudioInfo: audioInfo,
+			},
+			'2.0.000',
+		)
+	}
+
+	/**
 	 * Extracts object names from a Content object, including nested objects
 	 * @param content The content object to extract names from
 	 * @param prefix Optional prefix for nested object names (e.g., "VideoOutputInfo")
@@ -1147,6 +1198,7 @@ export class BolinCamera {
 			this.cameraCapabilities.avStreamCapabilities,
 			this.cameraCapabilities.networkCapabilities,
 			this.cameraCapabilities.generalCapabilities,
+			this.cameraCapabilities.encodeCapabilities,
 		]
 
 		for (const category of categories) {
@@ -1163,9 +1215,14 @@ export class BolinCamera {
 	/**
 	 * Helper to fetch and extract capabilities with error handling
 	 */
-	private async fetchCapabilities(endpoint: string, cmd: string, capabilityName: string): Promise<string[] | null> {
+	private async fetchCapabilities(
+		endpoint: string,
+		cmd: string,
+		capabilityName: string,
+		version?: string,
+	): Promise<string[] | null> {
 		try {
-			const response = await this.sendRequest(endpoint, cmd)
+			const response = await this.sendRequest(endpoint, cmd, undefined, version)
 			return this.extractObjectNames(response.Content)
 		} catch (error) {
 			this.self.log('debug', `Failed to get ${capabilityName}: ${this.getErrorMessage(error)}`)
@@ -1187,6 +1244,7 @@ export class BolinCamera {
 			avStreamCapabilities,
 			networkCapabilities,
 			generalCapabilities,
+			encodeCapabilities,
 		] = await Promise.allSettled([
 			this.fetchCapabilities('/apiv2/system', 'ReqGetSystemCapabilities', 'system capabilities'),
 			this.fetchCapabilities('/apiv2/ptzctrl', 'ReqGetPTZFCapabilities', 'PTZF capabilities'),
@@ -1197,6 +1255,7 @@ export class BolinCamera {
 			this.fetchCapabilities('/apiv2/av', 'ReqGetAVStreamCapabilities', 'AV stream capabilities'),
 			this.fetchCapabilities('/apiv2/network', 'ReqGetNetworkCapabilities', 'network capabilities'),
 			this.fetchCapabilities('/apiv2/general', 'ReqGetGeneralCapabilities', 'general capabilities'),
+			this.fetchCapabilities('/apiv2/av', 'ReqGetEncodeCapabilities', 'encode capabilities', '2.0.000'),
 		])
 
 		if (systemCapabilities.status === 'fulfilled' && systemCapabilities.value) {
@@ -1220,6 +1279,9 @@ export class BolinCamera {
 		}
 		if (generalCapabilities.status === 'fulfilled' && generalCapabilities.value) {
 			capabilities.generalCapabilities = generalCapabilities.value
+		}
+		if (encodeCapabilities.status === 'fulfilled' && encodeCapabilities.value) {
+			capabilities.encodeCapabilities = encodeCapabilities.value
 		}
 
 		this.cameraCapabilities = capabilities
@@ -1287,6 +1349,8 @@ export class BolinCamera {
 			{ capabilities: ['AVOverRTPInfo'], method: async () => this.getAVOverRTPInfo() },
 			{ capabilities: ['NDIInfo'], method: async () => this.getNDIInfo() },
 			{ capabilities: ['SRTInfo'], method: async () => this.getSRTInfo() },
+			{ capabilities: ['EncodeInfo'], method: async () => this.getEncodeInfo() },
+			{ capabilities: ['AudioInfo'], method: async () => this.getAudioInfo() },
 		]
 
 		const promises = capabilityMappings
