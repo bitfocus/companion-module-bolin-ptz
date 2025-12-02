@@ -538,10 +538,15 @@ export function UpdateActions(self: ModuleInstance): void {
 					description: 'Set the focus mode',
 					callback: async (action) => {
 						if (!self.camera) return
-						const focus: FocusCommand = {
-							Direction: action.options.mode as FocusCommand['Direction'],
+						const focusModeMap: Record<string, number> = {
+							Auto: 0,
+							Manual: 1,
 						}
-						await self.camera.focus(focus)
+						const focusModeValue = focusModeMap[action.options.mode as string] ?? 0
+						// Send as any to allow numeric value (API expects number, not string)
+						await self.camera.setLensInfo({
+							FocusMode: focusModeValue,
+						} as any)
 					},
 				}
 				createToggleAction(
