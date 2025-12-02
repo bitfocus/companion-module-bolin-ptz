@@ -619,56 +619,6 @@ export function UpdateActions(self: ModuleInstance): void {
 			capabilities: ['PositionLimitations'],
 			createActions: () => {
 				actions['setPositionLimits'] = {
-					name: 'PTZ - Pan / Tilt Move',
-					options: [
-						{
-							type: 'dropdown',
-							label: 'Direction',
-							choices: [
-								{ label: 'Up', id: 'Up' },
-								{ label: 'Down', id: 'Down' },
-								{ label: 'Left', id: 'Left' },
-								{ label: 'Right', id: 'Right' },
-								{ label: 'Up Lef', id: 'LeftUp' },
-								{ label: 'Up Right', id: 'RightUp' },
-								{ label: 'Down Left', id: 'LeftDown' },
-								{ label: 'Down Right', id: 'RightDown' },
-								{ label: 'Stop', id: 'Stop' },
-							],
-							default: 'Up',
-							id: 'direction',
-						},
-						{
-							type: 'textinput',
-							label: 'Speed',
-							default: '128',
-							id: 'speed',
-							description: '(1 - 255)',
-							useVariables: true,
-						},
-					],
-					description: 'Move the camera',
-					callback: async (action) => {
-						if (!self.camera) return
-						const speed = parseInt(action.options.speed as string)
-						if (isNaN(speed)) {
-							self.log('warn', 'Speed must be a number')
-							return
-						}
-						if (speed < 1 || speed > 255) {
-							self.log('warn', 'Speed must be between 1 and 255')
-							return
-						}
-						const move: PTMoveCommand = {
-							Mode: 1,
-							SuperfineSpeed: speed,
-							Direction: action.options.direction as PTMoveCommand['Direction'],
-						}
-						await self.camera.ptMove(move)
-					},
-				}
-
-				actions['setPositionLimits'] = {
 					name: 'PTZ - Set Position Limits',
 					options: [
 						{
