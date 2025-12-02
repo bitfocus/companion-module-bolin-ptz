@@ -324,6 +324,21 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 				{ name: 'Audio - Volume', variableId: 'audio_volume' },
 			],
 		},
+		{
+			capabilities: ['EncodeInfo.LowLatency'],
+			variables: [{ name: 'Encode - Low Latency', variableId: 'low_latency' }],
+		},
+		{
+			capabilities: ['EncodeInfo'],
+			variables: [
+				{ name: 'Encode - Main Stream - Resolution', variableId: 'encode_main_resolution' },
+				{ name: 'Encode - Main Stream - Frame Rate', variableId: 'encode_main_frame_rate' },
+				{ name: 'Encode - Main Stream - Bitrate', variableId: 'encode_main_bitrate' },
+				{ name: 'Encode - Sub Stream - Resolution', variableId: 'encode_sub_resolution' },
+				{ name: 'Encode - Sub Stream - Frame Rate', variableId: 'encode_sub_frame_rate' },
+				{ name: 'Encode - Sub Stream - Bitrate', variableId: 'encode_sub_bitrate' },
+			],
+		},
 	]
 
 	// Filter and collect variables based on capabilities
@@ -777,6 +792,50 @@ export function UpdateVariablesOnStateChange(
 		// Volume
 		if (!previousAudio || previousAudio.Volume !== currentAudio.Volume) {
 			variables.audio_volume = currentAudio.Volume
+		}
+	}
+
+	// Update encode info variables if changed
+	if (currentState.encodeInfo) {
+		// Low Latency
+		updateIfChanged(
+			variables,
+			previousState?.encodeInfo,
+			currentState.encodeInfo,
+			(e) => e.LowLatency?.Enable,
+			'low_latency',
+		)
+
+		// EncodeInfo array - find main stream (channel 0) and sub stream (channel 1)
+		const mainStream = currentState.encodeInfo.EncodeInfo?.find((e) => e.Channel === 0)
+		const subStream = currentState.encodeInfo.EncodeInfo?.find((e) => e.Channel === 1)
+		const previousMainStream = previousState?.encodeInfo?.EncodeInfo?.find((e) => e.Channel === 0)
+		const previousSubStream = previousState?.encodeInfo?.EncodeInfo?.find((e) => e.Channel === 1)
+
+		// Main stream variables
+		if (mainStream) {
+			if (!previousMainStream || previousMainStream.Resolution !== mainStream.Resolution) {
+				variables.encode_main_resolution = mainStream.Resolution ?? ''
+			}
+			if (!previousMainStream || previousMainStream.FrameRate !== mainStream.FrameRate) {
+				variables.encode_main_frame_rate = mainStream.FrameRate ?? 0
+			}
+			if (!previousMainStream || previousMainStream.BitRate !== mainStream.BitRate) {
+				variables.encode_main_bitrate = mainStream.BitRate ?? 0
+			}
+		}
+
+		// Sub stream variables
+		if (subStream) {
+			if (!previousSubStream || previousSubStream.Resolution !== subStream.Resolution) {
+				variables.encode_sub_resolution = subStream.Resolution ?? ''
+			}
+			if (!previousSubStream || previousSubStream.FrameRate !== subStream.FrameRate) {
+				variables.encode_sub_frame_rate = subStream.FrameRate ?? 0
+			}
+			if (!previousSubStream || previousSubStream.BitRate !== subStream.BitRate) {
+				variables.encode_sub_bitrate = subStream.BitRate ?? 0
+			}
 		}
 	}
 

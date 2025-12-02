@@ -2696,5 +2696,160 @@ export function UpdatePresets(self: ModuleInstance): void {
 		}
 	}
 
+	// Encoder Info presets
+	const hasEncodeInfoCapability = !capabilitiesLoaded || (self.camera?.hasCapability('EncodeInfo') ?? false)
+	if (hasEncodeInfoCapability) {
+		// Main Stream Info
+		presets['encoderInfoMainStreamHeader'] = {
+			category: 'Encoder Info',
+			name: 'Main Stream',
+			type: 'text',
+			text: '',
+		}
+		presets['encoderInfoMainStreamResolution'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Main Stream Resolution',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `MAIN\\nRESOLUTION\\n$(bolin-ptz:encode_main_resolution)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoMainStreamFrameRate'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Main Stream Frame Rate',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `MAIN\\nFRAME RATE\\n$(bolin-ptz:encode_main_frame_rate)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoMainStreamBitrate'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Main Stream Bitrate',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `MAIN\\nBITRATE\\n$(bolin-ptz:encode_main_bitrate)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Sub Stream Info
+		presets['encoderInfoSubStreamHeader'] = {
+			category: 'Encoder Info',
+			name: 'Sub Stream',
+			type: 'text',
+			text: '',
+		}
+		presets['encoderInfoSubStreamResolution'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Sub Stream Resolution',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `SUB\\nRESOLUTION\\n$(bolin-ptz:encode_sub_resolution)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoSubStreamFrameRate'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Sub Stream Frame Rate',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `SUB\\nFRAME RATE\\n$(bolin-ptz:encode_sub_frame_rate)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoSubStreamBitrate'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Sub Stream Bitrate',
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `SUB\\nBITRATE\\n$(bolin-ptz:encode_sub_bitrate)`,
+				size: 12,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		// Other encoder info
+		if (self.camera?.hasCapability('EncodeInfo.LowLatency')) {
+			presets['encoderInfoOtherHeader'] = {
+				category: 'Encoder Info',
+				name: 'Other',
+				type: 'text',
+				text: '',
+			}
+			presets['encoderInfoLowLatency'] = {
+				type: 'button',
+				category: 'Encoder Info',
+				name: 'Low Latency',
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: `LOW\\nLATENCY\\n$(bolin-ptz:low_latency)`,
+					size: 12,
+				},
+				steps: [
+					{
+						down: [],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }
