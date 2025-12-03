@@ -739,6 +739,28 @@ export interface CruiseRequest {
 }
 
 /**
+ * Auto restart type enum
+ */
+export type AutoRestartType = 0 | 1 | 2 | 3 // 0: Never, 1: Every Day, 2: Every Week, 3: Every Month
+
+/**
+ * Auto restart information
+ */
+export interface AutoRestartInfo {
+	Type: AutoRestartType
+	Day: number
+	Hour: number
+	Minute: number
+}
+
+/**
+ * Auto restart request for setting auto restart type
+ */
+export interface AutoRestartRequest {
+	Type: AutoRestartType
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -769,4 +791,5 @@ export interface CameraState {
 	traceInfo: TraceInfo[] | null
 	scanningInfo: ScanningInfo[] | null
 	cruiseInfo: CruiseInfo[] | null
+	autoRestartInfo: AutoRestartInfo | null
 }

@@ -24,6 +24,7 @@ import type {
 	TraceRequest,
 	ScanningRequest,
 	CruiseRequest,
+	AutoRestartRequest,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -2694,6 +2695,36 @@ export function UpdateActions(self: ModuleInstance): void {
 						}
 
 						await self.camera.setAudioInfo(audioInfo)
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['AutoRestartInfo'],
+			createActions: () => {
+				actions['setAutoRestartType'] = {
+					name: 'System - Set Auto Restart Type',
+					description: 'Set the auto restart type (does not set day/hour/minute)',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Auto Restart Type',
+							id: 'type',
+							default: 0,
+							choices: [
+								{ label: 'Never', id: 0 },
+								{ label: 'Every Day', id: 1 },
+								{ label: 'Every Week', id: 2 },
+								{ label: 'Every Month', id: 3 },
+							],
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const type = action.options.type as number
+						await self.camera.setAutoRestartType({
+							Type: type as AutoRestartRequest['Type'],
+						})
 					},
 				}
 			},

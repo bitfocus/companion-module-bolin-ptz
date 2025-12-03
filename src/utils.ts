@@ -1,8 +1,4 @@
 /**
- * Utility functions for iris and shutter speed operations
- */
-
-/**
  * Helper function to recursively search for a capability (enum or range) in an object
  * Checks all levels of nesting to find the capability
  */
@@ -452,4 +448,77 @@ export function convertIrisRangeToMap(irisRange: { min: number; max: number }): 
 	}
 
 	return map
+}
+
+/**
+ * Calculates the next auto restart time based on the auto restart settings
+ * @param autoRestartType The type of auto restart (0=Never, 1=Daily, 2=Weekly, 3=Monthly)
+ * @param day The day setting (0-31 depending on type)
+ * @param hour The hour setting (0-23)
+ * @param minute The minute setting (0-59)
+ * @returns Formatted string representing the next restart time, or "Never" if disabled
+ */
+export function calculateNextAutoRestartTime(
+	autoRestartType: number,
+	day: number,
+	hour: number,
+	minute: number,
+): string {
+	// If never restart, return "Never"
+	if (autoRestartType === 0) {
+		return 'Never'
+	}
+
+	const now = new Date()
+	let nextRestart = new Date(now)
+
+	switch (autoRestartType) {
+		case 1: {
+			// Every Day
+			nextRestart.setHours(hour, minute, 0, 0)
+			if (nextRestart <= now) {
+				nextRestart.setDate(nextRestart.getDate() + 1)
+			}
+			break
+		}
+		case 2: {
+			// Every Week (Day = 0-6, Sunday = 0)
+			const targetDay = day
+			const currentDay = now.getDay()
+			let daysUntilTarget = targetDay - currentDay
+			if (daysUntilTarget <= 0) {
+				daysUntilTarget += 7
+			}
+			nextRestart.setDate(now.getDate() + daysUntilTarget)
+			nextRestart.setHours(hour, minute, 0, 0)
+			break
+		}
+		case 3: {
+			// Every Month (Day = 1-31)
+			const targetDate = day
+			const currentDate = now.getDate()
+			const currentMonth = now.getMonth()
+			const currentYear = now.getFullYear()
+
+			let targetMonth = currentMonth
+			let targetYear = currentYear
+
+			if (targetDate <= currentDate) {
+				targetMonth = currentMonth + 1
+				if (targetMonth > 11) {
+					targetMonth = 0
+					targetYear = currentYear + 1
+				}
+			}
+
+			// Handle months with fewer days than targetDate
+			const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate()
+			const actualTargetDate = Math.min(targetDate, lastDayOfTargetMonth)
+
+			nextRestart = new Date(targetYear, targetMonth, actualTargetDate, hour, minute, 0, 0)
+			break
+		}
+	}
+
+	return nextRestart.toLocaleString()
 }

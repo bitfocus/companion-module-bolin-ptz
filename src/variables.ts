@@ -1,6 +1,6 @@
 import type { ModuleInstance } from './main.js'
 import type { CameraState, PictureInfo } from './types.js'
-import { convertIrisValueToFStop } from './utils.js'
+import { convertIrisValueToFStop, calculateNextAutoRestartTime } from './utils.js'
 
 /**
  * Helper function to check if a value has changed between previous and current state
@@ -391,6 +391,16 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 
 				return variables
 			})(),
+		},
+		{
+			capabilities: ['AutoRestartInfo'],
+			variables: [
+				{ name: 'Auto Restart - Next Restart', variableId: 'auto_restart_next' },
+				{ name: 'Auto Restart - Frequency', variableId: 'auto_restart_frequency' },
+				{ name: 'Auto Restart - Day', variableId: 'auto_restart_day' },
+				{ name: 'Auto Restart - Hour', variableId: 'auto_restart_hour' },
+				{ name: 'Auto Restart - Minute', variableId: 'auto_restart_minute' },
+			],
 		},
 	]
 
@@ -920,6 +930,35 @@ export function UpdateVariablesOnStateChange(
 			for (const cruise of currentState.cruiseInfo) {
 				variables[`cruise_${cruise.Number}_name`] = cruise.Name
 			}
+		}
+	}
+
+	// Update auto restart info variables if changed
+	if (currentState.autoRestartInfo) {
+		const previousAutoRestartInfo = previousState?.autoRestartInfo
+		if (
+			!previousAutoRestartInfo ||
+			JSON.stringify(previousAutoRestartInfo) !== JSON.stringify(currentState.autoRestartInfo)
+		) {
+			const autoRestart = currentState.autoRestartInfo
+
+			// Set basic variables
+			const typeNames: Record<number, string> = {
+				0: 'Never',
+				1: 'Every Day',
+				2: 'Every Week',
+				3: 'Every Month',
+			}
+			variables.auto_restart_frequency = typeNames[autoRestart.Type] ?? `Unknown (${autoRestart.Type})`
+			variables.auto_restart_next = calculateNextAutoRestartTime(
+				autoRestart.Type,
+				autoRestart.Day,
+				autoRestart.Hour,
+				autoRestart.Minute,
+			)
+			variables.auto_restart_day = autoRestart.Day.toString()
+			variables.auto_restart_hour = autoRestart.Hour.toString()
+			variables.auto_restart_minute = autoRestart.Minute.toString()
 		}
 	}
 

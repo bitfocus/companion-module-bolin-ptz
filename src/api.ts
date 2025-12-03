@@ -47,6 +47,8 @@ import type {
 	SRTInfo,
 	EncodeInfo,
 	AudioInfo,
+	AutoRestartInfo,
+	AutoRestartRequest,
 } from './types.js'
 import type { ModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -98,6 +100,7 @@ function createEmptyState(): CameraState {
 		traceInfo: null,
 		scanningInfo: null,
 		cruiseInfo: null,
+		autoRestartInfo: null,
 	} satisfies CameraState
 }
 
@@ -240,6 +243,7 @@ export class BolinCamera {
 			avOverRTPInfo: ['avOverRTPEnabled'],
 			ndiInfo: ['ndiEnabled'],
 			audioInfo: ['audioEnabled', 'audioVolume'],
+			autoRestartInfo: ['autoRestartEnabled'],
 		}
 		return feedbackMap[stateKey] ?? []
 	}
@@ -471,6 +475,25 @@ export class BolinCamera {
 	async setCruiseInfo(cruiseRequest: CruiseRequest): Promise<void> {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetCruiseInfo', {
 			CruiseInfo: cruiseRequest,
+		})
+	}
+
+	/**
+	 * Gets auto restart information from the camera and stores it in state
+	 */
+	async getAutoRestartInfo(): Promise<AutoRestartInfo> {
+		const response = await this.sendRequest('/apiv2/system', 'ReqGetAutoRestartInfo')
+		this.state.autoRestartInfo = response.Content.AutoRestartInfo as AutoRestartInfo
+		this.updateVariablesOnStateChange()
+		return this.state.autoRestartInfo
+	}
+
+	/**
+	 * Sets auto restart type on the camera
+	 */
+	async setAutoRestartType(autoRestartRequest: AutoRestartRequest): Promise<void> {
+		await this.sendRequest('/apiv2/system', 'ReqSetAutoRestartInfo', {
+			AutoRestartInfo: autoRestartRequest,
 		})
 	}
 
@@ -1428,6 +1451,7 @@ export class BolinCamera {
 			{ capabilities: ['TraceInfo'], method: async () => this.getTraceInfo() },
 			{ capabilities: ['ScanningInfo'], method: async () => this.getScanningInfo() },
 			{ capabilities: ['CruiseInfo'], method: async () => this.getCruiseInfo() },
+			{ capabilities: ['AutoRestartInfo'], method: async () => this.getAutoRestartInfo() },
 		]
 
 		const promises = capabilityMappings

@@ -813,6 +813,38 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 				)
 			},
 		},
+		{
+			capabilities: ['AutoRestartInfo'],
+			createFeedbacks: () => {
+				feedbacks['autoRestartEnabled'] = {
+					name: 'Auto Restart - Mode Active',
+					description: 'Auto restart is set to the specified mode',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							id: 'mode',
+							choices: [
+								{ label: 'Never', id: 0 },
+								{ label: 'Every Day', id: 1 },
+								{ label: 'Every Week', id: 2 },
+								{ label: 'Every Month', id: 3 },
+							],
+							default: 1,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const autoRestartInfo = self.camera?.getState().autoRestartInfo
+						const selectedMode = feedback.options.mode as number
+						return autoRestartInfo ? autoRestartInfo.Type === selectedMode : false
+					},
+				}
+			},
+		},
 	]
 
 	// Filter and create feedbacks based on capabilities

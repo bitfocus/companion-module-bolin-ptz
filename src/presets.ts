@@ -2088,6 +2088,12 @@ export function UpdatePresets(self: ModuleInstance): void {
 			}
 		}
 	}
+	presets['systemInfoHeader'] = {
+		category: 'System Info',
+		name: 'Camera Info',
+		type: 'text',
+		text: '',
+	}
 	presets['systemDeviceName'] = {
 		type: 'button',
 		category: 'System Info',
@@ -2134,6 +2140,168 @@ export function UpdatePresets(self: ModuleInstance): void {
 			bgcolor: 0x000000,
 			color: 0xffffff,
 			text: `FORMAT\n$(bolin-ptz:system_format)`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	// Auto Restart presets
+	const autoRestartModes = [
+		{ id: 0, label: 'Never', text: 'AUTO RESTART\nNEVER' },
+		{ id: 1, label: 'Every Day', text: 'AUTO RESTART\nDAILY' },
+		{ id: 2, label: 'Every Week', text: 'AUTO RESTART\nWEEKLY' },
+		{ id: 3, label: 'Every Month', text: 'AUTO RESTART\nMONTHLY' },
+	]
+
+	presets['autoRestartHeader'] = {
+		category: 'System Info',
+		name: 'Auto Restart Mode',
+		type: 'text',
+		text: '',
+	}
+
+	for (const mode of autoRestartModes) {
+		presets[`autoRestart${mode.label.replace(' ', '')}`] = {
+			type: 'button',
+			category: 'System Info',
+			name: `Auto Restart ${mode.label}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: mode.text,
+				size: '14',
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'setAutoRestartType',
+							options: {
+								type: mode.id,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'autoRestartEnabled',
+					options: {
+						mode: mode.id,
+					},
+					style: {
+						bgcolor: 0x009900,
+					},
+				},
+			],
+		}
+	}
+
+	// Auto Restart Status Presets
+	presets['autoRestartStatusHeader'] = {
+		category: 'System Info',
+		name: 'Auto Restart Status',
+		type: 'text',
+		text: '',
+	}
+
+	presets['autoRestartNext'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Auto Restart Next Time',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO RESTART\nNEXT\n$(bolin-ptz:auto_restart_next)`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['autoRestartFrequency'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Auto Restart Frequency',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO RESTART\nFREQ\n$(bolin-ptz:auto_restart_frequency)`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['autoRestartDay'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Auto Restart Day',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO RESTART\nDAY\n$(bolin-ptz:auto_restart_day)`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['autoRestartHour'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Auto Restart Hour',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO RESTART\nHOUR\n$(bolin-ptz:auto_restart_hour)`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['autoRestartMinute'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Auto Restart Minute',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `AUTO RESTART\nMINUTE\n$(bolin-ptz:auto_restart_minute)`,
 			size: 12,
 			show_topbar: false,
 		},
