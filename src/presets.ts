@@ -6,6 +6,15 @@ import { icons } from './icons.js'
 export function UpdatePresets(self: BolinModuleInstance): void {
 	const presets: CompanionPresetDefinitions = {}
 
+	const Color = {
+		black: 0x000000,
+		white: 0xffffff,
+		darkGray: 0x242424,
+		lightGray: 0x6e6e6e,
+		red: 0xda2f21,
+		green: 0x009900,
+	}
+
 	// Check if capabilities have been loaded (used for conditional preset creation)
 	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
 
@@ -32,8 +41,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Control',
 			name: name,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: '',
 				size: 24,
 				png64: icons[`${iconType}`],
@@ -69,8 +78,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Control',
 		name: 'Go Home',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			png64: icons.home,
 			text: '',
 			size: 14,
@@ -94,8 +103,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Control',
 		name: 'Zoom In',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: '',
 			size: '14',
 			png64: icons.zoomIn,
@@ -130,8 +139,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Control',
 		name: 'Zoom Out',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: '',
 			png64: icons.zoomOut,
 			size: '14',
@@ -172,8 +181,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Auto',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO\\nFOCUS`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -198,7 +207,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				feedbackId: 'focusMode',
 				options: {},
 				style: {
-					bgcolor: 0x009900,
+					bgcolor: Color.green,
 				},
 			},
 		],
@@ -208,8 +217,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Manual',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `MANUAL\\nFOCUS`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -235,7 +244,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				isInverted: true,
 				options: {},
 				style: {
-					bgcolor: 0x009900,
+					bgcolor: Color.green,
 				},
 			},
 		],
@@ -251,8 +260,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Near',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `FOCUS\\nNEAR`,
 			size: '14',
 			show_topbar: false,
@@ -284,8 +293,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Far',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `FOCUS\\nFAR`,
 			size: '14',
 			show_topbar: false,
@@ -332,8 +341,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'MF Speed Increase',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `Focus SPEED`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -361,8 +370,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'MF Speed Value',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `FOCUS SPEED\\n$(bolin-ptz:mf_speed)`,
 			size: 12,
 			alignment: 'center:bottom',
@@ -382,8 +391,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'MF Speed Decrease',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `Focus SPEED`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -424,8 +433,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Focus',
 			name: `AF Sensitivity ${key}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `AF SENS\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -450,7 +459,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						sensitivity: value,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -469,8 +478,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Control',
 			name: `Position Limit ${limit}}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `LOCK\\n${limit}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -511,8 +520,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Control',
 		name: `Position Limit Lock All`,
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `LOCK\\nAll`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -540,8 +549,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Control',
 		name: `Position Limit Unlock All`,
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `UNLOCK\\nAll`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -583,8 +592,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Control',
 			name: `Pan Direction Invert ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -608,7 +617,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -626,8 +635,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Control',
 			name: `Tilt Direction Invert ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -651,7 +660,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -683,8 +692,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Presets',
 			name: 'Call ' + presetName + ' (' + presetNumber + ')',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `CALL\\n${presetName}`,
 				size: '14',
 				show_topbar: false,
@@ -727,8 +736,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Presets',
 			name: 'Save ' + presetName + ' (' + presetNumber + ')',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `SAVE\\n${presetName}`,
 				size: '14',
 				show_topbar: false,
@@ -777,8 +786,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'White Balance',
 			name: 'White Balance ' + key,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `WB MODE\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -803,7 +812,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						mode: key,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -828,8 +837,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'White Balance',
 			name: 'White Balance Sensitivity ' + key,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `WB SENS\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -854,7 +863,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						sensitivity: value,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -872,8 +881,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'White Balance',
 		name: 'White Balance Color Temperature',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `COLOR\\nTEMP`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -901,8 +910,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'White Balance',
 		name: 'White Balance Color Temperature',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `WB\\nTEMP\\n$(bolin-ptz:wb_color_temperature)`,
 			size: 14,
 			show_topbar: false,
@@ -920,8 +929,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'White Balance',
 		name: 'White Balance Color Temperature',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `COLOR\\nTEMP`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -971,8 +980,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'White Balance',
 			name: `${baseName} Increase`,
 			style: {
-				bgcolor: bgColor,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: `${colorUpper}\\n${typeUpper}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -1004,7 +1013,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			name: `${baseName} Value`,
 			style: {
 				bgcolor: bgColor,
-				color: 0xffffff,
+				color: Color.white,
 				text: `${colorUpper}\\n${typeUpper}\\n$(bolin-ptz:${variableId})`,
 				size: 14,
 				show_topbar: false,
@@ -1024,8 +1033,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'White Balance',
 			name: `${baseName} Decrease`,
 			style: {
-				bgcolor: bgColor,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: `${colorUpper}\\n${typeUpper}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -1077,8 +1086,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Scene ${key}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `SCENE\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -1103,7 +1112,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						scene: value,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1128,8 +1137,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Defog Mode ${key}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `DEFOG\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -1154,7 +1163,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						mode: value,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1178,8 +1187,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Effect ${key}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `EFFECT\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -1204,7 +1213,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						effect: value,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1228,8 +1237,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Flip ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: mode.id === 'toggle' ? Color.darkGray : Color.lightGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				alignment: 'center:bottom',
@@ -1255,7 +1264,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1279,8 +1288,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Mirror ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				alignment: 'center:bottom',
@@ -1306,7 +1315,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1330,8 +1339,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture HLC Mode ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -1355,7 +1364,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1379,8 +1388,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture BLC ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -1404,7 +1413,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1430,8 +1439,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture ${name} Increase`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: `${displayUpper}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -1461,8 +1470,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture ${name} Value`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
 				size: 14,
 				show_topbar: false,
@@ -1482,8 +1491,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture ${name} Decrease`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: `${displayUpper}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -1537,8 +1546,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Gamma',
 			name: `Gamma Level ${key}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `GAMMA\\n${key}`,
 				size: '14',
 				show_topbar: false,
@@ -1563,7 +1572,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						level: value,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1582,8 +1591,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Gamma',
 		name: 'Gamma Bright Increase',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `GAMMA\\nBRIGHT`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1611,8 +1620,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Gamma',
 		name: 'Gamma Bright Value',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `GAMMA\\nBRIGHT\\n$(bolin-ptz:gamma_bright)`,
 			size: 12,
 			show_topbar: false,
@@ -1630,8 +1639,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Gamma',
 		name: 'Gamma Bright Decrease',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `GAMMA\\nBRIGHT`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1672,8 +1681,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Gamma',
 			name: `Gamma WDR ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -1697,7 +1706,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -1716,8 +1725,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Gamma',
 		name: 'Gamma WDR Level Increase',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `WDR\\nLEVEL`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1745,8 +1754,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Gamma',
 		name: 'Gamma WDR Level Value',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `WDR\\nLEVEL\\n$(bolin-ptz:wdr_level)`,
 			size: 12,
 			show_topbar: false,
@@ -1764,8 +1773,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Gamma',
 		name: 'Gamma WDR Level Decrease',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `WDR\\nLEVEL`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1800,8 +1809,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Iris',
 		name: 'Iris Increase',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `IRIS\\n`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1828,8 +1837,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Iris',
 		name: 'Iris Value',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `IRIS\\n$(bolin-ptz:iris)`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1849,8 +1858,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Iris',
 		name: 'Iris Decrease',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `IRIS\\n`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1906,8 +1915,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Iris',
 				name: `Iris ${label}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: label,
 					size: '14',
 					show_topbar: false,
@@ -1933,7 +1942,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							iris: label,
 						},
 						style: {
-							bgcolor: 0x009900,
+							bgcolor: Color.green,
 						},
 					},
 				],
@@ -1952,8 +1961,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Shutter Speed',
 		name: 'Shutter Speed Increase',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `SHUTTER\\nSPEED`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -1980,8 +1989,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Shutter Speed',
 		name: 'Shutter Speed Value',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `SHUTTER\\nSPEED\\n$(bolin-ptz:shutter_speed)`,
 			size: 12,
 			show_topbar: false,
@@ -1999,8 +2008,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Shutter Speed',
 		name: 'Shutter Speed Decrease',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.lightGray,
+			color: Color.white,
 			text: `SHUTTER\\nSPEED`,
 			size: 14,
 			alignment: 'center:bottom',
@@ -2054,8 +2063,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Shutter Speed',
 				name: `Shutter Speed ${label}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: label,
 					size: '14',
 					show_topbar: false,
@@ -2081,7 +2090,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							speed: label,
 						},
 						style: {
-							bgcolor: 0x009900,
+							bgcolor: Color.green,
 						},
 					},
 				],
@@ -2099,8 +2108,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Device Name',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `CAMERA\n$(bolin-ptz:device_name)`,
 			size: 12,
 			show_topbar: false,
@@ -2118,8 +2127,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Model',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `MODEL\n$(bolin-ptz:model_name)`,
 			size: 12,
 			show_topbar: false,
@@ -2137,8 +2146,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Format',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `FORMAT\n$(bolin-ptz:system_format)`,
 			size: 12,
 			show_topbar: false,
@@ -2173,8 +2182,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'System Info',
 			name: `Auto Restart ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -2199,7 +2208,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						mode: mode.id,
 					},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -2219,8 +2228,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Auto Restart Next Time',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO RESTART\nNEXT\n$(bolin-ptz:auto_restart_next)`,
 			size: 12,
 			show_topbar: false,
@@ -2239,8 +2248,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Auto Restart Frequency',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO RESTART\nFREQ\n$(bolin-ptz:auto_restart_frequency)`,
 			size: 12,
 			show_topbar: false,
@@ -2259,8 +2268,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Auto Restart Day',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO RESTART\nDAY\n$(bolin-ptz:auto_restart_day)`,
 			size: 12,
 			show_topbar: false,
@@ -2279,8 +2288,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Auto Restart Hour',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO RESTART\nHOUR\n$(bolin-ptz:auto_restart_hour)`,
 			size: 12,
 			show_topbar: false,
@@ -2299,8 +2308,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'System Info',
 		name: 'Auto Restart Minute',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO RESTART\nMINUTE\n$(bolin-ptz:auto_restart_minute)`,
 			size: 12,
 			show_topbar: false,
@@ -2333,8 +2342,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Exposure',
 			name: `Exposure ${name} Increase`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: `${displayUpper}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -2364,10 +2373,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Exposure',
 			name: `Exposure ${name} Value`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
-				size: 12,
+				size: 14,
 				show_topbar: false,
 			},
 			steps: [
@@ -2385,8 +2394,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Exposure',
 			name: `Exposure ${name} Decrease`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.lightGray,
+				color: Color.white,
 				text: `${displayUpper}`,
 				size: 14,
 				alignment: 'center:bottom',
@@ -2414,7 +2423,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	// Create exposure value presets
 	createExposureValuePresets('Gain', 'gain', 'gain', 'Gain')
 	createExposureValuePresets('GainLimit', 'gainLimit', 'gain_limit', 'Gain Limit')
-	createExposureValuePresets('ExpCompLevel', 'expCompLevel', 'ex_comp_level', 'Exp Comp Level')
+	createExposureValuePresets('ExpCompLevel', 'expCompLevel', 'ex_comp_level', 'Exp Comp')
 
 	// Smart Exposure presets
 	presets['presetExposureSmartExposureHeader'] = {
@@ -2433,8 +2442,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Exposure',
 			name: `Exposure Smart Exposure ${mode.label}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: mode.text,
 				size: '14',
 				show_topbar: false,
@@ -2458,7 +2467,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					isInverted: mode.id === 'false' ? true : false,
 					options: {},
 					style: {
-						bgcolor: 0x009900,
+						bgcolor: Color.green,
 					},
 				},
 			],
@@ -2488,8 +2497,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Overlay',
 				name: overlayName,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: `OVERLAY\\n${overlayNumber}`,
 					size: '14',
 					show_topbar: false,
@@ -2516,7 +2525,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							channel: overlayNumber.toString(),
 						},
 						style: {
-							bgcolor: 0x009900,
+							bgcolor: Color.green,
 						},
 					},
 				],
@@ -2551,8 +2560,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					category: 'Streams',
 					name: `RTSP ${channel.label} Stream ${mode.label}`,
 					style: {
-						bgcolor: 0x000000,
-						color: 0xffffff,
+						bgcolor: Color.darkGray,
+						color: Color.white,
 						text: mode.text,
 						size: '14',
 						show_topbar: false,
@@ -2580,7 +2589,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 								channel: channel.id,
 							},
 							style: {
-								bgcolor: 0x009900,
+								bgcolor: Color.green,
 							},
 						},
 					],
@@ -2615,8 +2624,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					category: 'Streams',
 					name: `RTMP ${channel.label} Stream ${mode.label}`,
 					style: {
-						bgcolor: 0x000000,
-						color: 0xffffff,
+						bgcolor: Color.darkGray,
+						color: Color.white,
 						text: mode.text,
 						size: '14',
 						show_topbar: false,
@@ -2644,7 +2653,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 								channel: channel.id,
 							},
 							style: {
-								bgcolor: 0x009900,
+								bgcolor: Color.green,
 							},
 						},
 					],
@@ -2679,8 +2688,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					category: 'Streams',
 					name: `AV Over UDP ${channel.label} Stream ${mode.label}`,
 					style: {
-						bgcolor: 0x000000,
-						color: 0xffffff,
+						bgcolor: Color.darkGray,
+						color: Color.white,
 						text: mode.text,
 						size: '14',
 						show_topbar: false,
@@ -2708,7 +2717,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 								channel: channel.id,
 							},
 							style: {
-								bgcolor: 0x009900,
+								bgcolor: Color.green,
 							},
 						},
 					],
@@ -2743,8 +2752,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					category: 'Streams',
 					name: `AV Over RTP ${channel.label} Stream ${mode.label}`,
 					style: {
-						bgcolor: 0x000000,
-						color: 0xffffff,
+						bgcolor: Color.darkGray,
+						color: Color.white,
 						text: mode.text,
 						size: '14',
 						show_topbar: false,
@@ -2772,7 +2781,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 								channel: channel.id,
 							},
 							style: {
-								bgcolor: 0x009900,
+								bgcolor: Color.green,
 							},
 						},
 					],
@@ -2799,8 +2808,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Streams',
 				name: `NDI ${mode.label}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: mode.text,
 					size: '14',
 					show_topbar: false,
@@ -2825,7 +2834,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						isInverted: mode.id === 'false' ? true : false,
 						options: {},
 						style: {
-							bgcolor: 0x009900,
+							bgcolor: Color.green,
 						},
 					},
 				],
@@ -2836,8 +2845,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Streams',
 			name: 'NDI Name',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `NDI NAME\\n$(bolin-ptz:ndi_name)`,
 				size: 12,
 				show_topbar: false,
@@ -2855,8 +2864,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Streams',
 			name: 'NDI HX Bandwidth Value',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `NDI HX\\nBANDWIDTH\\n$(bolin-ptz:ndi_hx_bandwidth)`,
 				size: 12,
 				show_topbar: false,
@@ -2897,8 +2906,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					category: 'Streams',
 					name: `SRT ${channel.label} Stream ${mode.label}`,
 					style: {
-						bgcolor: 0x000000,
-						color: 0xffffff,
+						bgcolor: Color.darkGray,
+						color: Color.white,
 						text: mode.text,
 						size: '14',
 						show_topbar: false,
@@ -2926,7 +2935,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 								channel: channel.id,
 							},
 							style: {
-								bgcolor: 0x009900,
+								bgcolor: Color.green,
 							},
 						},
 					],
@@ -2937,9 +2946,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 	// Audio Enable presets
 	if (!capabilitiesLoaded || self.camera?.hasCapability('AudioInfo')) {
-		presets['presetAudioEnableHeader'] = {
+		presets['presetAudioInputHeader'] = {
 			category: 'Audio',
-			name: 'Audio Enable',
+			name: 'Audio Input',
 			type: 'text',
 			text: '',
 		}
@@ -2948,13 +2957,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			{ id: 'true', label: 'On', text: 'AUDIO\\nON', icon: 'speaker' },
 			{ id: 'false', label: 'Off', text: 'AUDIO\\nOFF', icon: 'speakerMute' },
 		]) {
-			presets[`presetAudioEnable${mode.label}`] = {
+			presets[`presetAudioInput${mode.label}`] = {
 				type: 'button',
 				category: 'Audio',
 				name: `Audio Enable ${mode.label}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: mode.text,
 					size: '14',
 					alignment: 'center:bottom',
@@ -2981,7 +2990,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						isInverted: mode.id === 'false' ? true : false,
 						options: {},
 						style: {
-							bgcolor: 0x009900,
+							bgcolor: Color.green,
 						},
 					},
 				],
@@ -2991,7 +3000,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		// Audio Volume Set Value presets
 		presets['audioVolumeSetValueHeader'] = {
 			category: 'Audio',
-			name: 'Volume Set Value',
+			name: 'Volume',
 			type: 'text',
 			text: '',
 		}
@@ -3007,8 +3016,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Audio',
 				name: `Audio Volume ${volume.label}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: `VOLUME\\n${volume.label}`,
 					size: 12,
 					alignment: 'center:bottom',
@@ -3037,7 +3046,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							value: volume.value.toString(),
 						},
 						style: {
-							bgcolor: 0x009900,
+							bgcolor: Color.green,
 						},
 					},
 				],
@@ -3055,14 +3064,33 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			type: 'text',
 			text: '',
 		}
+		presets['encoderInfoMainStreamInfo'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Main Stream Info',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nSTREAM\\n$(bolin-ptz:encode_main_resolution)\\n$(bolin-ptz:encode_main_frame_rate) fps\\n$(bolin-ptz:encode_main_bitrate) Kbps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
 		presets['encoderInfoMainStreamResolution'] = {
 			type: 'button',
 			category: 'Encoder Info',
 			name: 'Main Stream Resolution',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
-				text: `MAIN\\nRESOLUTION\\n$(bolin-ptz:encode_main_resolution)`,
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nRES\\n\\n$(bolin-ptz:encode_main_resolution)`,
 				size: 12,
 				show_topbar: false,
 			},
@@ -3079,9 +3107,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Encoder Info',
 			name: 'Main Stream Frame Rate',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
-				text: `MAIN\\nFRAME RATE\\n$(bolin-ptz:encode_main_frame_rate)`,
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nFRAME\\n\\n$(bolin-ptz:encode_main_frame_rate) fps`,
 				size: 12,
 				show_topbar: false,
 			},
@@ -3098,9 +3126,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Encoder Info',
 			name: 'Main Stream Bitrate',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
-				text: `MAIN\\nBITRATE\\n$(bolin-ptz:encode_main_bitrate)`,
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nBITRATE\\n\\n$(bolin-ptz:encode_main_bitrate) Kbps`,
 				size: 12,
 				show_topbar: false,
 			},
@@ -3120,14 +3148,33 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			type: 'text',
 			text: '',
 		}
+		presets['encoderInfoSubStreamInfo'] = {
+			type: 'button',
+			category: 'Encoder Info',
+			name: 'Sub Stream Info',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nSTREAM\\n$(bolin-ptz:encode_sub_resolution)$(bolin-ptz:encode_sub_frame_rate) fps\\n$(bolin-ptz:encode_sub_bitrate) Kbps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
 		presets['encoderInfoSubStreamResolution'] = {
 			type: 'button',
 			category: 'Encoder Info',
 			name: 'Sub Stream Resolution',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
-				text: `SUB\\nRESOLUTION\\n$(bolin-ptz:encode_sub_resolution)`,
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nRES\\n\\n$(bolin-ptz:encode_sub_resolution)`,
 				size: 12,
 				show_topbar: false,
 			},
@@ -3144,9 +3191,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Encoder Info',
 			name: 'Sub Stream Frame Rate',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
-				text: `SUB\\nFRAME RATE\\n$(bolin-ptz:encode_sub_frame_rate)`,
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nFRAME\\n\\n$(bolin-ptz:encode_sub_frame_rate) fps`,
 				size: 12,
 				show_topbar: false,
 			},
@@ -3163,9 +3210,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Encoder Info',
 			name: 'Sub Stream Bitrate',
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
-				text: `SUB\\nBITRATE\\n$(bolin-ptz:encode_sub_bitrate)`,
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nBITRATE\\n\\n$(bolin-ptz:encode_sub_bitrate) Kbps`,
 				size: 12,
 				show_topbar: false,
 			},
@@ -3190,8 +3237,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Encoder Info',
 				name: 'Low Latency',
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: `LOW\\nLATENCY\\n$(bolin-ptz:low_latency)`,
 					size: 12,
 					show_topbar: false,
@@ -3219,8 +3266,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Modes',
 		name: 'Auto Scanning',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO\\nSCAN\\nSTART`,
 			size: '14',
 			show_topbar: false,
@@ -3245,8 +3292,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Modes',
 		name: 'Auto Scanning Stop',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `AUTO\\nSCAN\\nSTOP`,
 			size: '14',
 			show_topbar: false,
@@ -3287,8 +3334,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Modes',
 			name: `CALL Cruise ${cruiseName}`,
 			style: {
-				bgcolor: 0x000000,
-				color: 0xffffff,
+				bgcolor: Color.darkGray,
+				color: Color.white,
 				text: `CALL\\nCRUISE\\n$(bolin-ptz:cruise_${cruise.Number}_name)`,
 				size: '14',
 				show_topbar: false,
@@ -3318,8 +3365,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Modes',
 		name: 'STOP Cruise',
 		style: {
-			bgcolor: 0x000000,
-			color: 0xffffff,
+			bgcolor: Color.darkGray,
+			color: Color.white,
 			text: `STOP\\nCRUISE`,
 			size: '14',
 			show_topbar: false,
@@ -3368,8 +3415,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'PTZ Modes',
 				name: `Trace ${traceNumber} - ${cmd.name}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: `TRACE ${traceNumber}\n${cmd.label}`,
 					size: '14',
 					show_topbar: false,
@@ -3422,8 +3469,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'PTZ Modes',
 				name: `Scanning ${scanningNumber} - ${cmd.name}`,
 				style: {
-					bgcolor: 0x000000,
-					color: 0xffffff,
+					bgcolor: Color.darkGray,
+					color: Color.white,
 					text: `SCAN ${scanningNumber}\n${cmd.label}`,
 					size: '14',
 					show_topbar: false,
