@@ -14,6 +14,13 @@ import type {
 	PTZFPositionSet,
 	PTZFRelPosition,
 	MenuAction,
+	// PTZ mode types
+	TraceInfo,
+	TraceRequest,
+	ScanningInfo,
+	ScanningRequest,
+	CruiseInfo,
+	CruiseRequest,
 	// State types
 	CameraState,
 	SystemInfo,
@@ -88,6 +95,9 @@ function createEmptyState(): CameraState {
 		srtInfo: null,
 		encodeInfo: null,
 		audioInfo: null,
+		traceInfo: null,
+		scanningInfo: null,
+		cruiseInfo: null,
 	} satisfies CameraState
 }
 
@@ -404,6 +414,63 @@ export class BolinCamera {
 	async setPresetSpeed(presetSpeed: PresetSpeed): Promise<void> {
 		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetPTZFPresetSpeed', {
 			PTZFPresetSpeed: presetSpeed,
+		})
+	}
+
+	/**
+	 * Gets trace information from the camera and stores it in state
+	 */
+	async getTraceInfo(): Promise<TraceInfo[]> {
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetTraceInfo')
+		this.state.traceInfo = response.Content.TraceInfo as TraceInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.traceInfo
+	}
+
+	/**
+	 * Sets trace information on the camera
+	 */
+	async setTraceInfo(traceRequest: TraceRequest): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetTraceInfo', {
+			TraceInfo: traceRequest,
+		})
+	}
+
+	/**
+	 * Gets scanning information from the camera and stores it in state
+	 */
+	async getScanningInfo(): Promise<ScanningInfo[]> {
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetScanningInfo')
+		this.state.scanningInfo = response.Content.ScanningInfo as ScanningInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.scanningInfo
+	}
+
+	/**
+	 * Sets scanning information on the camera
+	 */
+	async setScanningInfo(scanningRequest: ScanningRequest): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetScanningInfo', {
+			ScanningInfo: scanningRequest,
+		})
+	}
+
+	/**
+	 * Gets cruise information from the camera and stores it in state
+	 */
+	async getCruiseInfo(): Promise<CruiseInfo[]> {
+		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetCruiseInfo')
+		this.state.cruiseInfo = response.Content.CruiseInfo as CruiseInfo[]
+		this.updateVariablesOnStateChange()
+		return this.state.cruiseInfo
+	}
+
+	/**
+	 * Sets cruise information on the camera
+	 */
+	async setCruiseInfo(cruiseRequest: CruiseRequest): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetCruiseInfo', {
+			CruiseInfo: cruiseRequest,
 		})
 	}
 
@@ -1358,6 +1425,9 @@ export class BolinCamera {
 			{ capabilities: ['SRTInfo'], method: async () => this.getSRTInfo() },
 			{ capabilities: ['EncodeInfo'], method: async () => this.getEncodeInfo() },
 			{ capabilities: ['AudioInfo'], method: async () => this.getAudioInfo() },
+			{ capabilities: ['TraceInfo'], method: async () => this.getTraceInfo() },
+			{ capabilities: ['ScanningInfo'], method: async () => this.getScanningInfo() },
+			{ capabilities: ['CruiseInfo'], method: async () => this.getCruiseInfo() },
 		]
 
 		const promises = capabilityMappings

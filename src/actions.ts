@@ -21,6 +21,9 @@ import type {
 	NDIInfo,
 	SRTInfo,
 	AudioInfo,
+	TraceRequest,
+	ScanningRequest,
+	CruiseRequest,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -283,6 +286,267 @@ export function UpdateActions(self: ModuleInstance): void {
 						await self.camera.setPresetSpeed({
 							PresetSpeed: presetSpeed,
 							PresetZoomSpeed: presetZoomSpeed,
+						})
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['TraceInfo'],
+			createActions: () => {
+				actions['traceControl'] = {
+					name: 'Trace - Control',
+					description: 'Control trace recording and playback',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Command',
+							choices: [
+								{ label: 'Start Record', id: 'StartRecord' },
+								{ label: 'End Record', id: 'EndRecord' },
+								{ label: 'Stop', id: 'Stop' },
+								{ label: 'Call', id: 'Call' },
+								{ label: 'Delete', id: 'Delete' },
+							],
+							default: 'Call',
+							id: 'command',
+						},
+						{
+							type: 'dropdown',
+							label: 'Trace',
+							choices:
+								self.camera?.getState().traceInfo?.map((trace) => ({ label: trace.Name, id: trace.Number })) ?? [],
+							default: 1,
+							id: 'trace',
+							isVisibleExpression: '!$(options:customTrace)',
+						},
+						{ type: 'checkbox', label: 'Custom Trace', default: false, id: 'customTrace' },
+						{
+							type: 'textinput',
+							label: 'Custom Trace Number',
+							default: '1',
+							id: 'customTraceNumber',
+							isVisibleExpression: '$(options:customTrace) === true',
+							useVariables: true,
+							description: '(1 - 4)',
+						},
+						{
+							type: 'textinput',
+							label: 'Custom Trace Name',
+							default: 'Trace 1',
+							id: 'customTraceName',
+							isVisibleExpression: '$(options:customTrace) === true',
+							useVariables: true,
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const command = action.options.command as string
+
+						let traceNumber: number
+						let traceName: string
+
+						if (action.options.customTrace) {
+							traceNumber = parseInt(action.options.customTraceNumber as string)
+							traceName = action.options.customTraceName as string
+							if (isNaN(traceNumber)) {
+								self.log('warn', 'Custom Trace Number must be a number')
+								return
+							}
+							if (traceNumber < 1 || traceNumber > 4) {
+								self.log('warn', 'Custom Trace Number must be between 1 and 4')
+								return
+							}
+						} else {
+							const traces = self.camera?.getState().traceInfo
+							const trace = traces?.find((t) => t.Number === action.options.trace)
+							if (!trace) {
+								self.log('warn', 'Trace not found')
+								return
+							}
+							traceNumber = trace.Number
+							traceName = trace.Name
+						}
+
+						await self.camera.setTraceInfo({
+							Action: command as TraceRequest['Action'],
+							Number: traceNumber,
+							Name: traceName,
+						})
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['ScanningInfo'],
+			createActions: () => {
+				actions['scanningControl'] = {
+					name: 'Scanning - Control',
+					description: 'Control scanning operations',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Command',
+							choices: [
+								{ label: 'Left Limit', id: 'LeftLimit' },
+								{ label: 'Right Limit', id: 'RightLimit' },
+								{ label: 'Call', id: 'Call' },
+								{ label: 'Delete', id: 'Delete' },
+								{ label: 'Stop', id: 'Stop' },
+							],
+							default: 'Call',
+							id: 'command',
+						},
+						{
+							type: 'dropdown',
+							label: 'Scanning',
+							choices:
+								self.camera?.getState().scanningInfo?.map((scan) => ({ label: scan.Name, id: scan.Number })) ?? [],
+							default: 1,
+							id: 'scanning',
+							isVisibleExpression: '!$(options:customScanning)',
+						},
+						{ type: 'checkbox', label: 'Custom Scanning', default: false, id: 'customScanning' },
+						{
+							type: 'textinput',
+							label: 'Custom Scanning Number',
+							default: '1',
+							id: 'customScanningNumber',
+							isVisibleExpression: '$(options:customScanning) === true',
+							useVariables: true,
+							description: '(1 - 4)',
+						},
+						{
+							type: 'textinput',
+							label: 'Custom Scanning Name',
+							default: 'Scanning 1',
+							id: 'customScanningName',
+							isVisibleExpression: '$(options:customScanning) === true',
+							useVariables: true,
+						},
+						{
+							type: 'textinput',
+							label: 'Speed',
+							default: '128',
+							id: 'speed',
+							useVariables: true,
+							description: '(1 - 255)',
+							isVisibleExpression: "$(options:command) === 'Call'",
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const command = action.options.command as string
+
+						let scanningNumber: number
+						let scanningName: string
+
+						if (action.options.customScanning) {
+							scanningNumber = parseInt(action.options.customScanningNumber as string)
+							scanningName = action.options.customScanningName as string
+							if (isNaN(scanningNumber)) {
+								self.log('warn', 'Custom Scanning Number must be a number')
+								return
+							}
+							if (scanningNumber < 1 || scanningNumber > 4) {
+								self.log('warn', 'Custom Scanning Number must be between 1 and 4')
+								return
+							}
+						} else {
+							const scanningList = self.camera?.getState().scanningInfo
+							const scanning = scanningList?.find((s) => s.Number === action.options.scanning)
+							if (!scanning) {
+								self.log('warn', 'Scanning not found')
+								return
+							}
+							scanningNumber = scanning.Number
+							scanningName = scanning.Name
+						}
+
+						const speed = parseInt(action.options.speed as string) || 128
+						if (speed < 1 || speed > 255) {
+							self.log('warn', 'Speed must be between 1 and 255')
+							return
+						}
+
+						await self.camera.setScanningInfo({
+							Action: command as ScanningRequest['Action'],
+							Number: scanningNumber,
+							Name: scanningName,
+							Speed: speed,
+						})
+					},
+				}
+			},
+		},
+		{
+			capabilities: ['CruiseInfo'],
+			createActions: () => {
+				actions['cruiseControl'] = {
+					name: 'Cruise - Control',
+					description: 'Control cruise operations',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Command',
+							choices: [
+								{ label: 'Call', id: 'Call' },
+								{ label: 'Stop', id: 'Stop' },
+							],
+							default: 'Call',
+							id: 'command',
+						},
+						{
+							type: 'dropdown',
+							label: 'Cruise',
+							choices:
+								self.camera?.getState().cruiseInfo?.map((cruise) => ({ label: cruise.Name, id: cruise.Number })) ?? [],
+							default: 1,
+							id: 'cruise',
+							isVisibleExpression: '$(options:customCruise) === false',
+						},
+						{ type: 'checkbox', label: 'Custom Cruise', default: false, id: 'customCruise' },
+						{
+							type: 'textinput',
+							label: 'Custom Cruise Number',
+							default: '1',
+							id: 'customCruiseNumber',
+							isVisibleExpression: '$(options:customCruise) === true',
+							useVariables: true,
+							description: '(1 - 12)',
+						},
+					],
+					callback: async (action) => {
+						if (!self.camera) return
+						const command = action.options.command as string
+
+						let cruiseNumber: number
+
+						if (action.options.customCruise) {
+							cruiseNumber = parseInt(action.options.customCruiseNumber as string)
+							if (isNaN(cruiseNumber)) {
+								self.log('warn', 'Custom Cruise Number must be a number')
+								return
+							}
+							if (cruiseNumber < 1 || cruiseNumber > 12) {
+								self.log('warn', 'Custom Cruise Number must be between 1 and 12')
+								return
+							}
+						} else {
+							const cruiseList = self.camera?.getState().cruiseInfo
+							const cruise = cruiseList?.find((c) => c.Number === action.options.cruise)
+							if (!cruise) {
+								self.log('warn', 'Cruise not found')
+								return
+							}
+							cruiseNumber = cruise.Number
+						}
+
+						await self.camera.setCruiseInfo({
+							Action: command as CruiseRequest['Action'],
+							Number: cruiseNumber,
+							Name: '', // Not used for Call/Stop
+							PresetInfo: [], // Not used for Call/Stop
 						})
 					},
 				}

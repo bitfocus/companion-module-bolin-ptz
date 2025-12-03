@@ -3040,12 +3040,6 @@ export function UpdatePresets(self: ModuleInstance): void {
 	}
 
 	// PTZ Modes presets
-	presets['ptzModesHeader'] = {
-		category: 'PTZ Modes',
-		name: 'PTZ Modes',
-		type: 'text',
-		text: '',
-	}
 	presets['ptzModesAutoScanningHeader'] = {
 		category: 'PTZ Modes',
 		name: 'Auto Scanning',
@@ -3104,6 +3098,189 @@ export function UpdatePresets(self: ModuleInstance): void {
 			},
 		],
 		feedbacks: [],
+	}
+
+	// Cruise presets
+	presets['ptzModesCruiseHeader'] = {
+		category: 'PTZ Modes',
+		name: 'Cruise Mode',
+		type: 'text',
+		text: '',
+	}
+
+	// Create presets for each available cruise
+	const cruiseInfo = self.camera?.getState().cruiseInfo ?? []
+	for (const cruise of cruiseInfo) {
+		const cruiseName = cruise.Name || `Cruise ${cruise.Number}`
+		const presetKey = `ptzModesCruiseCall${cruise.Number}`
+
+		presets[presetKey] = {
+			type: 'button',
+			category: 'PTZ Modes',
+			name: `CALL Cruise ${cruiseName}`,
+			style: {
+				bgcolor: 0x000000,
+				color: 0xffffff,
+				text: `CALL\\nCRUISE\\n$(bolin-ptz:cruise_${cruise.Number}_name)`,
+				size: '14',
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'cruiseControl',
+							options: {
+								command: 'Call',
+								cruise: cruise.Number,
+								customCruise: false,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
+	// Stop Cruise preset
+	presets['ptzModesCruiseStop'] = {
+		type: 'button',
+		category: 'PTZ Modes',
+		name: 'STOP Cruise',
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `STOP\\nCRUISE`,
+			size: '14',
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'cruiseControl',
+						options: {
+							command: 'Stop',
+							cruise: 1, // Default cruise number, doesn't matter for Stop
+							customCruise: false,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	// Trace presets - sections for Trace 1 through 4
+	for (let traceNumber = 1; traceNumber <= 4; traceNumber++) {
+		const sectionKey = `ptzModesTrace${traceNumber}Header`
+		presets[sectionKey] = {
+			category: 'PTZ Modes',
+			name: `Trace ${traceNumber}`,
+			type: 'text',
+			text: '',
+		}
+
+		// Commands for each trace
+		const traceCommands = [
+			{ command: 'StartRecord', label: 'START\nRECORD', name: 'Start Record' },
+			{ command: 'EndRecord', label: 'END\nRECORD', name: 'End Record' },
+			{ command: 'Call', label: 'CALL\nTRACE', name: 'Call' },
+			{ command: 'Delete', label: 'DELETE', name: 'Delete' },
+			{ command: 'Stop', label: 'STOP\nTRACE', name: 'Stop' },
+		]
+
+		for (const cmd of traceCommands) {
+			const presetKey = `ptzModesTrace${traceNumber}${cmd.command}`
+			presets[presetKey] = {
+				type: 'button',
+				category: 'PTZ Modes',
+				name: `Trace ${traceNumber} - ${cmd.name}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: `TRACE ${traceNumber}\n${cmd.label}`,
+					size: '14',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'traceControl',
+								options: {
+									command: cmd.command,
+									trace: traceNumber,
+									customTrace: true,
+									customTraceNumber: traceNumber.toString(),
+									customTraceName: `Trace ${traceNumber}`,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		}
+	}
+
+	// Scanning presets - sections for Scanning 1 through 4
+	for (let scanningNumber = 1; scanningNumber <= 4; scanningNumber++) {
+		const sectionKey = `ptzModesScanning${scanningNumber}Header`
+		presets[sectionKey] = {
+			category: 'PTZ Modes',
+			name: `Scanning ${scanningNumber}`,
+			type: 'text',
+			text: '',
+		}
+
+		// Commands for each scanning pattern
+		const scanningCommands = [
+			{ command: 'LeftLimit', label: 'LEFT\nLIMIT', name: 'Left Limit' },
+			{ command: 'RightLimit', label: 'RIGHT\nLIMIT', name: 'Right Limit' },
+			{ command: 'Call', label: 'CALL\nSCAN', name: 'Call' },
+			{ command: 'Delete', label: 'DELETE', name: 'Delete' },
+			{ command: 'Stop', label: 'STOP\nSCAN', name: 'Stop' },
+		]
+
+		for (const cmd of scanningCommands) {
+			const presetKey = `ptzModesScanning${scanningNumber}${cmd.command}`
+			presets[presetKey] = {
+				type: 'button',
+				category: 'PTZ Modes',
+				name: `Scanning ${scanningNumber} - ${cmd.name}`,
+				style: {
+					bgcolor: 0x000000,
+					color: 0xffffff,
+					text: `SCAN ${scanningNumber}\n${cmd.label}`,
+					size: '14',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'scanningControl',
+								options: {
+									command: cmd.command,
+									scanning: scanningNumber,
+									customScanning: true,
+									customScanningNumber: scanningNumber.toString(),
+									customScanningName: `Scanning ${scanningNumber}`,
+									speed: cmd.command === 'Call' ? '128' : '0', // Only set speed for Call command
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		}
 	}
 
 	self.setPresetDefinitions(presets)

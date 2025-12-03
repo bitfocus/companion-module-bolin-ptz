@@ -335,6 +335,63 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 				{ name: 'Encode - Sub Stream - Bitrate', variableId: 'encode_sub_bitrate' },
 			],
 		},
+		{
+			capabilities: ['TraceInfo'],
+			variables: (() => {
+				const variables: Array<{ name: string; variableId: string }> = []
+
+				// Add name variables only for traces that exist
+				const traceInfo = self.camera?.getState().traceInfo
+				if (traceInfo) {
+					for (const trace of traceInfo) {
+						variables.push({
+							name: `Trace - ${trace.Number} Name`,
+							variableId: `trace_${trace.Number}_name`,
+						})
+					}
+				}
+
+				return variables
+			})(),
+		},
+		{
+			capabilities: ['ScanningInfo'],
+			variables: (() => {
+				const variables: Array<{ name: string; variableId: string }> = []
+
+				// Add name variables only for scanning patterns that exist
+				const scanningInfo = self.camera?.getState().scanningInfo
+				if (scanningInfo) {
+					for (const scanning of scanningInfo) {
+						variables.push({
+							name: `Scanning - ${scanning.Number} Name`,
+							variableId: `scanning_${scanning.Number}_name`,
+						})
+					}
+				}
+
+				return variables
+			})(),
+		},
+		{
+			capabilities: ['CruiseInfo'],
+			variables: (() => {
+				const variables: Array<{ name: string; variableId: string }> = []
+
+				// Add name variables only for cruises that exist
+				const cruiseInfo = self.camera?.getState().cruiseInfo
+				if (cruiseInfo) {
+					for (const cruise of cruiseInfo) {
+						variables.push({
+							name: `Cruise - ${cruise.Number} Name`,
+							variableId: `cruise_${cruise.Number}_name`,
+						})
+					}
+				}
+
+				return variables
+			})(),
+		},
 	]
 
 	// Filter and collect variables based on capabilities
@@ -829,6 +886,39 @@ export function UpdateVariablesOnStateChange(
 			}
 			if (!previousSubStream || previousSubStream.BitRate !== subStream.BitRate) {
 				variables.encode_sub_bitrate = subStream.BitRate ?? 0
+			}
+		}
+	}
+
+	// Update trace info variables if changed
+	if (currentState.traceInfo) {
+		const previousTraceInfo = previousState?.traceInfo
+		if (!previousTraceInfo || JSON.stringify(previousTraceInfo) !== JSON.stringify(currentState.traceInfo)) {
+			// Update trace names only for existing traces
+			for (const trace of currentState.traceInfo) {
+				variables[`trace_${trace.Number}_name`] = trace.Name
+			}
+		}
+	}
+
+	// Update scanning info variables if changed
+	if (currentState.scanningInfo) {
+		const previousScanningInfo = previousState?.scanningInfo
+		if (!previousScanningInfo || JSON.stringify(previousScanningInfo) !== JSON.stringify(currentState.scanningInfo)) {
+			// Update scanning names only for existing scanning patterns
+			for (const scanning of currentState.scanningInfo) {
+				variables[`scanning_${scanning.Number}_name`] = scanning.Name
+			}
+		}
+	}
+
+	// Update cruise info variables if changed
+	if (currentState.cruiseInfo) {
+		const previousCruiseInfo = previousState?.cruiseInfo
+		if (!previousCruiseInfo || JSON.stringify(previousCruiseInfo) !== JSON.stringify(currentState.cruiseInfo)) {
+			// Update cruise names only for existing cruises
+			for (const cruise of currentState.cruiseInfo) {
+				variables[`cruise_${cruise.Number}_name`] = cruise.Name
 			}
 		}
 	}

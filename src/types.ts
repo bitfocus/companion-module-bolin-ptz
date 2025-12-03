@@ -662,6 +662,83 @@ export interface AudioInfo {
 }
 
 /**
+ * Trace information
+ */
+export interface TraceInfo {
+	Number: number
+	Name: string
+}
+
+/**
+ * Trace action enum
+ */
+export type TraceAction = 'StartRecord' | 'EndRecord' | 'Stop' | 'Call' | 'Delete'
+
+/**
+ * Trace request for setting trace operations
+ */
+export interface TraceRequest {
+	Action: TraceAction
+	Number: number
+	Name: string
+}
+
+/**
+ * Scanning information
+ */
+export interface ScanningInfo {
+	Number: number
+	Name: string
+}
+
+/**
+ * Scanning action enum
+ */
+export type ScanningAction = 'LeftLimit' | 'RightLimit' | 'Call' | 'Delete' | 'Stop'
+
+/**
+ * Scanning request for setting scanning operations
+ */
+export interface ScanningRequest {
+	Action: ScanningAction
+	Number: number
+	Name: string
+	Speed: number
+}
+
+/**
+ * Cruise preset information
+ */
+export interface CruisePresetInfo {
+	PresetID: number
+	RecordingTime: number
+}
+
+/**
+ * Cruise information
+ */
+export interface CruiseInfo {
+	Number: number
+	Name: string
+	PresetInfo: CruisePresetInfo[]
+}
+
+/**
+ * Cruise action enum
+ */
+export type CruiseAction = 'Set' | 'Call' | 'Delete' | 'Stop'
+
+/**
+ * Cruise request for setting cruise operations
+ */
+export interface CruiseRequest {
+	Action: CruiseAction
+	Number: number
+	Name: string
+	PresetInfo: CruisePresetInfo[]
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -689,4 +766,7 @@ export interface CameraState {
 	srtInfo: SRTInfo[] | null
 	encodeInfo: EncodeInfo | null
 	audioInfo: AudioInfo | null
+	traceInfo: TraceInfo[] | null
+	scanningInfo: ScanningInfo[] | null
+	cruiseInfo: CruiseInfo[] | null
 }
