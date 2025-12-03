@@ -145,7 +145,7 @@ export class BolinCamera {
 
 			const requestBody: LoginRequest = {
 				Cmd: 'ReqHttpLogin',
-				Version: '2.00.000',
+				Version: '2.0.000',
 				Content: {
 					LoginInfo: {
 						Username: this.config.username,
@@ -322,7 +322,11 @@ export class BolinCamera {
 
 			// Only check feedbacks that correspond to changed state
 			if (feedbackIdsToCheck.size > 0) {
-				this.self.checkFeedbacks(...Array.from(feedbackIdsToCheck))
+				try {
+					this.self.checkFeedbacks(...Array.from(feedbackIdsToCheck))
+				} catch (error) {
+					this.self.log('debug', `Error checking feedbacks: ${this.getErrorMessage(error)}`)
+				}
 			}
 
 			this.previousState = UpdateVariablesOnStateChange(this.self, currentState, this.previousState)
@@ -336,7 +340,7 @@ export class BolinCamera {
 		endpoint: string,
 		cmd: string,
 		content?: Record<string, unknown>,
-		version: string = '2.00.000',
+		version: string = '2.0.000',
 	): Promise<ApiResponse> {
 		const cookie = this.getAuthCookie()
 		if (!cookie) {
@@ -358,8 +362,9 @@ export class BolinCamera {
 			},
 			body: JSON.stringify(requestBody),
 		})
-		if (!requestBody.Cmd.includes('Get')) {
-			this.self.log('debug', `Sending request to ${url} with body: ${JSON.stringify(requestBody)}`)
+		// Log non-GET requests (commands that modify state)
+		if (!requestBody.Cmd.startsWith('ReqGet')) {
+			this.self.log('debug', `Sending ${requestBody.Cmd} request to ${url}`)
 		}
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`)
@@ -861,7 +866,7 @@ export class BolinCamera {
 	 * Gets pan/tilt information from the camera and stores it in state
 	 */
 	async getPTInfo(): Promise<PanTiltInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo', undefined, '2.00.000')
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo')
 		this.state.panTiltInfo = response.Content.PanTiltInfo as PanTiltInfo
 		this.updateVariablesOnStateChange()
 		return this.state.panTiltInfo
@@ -1003,31 +1008,21 @@ export class BolinCamera {
 	 * Gets network information from the camera and stores it in state
 	 */
 	async getNetworkInfo(): Promise<NetworkInfo | null> {
-		try {
-			const response = await this.sendRequest('/apiv2/network', 'ReqGetNetworkInfo', undefined, '2.0.000')
-			// Check if the response has the expected structure
-			if (response.Content.Status !== 0 || !response.Content.NetworkInfo) {
-				this.self.log('debug', 'NetworkInfo not available or request failed')
-				return null
-			}
-			this.state.networkInfo = {
-				NetworkInfo: response.Content.NetworkInfo as NetworkInfo['NetworkInfo'],
-				Fallback: response.Content.Fallback as NetworkInfo['Fallback'],
-				Status: response.Content.Status,
-			}
-			this.updateVariablesOnStateChange()
-			return this.state.networkInfo
-		} catch (error) {
-			this.self.log('debug', `Failed to get network info: ${this.getErrorMessage(error)}`)
-			return null
+		const response = await this.sendRequest('/apiv2/network', 'ReqGetNetworkInfo')
+		this.state.networkInfo = {
+			NetworkInfo: response.Content.NetworkInfo as NetworkInfo['NetworkInfo'],
+			Fallback: response.Content.Fallback as NetworkInfo['Fallback'],
+			Status: response.Content.Status,
 		}
+		this.updateVariablesOnStateChange()
+		return this.state.networkInfo
 	}
 
 	/**
 	 * Gets OSD system information from the camera and stores it in state
 	 */
 	async getOSDSystemInfo(): Promise<OSDSystemInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetOSDSystemInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/image', 'ReqGetOSDSystemInfo')
 		this.state.osdSystemInfo = response.Content.OSDSystemInfo as OSDSystemInfo
 		this.updateVariablesOnStateChange()
 		return this.state.osdSystemInfo
@@ -1197,7 +1192,7 @@ export class BolinCamera {
 	 * Gets encode information from the camera and stores it in state
 	 */
 	async getEncodeInfo(): Promise<EncodeInfo> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetEncodeInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetEncodeInfo')
 		this.state.encodeInfo = {
 			EncodeInfo: response.Content.EncodeInfo as EncodeInfo['EncodeInfo'],
 			LowLatency: response.Content.LowLatency as EncodeInfo['LowLatency'],
@@ -1218,7 +1213,7 @@ export class BolinCamera {
 	 * Gets audio information from the camera and stores it in state
 	 */
 	async getAudioInfo(): Promise<AudioInfo> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetAudioInfo', undefined, '2.0.000')
+		const response = await this.sendRequest('/apiv2/av', 'ReqGetAudioInfo')
 		this.state.audioInfo = response.Content.AudioInfo as AudioInfo
 		this.updateVariablesOnStateChange()
 		return this.state.audioInfo
@@ -1254,6 +1249,11 @@ export class BolinCamera {
 	 */
 	private extractObjectNames(content: Record<string, unknown>, prefix?: string): string[] {
 		const names: string[] = []
+
+		if (!content || typeof content !== 'object') {
+			return names
+		}
+
 		for (const key in content) {
 			// Skip Status and Errors as they're not capability objects
 			if (key !== 'Status' && key !== 'Errors' && typeof content[key] === 'object' && content[key] !== null) {
@@ -1263,8 +1263,15 @@ export class BolinCamera {
 				// Recursively extract nested object names
 				const nestedContent = content[key] as Record<string, unknown>
 				if (nestedContent && !Array.isArray(nestedContent)) {
-					const nestedNames = this.extractObjectNames(nestedContent, fullName)
-					names.push(...nestedNames)
+					try {
+						const nestedNames = this.extractObjectNames(nestedContent, fullName)
+						names.push(...nestedNames)
+					} catch (error) {
+						this.self.log(
+							'debug',
+							`Error extracting nested object names for ${fullName}: ${this.getErrorMessage(error)}`,
+						)
+					}
 				}
 			}
 		}
