@@ -1,10 +1,10 @@
-import type { ModuleInstance } from './main.js'
+import type { BolinModuleInstance } from './main.js'
 import type { PositionLimitations, PictureInfo } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
 import { sortIrisChoices, sortShutterSpeedChoices, convertIrisRangeToMap, convertIrisValueToFStop } from './utils.js'
 
-export function UpdateFeedbacks(self: ModuleInstance): void {
+export function UpdateFeedbacks(self: BolinModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
 
 	// Only check capabilities if they've been loaded, otherwise create all feedbacks

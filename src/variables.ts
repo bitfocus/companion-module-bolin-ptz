@@ -1,4 +1,4 @@
-import type { ModuleInstance } from './main.js'
+import type { BolinModuleInstance } from './main.js'
 import type { CameraState, PictureInfo } from './types.js'
 import { convertIrisValueToFStop, calculateNextAutoRestartTime } from './utils.js'
 
@@ -45,7 +45,7 @@ function updateFields<T>(
 	}
 }
 
-export function UpdateVariableDefinitions(self: ModuleInstance): void {
+export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 	const variables: { name: string; variableId: string }[] = []
 
 	// Only check capabilities if they've been loaded, otherwise define all variables
@@ -420,7 +420,7 @@ export function UpdateVariableDefinitions(self: ModuleInstance): void {
 }
 
 export function UpdateVariablesOnStateChange(
-	self: ModuleInstance,
+	self: BolinModuleInstance,
 	currentState: CameraState,
 	previousState: CameraState | null,
 ): CameraState {

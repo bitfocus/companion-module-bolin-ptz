@@ -11,7 +11,7 @@ export interface ModuleSecrets {
 	password: string
 }
 
-export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
+export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 	config!: ModuleConfig // Setup in init()
 	secrets!: ModuleSecrets // Setup in init()
 	public camera: BolinCamera | null = null
@@ -209,4 +209,4 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 	}
 }
 
-runEntrypoint(ModuleInstance, UpgradeScripts)
+runEntrypoint(BolinModuleInstance, UpgradeScripts)

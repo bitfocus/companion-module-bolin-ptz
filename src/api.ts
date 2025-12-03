@@ -50,7 +50,7 @@ import type {
 	AutoRestartInfo,
 	AutoRestartRequest,
 } from './types.js'
-import type { ModuleInstance } from './main.js'
+import type { BolinModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
 import { buildIrisMapFromCapabilities, buildShutterSpeedMapFromCapabilities } from './utils.js'
 import {
@@ -112,13 +112,13 @@ export class BolinCamera {
 	private cameraCapabilities: CameraCapabilities | null = null
 	private previousState: CameraState | null = null
 	private updateVariablesTimeout: NodeJS.Timeout | null = null
-	private readonly self: ModuleInstance
+	private readonly self: BolinModuleInstance
 	private shutterSpeedMap: Record<number, string> | null = null
 	private irisMap: Record<number, string> | null = null
 	private irisRange: { min: number; max: number } | null = null
 	private capabilitySet: Set<string> | null = null
 
-	constructor(config: ModuleConfig, password: string, self: ModuleInstance) {
+	constructor(config: ModuleConfig, password: string, self: BolinModuleInstance) {
 		this.config = config
 		this.password = password
 		this.self = self

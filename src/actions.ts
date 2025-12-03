@@ -1,4 +1,4 @@
-import type { ModuleInstance } from './main.js'
+import type { BolinModuleInstance } from './main.js'
 import type {
 	CapabilityDataValue,
 	ZoomCommand,
@@ -38,7 +38,7 @@ import {
 /**
  * Helper function to safely parse an integer with validation
  */
-function parseInteger(value: string | number | undefined, fieldName: string, self: ModuleInstance): number | null {
+function parseInteger(value: string | number | undefined, fieldName: string, self: BolinModuleInstance): number | null {
 	if (value === undefined) return null
 	const parsed = typeof value === 'number' ? value : parseInt(String(value), 10)
 	if (isNaN(parsed)) {
@@ -48,7 +48,7 @@ function parseInteger(value: string | number | undefined, fieldName: string, sel
 	return parsed
 }
 
-export function UpdateActions(self: ModuleInstance): void {
+export function UpdateActions(self: BolinModuleInstance): void {
 	const actions: CompanionActionDefinitions = {}
 
 	// Only check capabilities if they've been loaded, otherwise create all actions

@@ -1,9 +1,9 @@
 import { CompanionPresetDefinitions } from '@companion-module/base'
-import type { ModuleInstance } from './main.js'
+import type { BolinModuleInstance } from './main.js'
 import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
 import { icons } from './icons.js'
 
-export function UpdatePresets(self: ModuleInstance): void {
+export function UpdatePresets(self: BolinModuleInstance): void {
 	const presets: CompanionPresetDefinitions = {}
 
 	// Check if capabilities have been loaded (used for conditional preset creation)
