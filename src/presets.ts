@@ -1,7 +1,7 @@
 import { CompanionPresetDefinitions } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
-import { graphics } from 'companion-module-utils'
 import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
+import { icons } from './icons.js'
 
 export function UpdatePresets(self: ModuleInstance): void {
 	const presets: CompanionPresetDefinitions = {}
@@ -10,14 +10,14 @@ export function UpdatePresets(self: ModuleInstance): void {
 	const capabilitiesLoaded = self.camera?.getStoredCameraCapabilities() !== null
 
 	const ptzDirections = [
-		{ key: 'ptzUp', name: 'PTZ Up', iconType: 'directionUp' as const, direction: 'Up' },
-		{ key: 'ptzDown', name: 'PTZ Down', iconType: 'directionDown' as const, direction: 'Down' },
-		{ key: 'ptzLeft', name: 'PTZ Left', iconType: 'directionLeft' as const, direction: 'Left' },
-		{ key: 'ptzRight', name: 'PTZ Right', iconType: 'directionRight' as const, direction: 'Right' },
-		{ key: 'ptzLeftUp', name: 'PTZ Left Up', iconType: 'directionUpLeft' as const, direction: 'LeftUp' },
-		{ key: 'ptzRightUp', name: 'PTZ Right Up', iconType: 'directionUpRight' as const, direction: 'RightUp' },
-		{ key: 'ptzLeftDown', name: 'PTZ Left Down', iconType: 'directionDownLeft' as const, direction: 'LeftDown' },
-		{ key: 'ptzRightDown', name: 'PTZ Right Down', iconType: 'directionDownRight' as const, direction: 'RightDown' },
+		{ key: 'ptzUp', name: 'PTZ Up', iconType: 'arrowUp' as const, direction: 'Up' },
+		{ key: 'ptzDown', name: 'PTZ Down', iconType: 'arrowDown' as const, direction: 'Down' },
+		{ key: 'ptzLeft', name: 'PTZ Left', iconType: 'arrowLeft' as const, direction: 'Left' },
+		{ key: 'ptzRight', name: 'PTZ Right', iconType: 'arrowRight' as const, direction: 'Right' },
+		{ key: 'ptzLeftUp', name: 'PTZ Left Up', iconType: 'arrowUpLeft' as const, direction: 'LeftUp' },
+		{ key: 'ptzRightUp', name: 'PTZ Right Up', iconType: 'arrowUpRight' as const, direction: 'RightUp' },
+		{ key: 'ptzLeftDown', name: 'PTZ Left Down', iconType: 'arrowDownLeft' as const, direction: 'LeftDown' },
+		{ key: 'ptzRightDown', name: 'PTZ Right Down', iconType: 'arrowDownRight' as const, direction: 'RightDown' },
 	] as const
 
 	presets['ptzControlHeaderMovement'] = {
@@ -36,11 +36,8 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: '',
 				size: 24,
-				png64: graphics.toPNG64({
-					image: graphics.icon({ width: 50, height: 50, type: iconType }),
-					width: 50,
-					height: 50,
-				}),
+				png64: icons[`${iconType}`],
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -74,8 +71,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `HOME`,
-			size: '14',
+			png64: icons.home,
+			text: '',
+			size: 14,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -97,8 +96,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `ZOOM\\nIN`,
+			text: '',
 			size: '14',
+			png64: icons.zoomIn,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -131,8 +132,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `ZOOM\\nOUT`,
+			text: '',
+			png64: icons.zoomOut,
 			size: '14',
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -172,7 +175,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 			bgcolor: 0x000000,
 			color: 0xffffff,
 			text: `AUTO\\nFOCUS`,
-			size: '14',
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.focusAuto,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -205,7 +211,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 			bgcolor: 0x000000,
 			color: 0xffffff,
 			text: `MANUAL\\nFOCUS`,
-			size: '14',
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.focusManual,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -246,6 +255,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `FOCUS\\nNEAR`,
 			size: '14',
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -278,6 +288,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `FOCUS\\nFAR`,
 			size: '14',
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -323,8 +334,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `INCREASE\\nMF SPEED`,
-			size: 12,
+			text: `Focus SPEED`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -349,8 +363,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `MF SPEED\\n$(bolin-ptz:mf_speed)`,
+			text: `FOCUS SPEED\\n$(bolin-ptz:mf_speed)`,
 			size: 12,
+			alignment: 'center:bottom',
+			png64: icons.speed,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -367,8 +384,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `DECREASE\\nMF SPEED`,
-			size: 12,
+			text: `Focus SPEED`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -408,6 +428,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `AF SENS\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -452,6 +473,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `LOCK\\n${limit}`,
 				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.unlocked,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -475,11 +499,70 @@ export function UpdatePresets(self: ModuleInstance): void {
 					},
 					style: {
 						bgcolor: 0xcc0000,
-						text: `${limit} LOCKED`,
+						text: `UNLOCK\\n${limit}`,
+						png64: icons.lock,
 					},
 				},
 			],
 		}
+	}
+	presets[`positionLimitLockAll`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: `Position Limit Lock All`,
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `LOCK\\nAll`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.lock,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'setPositionLimits',
+						options: {
+							direction: [`UpLimit`, `DownLimit`, `LeftLimit`, `RightLimit`],
+							lock: 'true',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets[`positionLimitUnlockAll`] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: `Position Limit Unlock All`,
+		style: {
+			bgcolor: 0x000000,
+			color: 0xffffff,
+			text: `UNLOCK\\nAll`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.unlocked,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'setPositionLimits',
+						options: {
+							direction: [`UpLimit`, `DownLimit`, `LeftLimit`, `RightLimit`],
+							lock: 'false',
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
 	}
 
 	presets['ptzControlHeaderDirection'] = {
@@ -504,6 +587,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -546,6 +630,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -602,6 +687,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `CALL\\n${presetName}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -645,6 +731,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `SAVE\\n${presetName}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -694,6 +781,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `WB MODE\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -744,6 +832,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `WB SENS\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -785,8 +874,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `INCREASE\\nCOLOR\\nTEMP`,
-			size: 12,
+			text: `COLOR\\nTEMP`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -812,7 +904,8 @@ export function UpdatePresets(self: ModuleInstance): void {
 			bgcolor: 0x000000,
 			color: 0xffffff,
 			text: `WB\\nTEMP\\n$(bolin-ptz:wb_color_temperature)`,
-			size: 12,
+			size: 14,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -829,8 +922,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `DECREASE\\nCOLOR\\nTEMP`,
-			size: 12,
+			text: `COLOR\\nTEMP`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -854,7 +950,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 		type: string,
 		option: string,
 		variableId: string,
-		textColor: number,
+		bgColor: number,
 	): void {
 		const baseName = `White Balance ${color} ${type}`
 		const baseKey = `presetWhiteBalance${color}${type}`
@@ -875,10 +971,13 @@ export function UpdatePresets(self: ModuleInstance): void {
 			category: 'White Balance',
 			name: `${baseName} Increase`,
 			style: {
-				bgcolor: 0x000000,
+				bgcolor: bgColor,
 				color: 0xffffff,
-				text: `INCREASE\\n${colorUpper}\\n${typeUpper}`,
-				size: 12,
+				text: `${colorUpper}\\n${typeUpper}`,
+				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.circlePlus,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -904,10 +1003,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 			category: 'White Balance',
 			name: `${baseName} Value`,
 			style: {
-				bgcolor: 0x000000,
-				color: textColor,
+				bgcolor: bgColor,
+				color: 0xffffff,
 				text: `${colorUpper}\\n${typeUpper}\\n$(bolin-ptz:${variableId})`,
-				size: 12,
+				size: 14,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -924,10 +1024,13 @@ export function UpdatePresets(self: ModuleInstance): void {
 			category: 'White Balance',
 			name: `${baseName} Decrease`,
 			style: {
-				bgcolor: 0x000000,
+				bgcolor: bgColor,
 				color: 0xffffff,
-				text: `DECREASE\\n${colorUpper}\\n${typeUpper}`,
-				size: 12,
+				text: `${colorUpper}\\n${typeUpper}`,
+				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.circleMinus,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -949,11 +1052,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 	}
 
 	// Create white balance value presets
-	createWhiteBalanceValuePresets('Red', 'Gain', 'RGain', 'wb_r_gain', 0xff0000)
-	createWhiteBalanceValuePresets('Blue', 'Gain', 'BGain', 'wb_b_gain', 0x0000ff)
-	createWhiteBalanceValuePresets('Red', 'Tuning', 'RTuning', 'wb_r_tuning', 0xff0000)
-	createWhiteBalanceValuePresets('Blue', 'Tuning', 'BTuning', 'wb_b_tuning', 0x0000ff)
-	createWhiteBalanceValuePresets('Green', 'Tuning', 'GTuning', 'wb_g_tuning', 0x00ff00)
+	createWhiteBalanceValuePresets('Red', 'Gain', 'RGain', 'wb_r_gain', 0x330000)
+	createWhiteBalanceValuePresets('Blue', 'Gain', 'BGain', 'wb_b_gain', 0x000033)
+	createWhiteBalanceValuePresets('Red', 'Tuning', 'RTuning', 'wb_r_tuning', 0x330000)
+	createWhiteBalanceValuePresets('Blue', 'Tuning', 'BTuning', 'wb_b_tuning', 0x000033)
+	createWhiteBalanceValuePresets('Green', 'Tuning', 'GTuning', 'wb_g_tuning', 0x003300)
 
 	// Picture Scene presets
 	presets['presetPictureSceneHeader'] = {
@@ -978,6 +1081,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `SCENE\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1028,6 +1132,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `DEFOG\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1077,6 +1182,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `EFFECT\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1126,6 +1232,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				alignment: 'center:bottom',
+				png64: icons.flip,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1174,6 +1283,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				alignment: 'center:bottom',
+				png64: icons.mirror,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1222,6 +1334,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1270,6 +1383,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1318,8 +1432,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `INCREASE\\n${displayUpper}`,
-				size: 12,
+				text: `${displayUpper}`,
+				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.circlePlus,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1347,7 +1464,8 @@ export function UpdatePresets(self: ModuleInstance): void {
 				bgcolor: 0x000000,
 				color: 0xffffff,
 				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
-				size: 12,
+				size: 14,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1366,8 +1484,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `DECREASE\\n${displayUpper}`,
-				size: 12,
+				text: `${displayUpper}`,
+				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.circleMinus,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1420,6 +1541,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `GAMMA\\n${key}`,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1462,8 +1584,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `INCREASE\\nGAMMA\\nBRIGHT`,
-			size: 12,
+			text: `GAMMA\\nBRIGHT`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1490,6 +1615,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `GAMMA\\nBRIGHT\\n$(bolin-ptz:gamma_bright)`,
 			size: 12,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1506,8 +1632,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `DECREASE\\nGAMMA\\nBRIGHT`,
-			size: 12,
+			text: `GAMMA\\nBRIGHT`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1547,6 +1676,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -1588,8 +1718,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `INCREASE\\nWDR\\nLEVEL`,
-			size: 12,
+			text: `WDR\\nLEVEL`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1616,6 +1749,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `WDR\\nLEVEL\\n$(bolin-ptz:wdr_level)`,
 			size: 12,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1632,8 +1766,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `DECREASE\\nWDR\\nLEVEL`,
-			size: 12,
+			text: `WDR\\nLEVEL`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1665,8 +1802,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `INCREASE\\nIRIS`,
-			size: 12,
+			text: `IRIS\\n`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1691,7 +1831,10 @@ export function UpdatePresets(self: ModuleInstance): void {
 			bgcolor: 0x000000,
 			color: 0xffffff,
 			text: `IRIS\\n$(bolin-ptz:iris)`,
-			size: 12,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.aperture,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1708,8 +1851,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `DECREASE\\nIRIS`,
-			size: 12,
+			text: `IRIS\\n`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1764,6 +1910,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: label,
 					size: '14',
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -1807,8 +1954,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `INCREASE\\nSHUTTER\\nSPEED`,
-			size: 12,
+			text: `SHUTTER\\nSPEED`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1834,6 +1984,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `SHUTTER\\nSPEED\\n$(bolin-ptz:shutter_speed)`,
 			size: 12,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1850,8 +2001,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 		style: {
 			bgcolor: 0x000000,
 			color: 0xffffff,
-			text: `DECREASE\\nSHUTTER\\nSPEED`,
-			size: 12,
+			text: `SHUTTER\\nSPEED`,
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1904,6 +2058,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: label,
 					size: '14',
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -1942,6 +2097,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `CAMERA\n$(bolin-ptz:device_name)`,
 			size: 12,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1960,6 +2116,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `MODEL\n$(bolin-ptz:model_name)`,
 			size: 12,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -1978,6 +2135,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `FORMAT\n$(bolin-ptz:system_format)`,
 			size: 12,
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -2009,8 +2167,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `INCREASE\\n${displayUpper}`,
-				size: 12,
+				text: `${displayUpper}`,
+				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.circlePlus,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2039,6 +2200,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2057,8 +2219,11 @@ export function UpdatePresets(self: ModuleInstance): void {
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
-				text: `DECREASE\\n${displayUpper}`,
-				size: 12,
+				text: `${displayUpper}`,
+				size: 14,
+				alignment: 'center:bottom',
+				png64: icons.circleMinus,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2104,6 +2269,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: mode.text,
 				size: '14',
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2158,6 +2324,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: `OVERLAY\\n${overlayNumber}`,
 					size: '14',
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -2220,6 +2387,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 						color: 0xffffff,
 						text: mode.text,
 						size: '14',
+						show_topbar: false,
 					},
 					steps: [
 						{
@@ -2283,6 +2451,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 						color: 0xffffff,
 						text: mode.text,
 						size: '14',
+						show_topbar: false,
 					},
 					steps: [
 						{
@@ -2346,6 +2515,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 						color: 0xffffff,
 						text: mode.text,
 						size: '14',
+						show_topbar: false,
 					},
 					steps: [
 						{
@@ -2409,6 +2579,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 						color: 0xffffff,
 						text: mode.text,
 						size: '14',
+						show_topbar: false,
 					},
 					steps: [
 						{
@@ -2464,6 +2635,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: mode.text,
 					size: '14',
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -2500,6 +2672,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `NDI NAME\\n$(bolin-ptz:ndi_name)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2518,6 +2691,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `NDI HX\\nBANDWIDTH\\n$(bolin-ptz:ndi_hx_bandwidth)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2559,6 +2733,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 						color: 0xffffff,
 						text: mode.text,
 						size: '14',
+						show_topbar: false,
 					},
 					steps: [
 						{
@@ -2601,9 +2776,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 			text: '',
 		}
 		for (const mode of [
-			{ id: 'toggle', label: 'Toggle', text: 'AUDIO\\n$(bolin-ptz:audio_enable)' },
-			{ id: 'true', label: 'On', text: 'AUDIO\\nON' },
-			{ id: 'false', label: 'Off', text: 'AUDIO\\nOFF' },
+			{ id: 'toggle', label: 'Toggle', text: 'AUDIO\\n$(bolin-ptz:audio_enable)', icon: 'speaker' },
+			{ id: 'true', label: 'On', text: 'AUDIO\\nON', icon: 'speaker' },
+			{ id: 'false', label: 'Off', text: 'AUDIO\\nOFF', icon: 'speakerMute' },
 		]) {
 			presets[`presetAudioEnable${mode.label}`] = {
 				type: 'button',
@@ -2614,6 +2789,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: mode.text,
 					size: '14',
+					alignment: 'center:bottom',
+					png64: mode.id === 'false' ? icons.speakerMute : icons.speaker,
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -2650,7 +2828,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			text: '',
 		}
 		for (const volume of [
-			{ value: 0, label: 'Mute' },
+			{ value: 0, label: '0%' },
 			{ value: 25, label: '25%' },
 			{ value: 50, label: '50%' },
 			{ value: 75, label: '75%' },
@@ -2665,6 +2843,9 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: `VOLUME\\n${volume.label}`,
 					size: 12,
+					alignment: 'center:bottom',
+					png64: icons.meters,
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -2715,6 +2896,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `MAIN\\nRESOLUTION\\n$(bolin-ptz:encode_main_resolution)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2733,6 +2915,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `MAIN\\nFRAME RATE\\n$(bolin-ptz:encode_main_frame_rate)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2751,6 +2934,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `MAIN\\nBITRATE\\n$(bolin-ptz:encode_main_bitrate)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2777,6 +2961,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `SUB\\nRESOLUTION\\n$(bolin-ptz:encode_sub_resolution)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2795,6 +2980,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `SUB\\nFRAME RATE\\n$(bolin-ptz:encode_sub_frame_rate)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2813,6 +2999,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 				color: 0xffffff,
 				text: `SUB\\nBITRATE\\n$(bolin-ptz:encode_sub_bitrate)`,
 				size: 12,
+				show_topbar: false,
 			},
 			steps: [
 				{
@@ -2839,6 +3026,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 					color: 0xffffff,
 					text: `LOW\\nLATENCY\\n$(bolin-ptz:low_latency)`,
 					size: 12,
+					show_topbar: false,
 				},
 				steps: [
 					{
@@ -2873,6 +3061,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `AUTO\\nSCAN\\nSTART`,
 			size: '14',
+			show_topbar: false,
 		},
 		steps: [
 			{
@@ -2898,6 +3087,7 @@ export function UpdatePresets(self: ModuleInstance): void {
 			color: 0xffffff,
 			text: `AUTO\\nSCAN\\nSTOP`,
 			size: '14',
+			show_topbar: false,
 		},
 		steps: [
 			{
