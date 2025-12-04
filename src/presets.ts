@@ -828,83 +828,18 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		type: 'text',
 		text: '',
 	}
-	presets['presetWhiteBalanceColorTemperatureIncrease'] = {
-		type: 'button',
-		category: 'White Balance',
-		name: 'White Balance Color Temperature',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `COLOR\\nTEMP`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circlePlus,
-			show_topbar: false,
+	createAdjustmentPresets(
+		'presetWhiteBalanceColorTemperature',
+		'White Balance',
+		'White Balance Color Temperature',
+		'colorTemperature',
+		'wb_color_temperature',
+		'COLOR\\nTEMP',
+		{
+			adjustmentValue: 100,
+			headerName: 'White Balance Color Temperature',
 		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'colorTemperature',
-						options: {
-							adjustment: 'increase',
-							value: 100,
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetWhiteBalanceColorTemperatureValue'] = {
-		type: 'button',
-		category: 'White Balance',
-		name: 'White Balance Color Temperature',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `WB\\nTEMP\\n$(bolin-ptz:wb_color_temperature)`,
-			size: 14,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetWhiteBalanceColorTemperatureDecrease'] = {
-		type: 'button',
-		category: 'White Balance',
-		name: 'White Balance Color Temperature',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `COLOR\\nTEMP`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circleMinus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'colorTemperature',
-						options: {
-							adjustment: 'decrease',
-							value: 100,
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
+	)
 	// Helper function to create white balance value presets
 	function createWhiteBalanceValuePresets(
 		color: string,
@@ -1389,15 +1324,30 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		)
 	}
 
-	// Helper function to create picture value presets
-	function createPictureValuePresets(name: string, actionId: string, variableId: string, displayName: string): void {
-		const baseKey = `presetPicture${name}`
-		const displayUpper = displayName.toUpperCase().replace(/\s+/g, '\\n')
+	// Generic helper function to create increase/value/decrease presets
+	function createAdjustmentPresets(
+		baseKey: string,
+		category: string,
+		namePrefix: string,
+		actionId: string,
+		variableId: string,
+		displayText: string,
+		options?: {
+			adjustmentValue?: string | number
+			valueIcon?: string
+			valueSize?: number | string
+			headerName?: string
+			actionOptions?: (adjustment: 'increase' | 'decrease') => CompanionOptionValues
+		},
+	): void {
+		const headerName = options?.headerName || namePrefix
+		const adjustmentValue = options?.adjustmentValue ?? '1'
+		const valueSize = options?.valueSize ?? 14
 
 		// Header
 		presets[`${baseKey}Header`] = {
-			category: 'Picture',
-			name: `${name}`,
+			category,
+			name: headerName,
 			type: 'text',
 			text: '',
 		}
@@ -1405,14 +1355,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		// Increase
 		presets[`${baseKey}Increase`] = {
 			type: 'button',
-			category: 'Picture',
-			name: `Picture ${name} Increase`,
+			category,
+			name: `${namePrefix} Increase`,
 			style: {
 				bgcolor: Color.lightGray,
 				color: Color.white,
-				text: `${displayUpper}`,
+				text: displayText,
 				size: 14,
-				alignment: 'center:bottom',
+				alignment: 'center:bottom' as const,
 				png64: icons.circlePlus,
 				show_topbar: false,
 			},
@@ -1420,11 +1370,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					down: [
 						{
-							actionId: actionId,
-							options: {
-								adjustment: 'increase',
-								value: '1',
-							},
+							actionId,
+							options: options?.actionOptions
+								? options.actionOptions('increase')
+								: {
+										adjustment: 'increase',
+										...(adjustmentValue !== undefined && { value: adjustmentValue }),
+									},
 						},
 					],
 					up: [],
@@ -1436,14 +1388,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		// Value Display
 		presets[`${baseKey}Value`] = {
 			type: 'button',
-			category: 'Picture',
-			name: `Picture ${name} Value`,
+			category,
+			name: `${namePrefix} Value`,
 			style: {
 				bgcolor: Color.darkGray,
 				color: Color.white,
-				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
-				size: 14,
+				text: `${displayText}\\n$(bolin-ptz:${variableId})`,
+				size: valueSize as never,
 				show_topbar: false,
+				...(options?.valueIcon && { png64: options.valueIcon }),
+				...(typeof valueSize === 'number' && valueSize === 14 && { alignment: 'center:bottom' as const }),
 			},
 			steps: [
 				{
@@ -1457,14 +1411,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		// Decrease
 		presets[`${baseKey}Decrease`] = {
 			type: 'button',
-			category: 'Picture',
-			name: `Picture ${name} Decrease`,
+			category,
+			name: `${namePrefix} Decrease`,
 			style: {
 				bgcolor: Color.lightGray,
 				color: Color.white,
-				text: `${displayUpper}`,
+				text: displayText,
 				size: 14,
-				alignment: 'center:bottom',
+				alignment: 'center:bottom' as const,
 				png64: icons.circleMinus,
 				show_topbar: false,
 			},
@@ -1472,11 +1426,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					down: [
 						{
-							actionId: actionId,
-							options: {
-								adjustment: 'decrease',
-								value: '1',
-							},
+							actionId,
+							options: options?.actionOptions
+								? options.actionOptions('decrease')
+								: {
+										adjustment: 'decrease',
+										...(adjustmentValue !== undefined && { value: adjustmentValue }),
+									},
 						},
 					],
 					up: [],
@@ -1484,6 +1440,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			],
 			feedbacks: [],
 		}
+	}
+
+	// Helper function to create picture value presets
+	function createPictureValuePresets(name: string, actionId: string, variableId: string, displayName: string): void {
+		const baseKey = `presetPicture${name}`
+		const displayUpper = displayName.toUpperCase().replace(/\s+/g, '\\n')
+		createAdjustmentPresets(baseKey, 'Picture', `Picture ${name}`, actionId, variableId, displayUpper)
 	}
 
 	// Create picture value presets
@@ -1555,83 +1518,17 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		type: 'text',
 		text: '',
 	}
-	presets['presetGammaBrightIncrease'] = {
-		type: 'button',
-		category: 'Gamma',
-		name: 'Gamma Bright Increase',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `GAMMA\\nBRIGHT`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circlePlus,
-			show_topbar: false,
+	createAdjustmentPresets(
+		'presetGammaBright',
+		'Gamma',
+		'Gamma Bright',
+		'gammaBright',
+		'gamma_bright',
+		'GAMMA\\nBRIGHT',
+		{
+			valueSize: 12,
 		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'gammaBright',
-						options: {
-							adjustment: 'increase',
-							value: '1',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetGammaBrightValue'] = {
-		type: 'button',
-		category: 'Gamma',
-		name: 'Gamma Bright Value',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `GAMMA\\nBRIGHT\\n$(bolin-ptz:gamma_bright)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetGammaBrightDecrease'] = {
-		type: 'button',
-		category: 'Gamma',
-		name: 'Gamma Bright Decrease',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `GAMMA\\nBRIGHT`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circleMinus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'gammaBright',
-						options: {
-							adjustment: 'decrease',
-							value: '1',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
+	)
 
 	// Gamma WDR presets
 	presets['presetGammaWDRHeader'] = {
@@ -1665,83 +1562,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		type: 'text',
 		text: '',
 	}
-	presets['presetGammaWDRLevelIncrease'] = {
-		type: 'button',
-		category: 'Gamma',
-		name: 'Gamma WDR Level Increase',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `WDR\\nLEVEL`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circlePlus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'wdrLevel',
-						options: {
-							adjustment: 'increase',
-							value: '1',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetGammaWDRLevelValue'] = {
-		type: 'button',
-		category: 'Gamma',
-		name: 'Gamma WDR Level Value',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `WDR\\nLEVEL\\n$(bolin-ptz:wdr_level)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetGammaWDRLevelDecrease'] = {
-		type: 'button',
-		category: 'Gamma',
-		name: 'Gamma WDR Level Decrease',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `WDR\\nLEVEL`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circleMinus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'wdrLevel',
-						options: {
-							adjustment: 'decrease',
-							value: '1',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
+	createAdjustmentPresets('presetGammaWDRLevel', 'Gamma', 'Gamma WDR Level', 'wdrLevel', 'wdr_level', 'WDR\\nLEVEL', {
+		valueSize: 12,
+	})
 
 	presets['irisAdjustmentsHeader'] = {
 		category: 'Iris',
@@ -1749,83 +1572,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		type: 'text',
 		text: '',
 	}
-	presets['presetIrisIncrease'] = {
-		type: 'button',
-		category: 'Iris',
-		name: 'Iris Increase',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `IRIS\\n`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circlePlus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'iris',
-						options: {
-							adjustment: 'increase',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetIrisValue'] = {
-		type: 'button',
-		category: 'Iris',
-		name: 'Iris Value',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `IRIS\\n$(bolin-ptz:iris)`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.aperture,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetIrisDecrease'] = {
-		type: 'button',
-		category: 'Iris',
-		name: 'Iris Decrease',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `IRIS\\n`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circleMinus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'iris',
-						options: {
-							adjustment: 'decrease',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
+	createAdjustmentPresets('presetIris', 'Iris', 'Iris', 'iris', 'iris', 'IRIS\\n', {
+		valueIcon: icons.aperture,
+	})
 	presets['irisSetValueHeader'] = {
 		category: 'Iris',
 		name: 'Iris Set Value',
@@ -1901,81 +1650,17 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		type: 'text',
 		text: '',
 	}
-	presets['presetShutterSpeedIncrease'] = {
-		type: 'button',
-		category: 'Shutter Speed',
-		name: 'Shutter Speed Increase',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `SHUTTER\\nSPEED`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circlePlus,
-			show_topbar: false,
+	createAdjustmentPresets(
+		'presetShutterSpeed',
+		'Shutter Speed',
+		'Shutter Speed',
+		'shutterSpeed',
+		'shutter_speed',
+		'SHUTTER\\nSPEED',
+		{
+			valueSize: 12,
 		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'shutterSpeed',
-						options: {
-							adjustment: 'increase',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetShutterSpeedValue'] = {
-		type: 'button',
-		category: 'Shutter Speed',
-		name: 'Shutter Speed Value',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `SHUTTER\\nSPEED\\n$(bolin-ptz:shutter_speed)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-	presets['presetShutterSpeedDecrease'] = {
-		type: 'button',
-		category: 'Shutter Speed',
-		name: 'Shutter Speed Decrease',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `SHUTTER\\nSPEED`,
-			size: 14,
-			alignment: 'center:bottom',
-			png64: icons.circleMinus,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'shutterSpeed',
-						options: {
-							adjustment: 'decrease',
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
+	)
 	presets['shutterSpeedSetValueHeader'] = {
 		category: 'Shutter Speed',
 		name: 'Shutter Speed Set Value',
@@ -2272,97 +1957,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	function createExposureValuePresets(name: string, actionId: string, variableId: string, displayName: string): void {
 		const baseKey = `presetExposure${name}`
 		const displayUpper = displayName.toUpperCase().replace(/\s+/g, '\\n')
-
-		// Header
-		presets[`${baseKey}Header`] = {
-			category: 'Exposure',
-			name: `${displayName}`,
-			type: 'text',
-			text: '',
-		}
-
-		// Increase
-		presets[`${baseKey}Increase`] = {
-			type: 'button',
-			category: 'Exposure',
-			name: `Exposure ${name} Increase`,
-			style: {
-				bgcolor: Color.lightGray,
-				color: Color.white,
-				text: `${displayUpper}`,
-				size: 14,
-				alignment: 'center:bottom',
-				png64: icons.circlePlus,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: actionId,
-							options: {
-								adjustment: 'increase',
-								value: '1',
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-
-		// Value Display
-		presets[`${baseKey}Value`] = {
-			type: 'button',
-			category: 'Exposure',
-			name: `Exposure ${name} Value`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `${displayUpper}\\n$(bolin-ptz:${variableId})`,
-				size: 14,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-
-		// Decrease
-		presets[`${baseKey}Decrease`] = {
-			type: 'button',
-			category: 'Exposure',
-			name: `Exposure ${name} Decrease`,
-			style: {
-				bgcolor: Color.lightGray,
-				color: Color.white,
-				text: `${displayUpper}`,
-				size: 14,
-				alignment: 'center:bottom',
-				png64: icons.circleMinus,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: actionId,
-							options: {
-								adjustment: 'decrease',
-								value: '1',
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
+		createAdjustmentPresets(baseKey, 'Exposure', `Exposure ${name}`, actionId, variableId, displayUpper, {
+			headerName: displayName,
+		})
 	}
 
 	// Create exposure value presets
@@ -2413,44 +2010,27 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			// Create preset even if overlay doesn't exist in state yet (it might be created later)
 			const overlayName = overlay?.Text ? `Overlay ${overlayNumber} (${overlay.Text})` : `Overlay ${overlayNumber}`
 
-			presets[`presetOverlay${overlayNumber}`] = {
-				type: 'button',
-				category: 'Overlay',
-				name: overlayName,
-				style: {
-					bgcolor: Color.darkGray,
-					color: Color.white,
-					text: `OVERLAY\\n${overlayNumber}`,
-					size: '14',
-					show_topbar: false,
+			createTogglePreset(
+				presets,
+				`presetOverlay${overlayNumber}`,
+				overlayName,
+				'Overlay',
+				`OVERLAY\\n${overlayNumber}`,
+				'overlayControl',
+				'toggle',
+				'overlayEnabled',
+				true,
+				{
+					actionOptions: () => ({
+						overlay: overlayNumber,
+						props: ['enable'],
+						mode: 'toggle',
+					}),
+					feedbackOptions: () => ({
+						channel: overlayNumber.toString(),
+					}),
 				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'overlayControl',
-								options: {
-									overlay: overlayNumber,
-									props: ['enable'],
-									mode: 'toggle',
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'overlayEnabled',
-						options: {
-							channel: overlayNumber.toString(),
-						},
-						style: {
-							bgcolor: Color.green,
-						},
-					},
-				],
-			}
+			)
 		}
 	}
 
