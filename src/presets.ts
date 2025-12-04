@@ -1,4 +1,4 @@
-import { CompanionPresetDefinitions } from '@companion-module/base'
+import { CompanionPresetDefinitions, type CompanionOptionValues } from '@companion-module/base'
 import type { BolinModuleInstance } from './main.js'
 import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
 import { icons } from './icons.js'
@@ -583,88 +583,40 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 	// Pan Direction Invert presets
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'PAN\\nINVERT\\n$(bolin-ptz:pan_direction)' },
+		{ id: 'toggle', label: 'Toggle', text: 'PAN\\nINVERT' },
 		{ id: 'true', label: 'On', text: 'PAN\\nINVERT\\nON' },
 		{ id: 'false', label: 'Off', text: 'PAN\\nINVERT\\nOFF' },
 	]) {
-		presets[`presetPanDirectionInvert${mode.label}`] = {
-			type: 'button',
-			category: 'PTZ Control',
-			name: `Pan Direction Invert ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'panDirectionInverted',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'panDirectionInverted',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		createTogglePreset(
+			presets,
+			`presetPanDirectionInvert${mode.label}`,
+			`Pan Direction Invert ${mode.label}`,
+			'PTZ Control',
+			mode.text,
+			'panDirectionInverted',
+			mode.id,
+			'panDirectionInverted',
+			mode.id === 'toggle',
+		)
 	}
 
 	// Tilt Direction Invert presets
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'TILT\\nINVERT\\n$(bolin-ptz:tilt_direction)' },
+		{ id: 'toggle', label: 'Toggle', text: 'TILT\\nINVERT' },
 		{ id: 'true', label: 'On', text: 'TILT\\nINVERT\\nON' },
 		{ id: 'false', label: 'Off', text: 'TILT\\nINVERT\\nOFF' },
 	]) {
-		presets[`presetTiltDirectionInvert${mode.label}`] = {
-			type: 'button',
-			category: 'PTZ Control',
-			name: `Tilt Direction Invert ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'tiltDirectionInverted',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'tiltDirectionInverted',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		createTogglePreset(
+			presets,
+			`presetTiltDirectionInvert${mode.label}`,
+			`Tilt Direction Invert ${mode.label}`,
+			'PTZ Control',
+			mode.text,
+			'tiltDirectionInverted',
+			mode.id,
+			'tiltDirectionInverted',
+			mode.id === 'toggle',
+		)
 	}
 
 	const cameraPresets = self.camera?.getState().presets ?? []
@@ -1228,46 +1180,129 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'FLIP\\n$(bolin-ptz:flip)' },
+		{ id: 'toggle', label: 'Toggle', text: 'FLIP' },
 		{ id: 'true', label: 'On', text: 'FLIP\\nON' },
 		{ id: 'false', label: 'Off', text: 'FLIP\\nOFF' },
 	]) {
-		presets[`presetPictureFlip${mode.label}`] = {
-			type: 'button',
-			category: 'Picture',
-			name: `Picture Flip ${mode.label}`,
-			style: {
-				bgcolor: mode.id === 'toggle' ? Color.darkGray : Color.lightGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
+		createTogglePreset(
+			presets,
+			`presetPictureFlip${mode.label}`,
+			`Picture Flip ${mode.label}`,
+			'Picture',
+			mode.text,
+			'flip',
+			mode.id,
+			'flip',
+			mode.id === 'toggle',
+			{
+				defaultIcon: icons.flip,
 				alignment: 'center:bottom',
-				png64: icons.flip,
-				show_topbar: false,
 			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'flip',
-							options: {
-								mode: mode.id,
+		)
+	}
+
+	// Helper function for creating toggle/on/off presets with different styles
+	function createTogglePreset(
+		presets: CompanionPresetDefinitions,
+		key: string,
+		name: string,
+		category: string,
+		text: string,
+		actionId: string,
+		modeId: string,
+		feedbackId: string,
+		isToggle: boolean,
+		options?: {
+			toggleOffIcon?: string
+			toggleOnIcon?: string
+			defaultIcon?: string | ((modeId: string) => string)
+			alignment?: string
+			actionOptions?: (modeId: string) => CompanionOptionValues
+			feedbackOptions?: (modeId: string) => CompanionOptionValues
+		},
+	) {
+		const actionOptions = options?.actionOptions ? options.actionOptions(modeId) : { mode: modeId }
+		const feedbackOptions = options?.feedbackOptions ? options.feedbackOptions(modeId) : {}
+
+		if (isToggle) {
+			// Toggle mode: uses icon feedback with toggle icons
+			const toggleStyle = {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text,
+				size: '14' as const,
+				alignment: 'center:bottom' as const,
+				png64: options?.toggleOffIcon || icons.toggleOff,
+				show_topbar: false,
+			}
+
+			presets[key] = {
+				type: 'button',
+				category,
+				name,
+				style: toggleStyle,
+				steps: [
+					{
+						down: [
+							{
+								actionId,
+								options: actionOptions,
 							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'flip',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
+						],
+						up: [],
 					},
-				},
-			],
+				],
+				feedbacks: [
+					{
+						feedbackId,
+						options: feedbackOptions,
+						style: {
+							png64: options?.toggleOnIcon || icons.toggleOn,
+						},
+					},
+				],
+			}
+		} else {
+			// True/False modes: uses color feedback
+			const defaultIcon =
+				typeof options?.defaultIcon === 'function' ? options.defaultIcon(modeId) : options?.defaultIcon
+			const style = {
+				bgcolor: Color.lightGray,
+				color: Color.white,
+				text,
+				size: '14' as const,
+				show_topbar: false,
+				...(options?.alignment && { alignment: options.alignment as 'center:bottom' }),
+				...(defaultIcon && { png64: defaultIcon }),
+			}
+
+			presets[key] = {
+				type: 'button',
+				category,
+				name,
+				style,
+				steps: [
+					{
+						down: [
+							{
+								actionId,
+								options: actionOptions,
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId,
+						isInverted: modeId === 'false' ? true : false,
+						options: feedbackOptions,
+						style: {
+							bgcolor: Color.green,
+						},
+					},
+				],
+			}
 		}
 	}
 
@@ -1279,47 +1314,29 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'MIRROR\\n$(bolin-ptz:mirror)' },
+		{ id: 'toggle', label: 'Toggle', text: 'MIRROR\\n' },
 		{ id: 'true', label: 'On', text: 'MIRROR\\nON' },
 		{ id: 'false', label: 'Off', text: 'MIRROR\\nOFF' },
 	]) {
-		presets[`presetPictureMirror${mode.label}`] = {
-			type: 'button',
-			category: 'Picture',
-			name: `Picture Mirror ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
+		const presetKey =
+			mode.id === 'toggle' ? `presetPictureMirrorToggle${mode.label}` : `presetPictureMirror${mode.label}`
+		createTogglePreset(
+			presets,
+			presetKey,
+			`Picture Mirror ${mode.label}`,
+			'Picture',
+			mode.text,
+			'mirror',
+			mode.id,
+			'mirror',
+			mode.id === 'toggle',
+			{
+				toggleOffIcon: icons.toggleOff,
+				toggleOnIcon: icons.toggleOn,
+				defaultIcon: icons.mirror,
 				alignment: 'center:bottom',
-				png64: icons.mirror,
-				show_topbar: false,
 			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'mirror',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'mirror',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		)
 	}
 
 	// Picture HLC Mode presets
@@ -1330,45 +1347,21 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'HLC MODE\\n$(bolin-ptz:hlc_mode)' },
+		{ id: 'toggle', label: 'Toggle', text: 'HLC MODE' },
 		{ id: 'true', label: 'On', text: 'HLC MODE\\nON' },
 		{ id: 'false', label: 'Off', text: 'HLC MODE\\nOFF' },
 	]) {
-		presets[`presetPictureHLCMode${mode.label}`] = {
-			type: 'button',
-			category: 'Picture',
-			name: `Picture HLC Mode ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'hlcMode',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'hlcMode',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		createTogglePreset(
+			presets,
+			`presetPictureHLCMode${mode.label}`,
+			`Picture HLC Mode ${mode.label}`,
+			'Picture',
+			mode.text,
+			'hlcMode',
+			mode.id,
+			'hlcMode',
+			mode.id === 'toggle',
+		)
 	}
 
 	// Picture BLC presets
@@ -1379,45 +1372,21 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'BLC\\n$(bolin-ptz:blc)' },
+		{ id: 'toggle', label: 'Toggle', text: 'BLC' },
 		{ id: 'true', label: 'On', text: 'BLC\\nON' },
 		{ id: 'false', label: 'Off', text: 'BLC\\nOFF' },
 	]) {
-		presets[`presetPictureBLC${mode.label}`] = {
-			type: 'button',
-			category: 'Picture',
-			name: `Picture BLC ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'blcMode',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'blcMode',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		createTogglePreset(
+			presets,
+			`presetPictureBLC${mode.label}`,
+			`Picture BLC ${mode.label}`,
+			'Picture',
+			mode.text,
+			'blcMode',
+			mode.id,
+			'blcMode',
+			mode.id === 'toggle',
+		)
 	}
 
 	// Helper function to create picture value presets
@@ -1672,45 +1641,21 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'GAMMA\\nWDR\\n$(bolin-ptz:wdr)' },
+		{ id: 'toggle', label: 'Toggle', text: 'GAMMA\\nWDR' },
 		{ id: 'true', label: 'On', text: 'GAMMA\\nWDR\\nON' },
 		{ id: 'false', label: 'Off', text: 'GAMMA\\nWDR\\nOFF' },
 	]) {
-		presets[`presetGammaWDR${mode.label}`] = {
-			type: 'button',
-			category: 'Gamma',
-			name: `Gamma WDR ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'wdr',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'wdr',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		createTogglePreset(
+			presets,
+			`presetGammaWDR${mode.label}`,
+			`Gamma WDR ${mode.label}`,
+			'Gamma',
+			mode.text,
+			'wdr',
+			mode.id,
+			'wdr',
+			mode.id === 'toggle',
+		)
 	}
 
 	// Gamma WDR Level presets
@@ -2331,7 +2276,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		// Header
 		presets[`${baseKey}Header`] = {
 			category: 'Exposure',
-			name: `${name}`,
+			name: `${displayName}`,
 			type: 'text',
 			text: '',
 		}
@@ -2433,45 +2378,21 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'SMART\\nEXP\\n$(bolin-ptz:smart_exposure)' },
+		{ id: 'toggle', label: 'Toggle', text: 'SMART\\nEXP' },
 		{ id: 'true', label: 'On', text: 'SMART\\nEXP\\nON' },
 		{ id: 'false', label: 'Off', text: 'SMART\\nEXP\\nOFF' },
 	]) {
-		presets[`presetExposureSmartExposure${mode.label}`] = {
-			type: 'button',
-			category: 'Exposure',
-			name: `Exposure Smart Exposure ${mode.label}`,
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: mode.text,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'smartExposure',
-							options: {
-								mode: mode.id,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'smartExposure',
-					isInverted: mode.id === 'false' ? true : false,
-					options: {},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
-		}
+		createTogglePreset(
+			presets,
+			`presetExposureSmartExposure${mode.label}`,
+			`Exposure Smart Exposure ${mode.label}`,
+			'Exposure',
+			mode.text,
+			'smartExposure',
+			mode.id,
+			'smartExposure',
+			mode.id === 'toggle',
+		)
 	}
 
 	const hasOverlayCapability = !capabilitiesLoaded || (self.camera?.hasCapability('OverlayInfo') ?? false)
@@ -2550,50 +2471,32 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					id: 'toggle',
 					label: 'Toggle',
-					text: `RTSP\\n${channel.label}\\n$(bolin-ptz:rtsp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+					text: `RTSP\\n${channel.label}`,
 				},
 				{ id: 'true', label: 'On', text: `RTSP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `RTSP\\n${channel.label}\\nOFF` },
 			]) {
-				presets[`streamRTSP${channel.label}${mode.label}`] = {
-					type: 'button',
-					category: 'Streams',
-					name: `RTSP ${channel.label} Stream ${mode.label}`,
-					style: {
-						bgcolor: Color.darkGray,
-						color: Color.white,
-						text: mode.text,
-						size: '14',
-						show_topbar: false,
+				createTogglePreset(
+					presets,
+					`streamRTSP${channel.label}${mode.label}`,
+					`RTSP ${channel.label} Stream ${mode.label}`,
+					'Streams',
+					mode.text,
+					'rtspControl',
+					mode.id,
+					'rtspEnabled',
+					mode.id === 'toggle',
+					{
+						actionOptions: (modeId) => ({
+							channel: channel.id,
+							props: ['enable'],
+							enable: modeId,
+						}),
+						feedbackOptions: () => ({
+							channel: channel.id,
+						}),
 					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: 'rtspControl',
-									options: {
-										channel: channel.id,
-										props: ['enable'],
-										enable: mode.id,
-									},
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: 'rtspEnabled',
-							isInverted: mode.id === 'false' ? true : false,
-							options: {
-								channel: channel.id,
-							},
-							style: {
-								bgcolor: Color.green,
-							},
-						},
-					],
-				}
+				)
 			}
 		}
 	}
@@ -2614,50 +2517,32 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					id: 'toggle',
 					label: 'Toggle',
-					text: `RTMP\\n${channel.label}\\n$(bolin-ptz:rtmp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+					text: `RTMP\\n${channel.label}`,
 				},
 				{ id: 'true', label: 'On', text: `RTMP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `RTMP\\n${channel.label}\\nOFF` },
 			]) {
-				presets[`streamRTMP${channel.label}${mode.label}`] = {
-					type: 'button',
-					category: 'Streams',
-					name: `RTMP ${channel.label} Stream ${mode.label}`,
-					style: {
-						bgcolor: Color.darkGray,
-						color: Color.white,
-						text: mode.text,
-						size: '14',
-						show_topbar: false,
+				createTogglePreset(
+					presets,
+					`streamRTMP${channel.label}${mode.label}`,
+					`RTMP ${channel.label} Stream ${mode.label}`,
+					'Streams',
+					mode.text,
+					'rtmpControl',
+					mode.id,
+					'rtmpEnabled',
+					mode.id === 'toggle',
+					{
+						actionOptions: (modeId) => ({
+							channel: channel.id,
+							props: ['enable'],
+							enable: modeId,
+						}),
+						feedbackOptions: () => ({
+							channel: channel.id,
+						}),
 					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: 'rtmpControl',
-									options: {
-										channel: channel.id,
-										props: ['enable'],
-										enable: mode.id,
-									},
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: 'rtmpEnabled',
-							isInverted: mode.id === 'false' ? true : false,
-							options: {
-								channel: channel.id,
-							},
-							style: {
-								bgcolor: Color.green,
-							},
-						},
-					],
-				}
+				)
 			}
 		}
 	}
@@ -2678,50 +2563,32 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					id: 'toggle',
 					label: 'Toggle',
-					text: `AV UDP\\n${channel.label}\\n$(bolin-ptz:av_over_udp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+					text: `AV UDP\\n${channel.label}`,
 				},
 				{ id: 'true', label: 'On', text: `AV UDP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `AV UDP\\n${channel.label}\\nOFF` },
 			]) {
-				presets[`streamAVOverUDP${channel.label}${mode.label}`] = {
-					type: 'button',
-					category: 'Streams',
-					name: `AV Over UDP ${channel.label} Stream ${mode.label}`,
-					style: {
-						bgcolor: Color.darkGray,
-						color: Color.white,
-						text: mode.text,
-						size: '14',
-						show_topbar: false,
+				createTogglePreset(
+					presets,
+					`streamAVOverUDP${channel.label}${mode.label}`,
+					`AV Over UDP ${channel.label} Stream ${mode.label}`,
+					'Streams',
+					mode.text,
+					'avOverUDPControl',
+					mode.id,
+					'avOverUDPEnabled',
+					mode.id === 'toggle',
+					{
+						actionOptions: (modeId) => ({
+							channel: channel.id,
+							props: ['enable'],
+							enable: modeId,
+						}),
+						feedbackOptions: () => ({
+							channel: channel.id,
+						}),
 					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: 'avOverUDPControl',
-									options: {
-										channel: channel.id,
-										props: ['enable'],
-										enable: mode.id,
-									},
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: 'avOverUDPEnabled',
-							isInverted: mode.id === 'false' ? true : false,
-							options: {
-								channel: channel.id,
-							},
-							style: {
-								bgcolor: Color.green,
-							},
-						},
-					],
-				}
+				)
 			}
 		}
 	}
@@ -2742,50 +2609,32 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					id: 'toggle',
 					label: 'Toggle',
-					text: `AV RTP\\n${channel.label}\\n$(bolin-ptz:av_over_rtp_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+					text: `AV RTP\\n${channel.label}`,
 				},
 				{ id: 'true', label: 'On', text: `AV RTP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `AV RTP\\n${channel.label}\\nOFF` },
 			]) {
-				presets[`streamAVOverRTP${channel.label}${mode.label}`] = {
-					type: 'button',
-					category: 'Streams',
-					name: `AV Over RTP ${channel.label} Stream ${mode.label}`,
-					style: {
-						bgcolor: Color.darkGray,
-						color: Color.white,
-						text: mode.text,
-						size: '14',
-						show_topbar: false,
+				createTogglePreset(
+					presets,
+					`streamAVOverRTP${channel.label}${mode.label}`,
+					`AV Over RTP ${channel.label} Stream ${mode.label}`,
+					'Streams',
+					mode.text,
+					'avOverRTPControl',
+					mode.id,
+					'avOverRTPEnabled',
+					mode.id === 'toggle',
+					{
+						actionOptions: (modeId) => ({
+							channel: channel.id,
+							props: ['enable'],
+							enable: modeId,
+						}),
+						feedbackOptions: () => ({
+							channel: channel.id,
+						}),
 					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: 'avOverRTPControl',
-									options: {
-										channel: channel.id,
-										props: ['enable'],
-										enable: mode.id,
-									},
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: 'avOverRTPEnabled',
-							isInverted: mode.id === 'false' ? true : false,
-							options: {
-								channel: channel.id,
-							},
-							style: {
-								bgcolor: Color.green,
-							},
-						},
-					],
-				}
+				)
 			}
 		}
 	}
@@ -2799,46 +2648,27 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			text: '',
 		}
 		for (const mode of [
-			{ id: 'toggle', label: 'Toggle', text: 'NDI\\n$(bolin-ptz:ndi_enable)' },
+			{ id: 'toggle', label: 'Toggle', text: 'NDI\\n' },
 			{ id: 'true', label: 'On', text: 'NDI\\nON' },
 			{ id: 'false', label: 'Off', text: 'NDI\\nOFF' },
 		]) {
-			presets[`streamNDI${mode.label}`] = {
-				type: 'button',
-				category: 'Streams',
-				name: `NDI ${mode.label}`,
-				style: {
-					bgcolor: Color.darkGray,
-					color: Color.white,
-					text: mode.text,
-					size: '14',
-					show_topbar: false,
+			createTogglePreset(
+				presets,
+				`streamNDI${mode.label}`,
+				`NDI ${mode.label}`,
+				'Streams',
+				mode.text,
+				'ndiControl',
+				mode.id,
+				'ndiEnabled',
+				mode.id === 'toggle',
+				{
+					actionOptions: (modeId) => ({
+						props: ['ndiEnable'],
+						ndiEnable: modeId,
+					}),
 				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'ndiControl',
-								options: {
-									props: ['ndiEnable'],
-									ndiEnable: mode.id,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'ndiEnabled',
-						isInverted: mode.id === 'false' ? true : false,
-						options: {},
-						style: {
-							bgcolor: Color.green,
-						},
-					},
-				],
-			}
+			)
 		}
 		presets['streamNDIName'] = {
 			type: 'button',
@@ -2896,50 +2726,32 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					id: 'toggle',
 					label: 'Toggle',
-					text: `SRT\\n${channel.label}\\n$(bolin-ptz:srt_${channel.id === 0 ? 'main' : 'sub'}_enable)`,
+					text: `SRT\\n${channel.label}`,
 				},
 				{ id: 'true', label: 'On', text: `SRT\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `SRT\\n${channel.label}\\nOFF` },
 			]) {
-				presets[`streamSRT${channel.label}${mode.label}`] = {
-					type: 'button',
-					category: 'Streams',
-					name: `SRT ${channel.label} Stream ${mode.label}`,
-					style: {
-						bgcolor: Color.darkGray,
-						color: Color.white,
-						text: mode.text,
-						size: '14',
-						show_topbar: false,
+				createTogglePreset(
+					presets,
+					`streamSRT${channel.label}${mode.label}`,
+					`SRT ${channel.label} Stream ${mode.label}`,
+					'Streams',
+					mode.text,
+					'srtControl',
+					mode.id,
+					'srtEnabled',
+					mode.id === 'toggle',
+					{
+						actionOptions: (modeId) => ({
+							channel: channel.id,
+							props: ['enable'],
+							enable: modeId,
+						}),
+						feedbackOptions: () => ({
+							channel: channel.id,
+						}),
 					},
-					steps: [
-						{
-							down: [
-								{
-									actionId: 'srtControl',
-									options: {
-										channel: channel.id,
-										props: ['enable'],
-										enable: mode.id,
-									},
-								},
-							],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: 'srtEnabled',
-							isInverted: mode.id === 'false' ? true : false,
-							options: {
-								channel: channel.id,
-							},
-							style: {
-								bgcolor: Color.green,
-							},
-						},
-					],
-				}
+				)
 			}
 		}
 	}
@@ -2953,48 +2765,29 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			text: '',
 		}
 		for (const mode of [
-			{ id: 'toggle', label: 'Toggle', text: 'AUDIO\\n$(bolin-ptz:audio_enable)', icon: 'speaker' },
+			{ id: 'toggle', label: 'Toggle', text: 'AUDIO', icon: 'speaker' },
 			{ id: 'true', label: 'On', text: 'AUDIO\\nON', icon: 'speaker' },
 			{ id: 'false', label: 'Off', text: 'AUDIO\\nOFF', icon: 'speakerMute' },
 		]) {
-			presets[`presetAudioInput${mode.label}`] = {
-				type: 'button',
-				category: 'Audio',
-				name: `Audio Enable ${mode.label}`,
-				style: {
-					bgcolor: Color.darkGray,
-					color: Color.white,
-					text: mode.text,
-					size: '14',
+			createTogglePreset(
+				presets,
+				`presetAudioInput${mode.label}`,
+				`Audio Enable ${mode.label}`,
+				'Audio',
+				mode.text,
+				'audioControl',
+				mode.id,
+				'audioEnabled',
+				mode.id === 'toggle',
+				{
+					defaultIcon: (modeId) => (modeId === 'false' ? icons.speakerMute : icons.speaker),
 					alignment: 'center:bottom',
-					png64: mode.id === 'false' ? icons.speakerMute : icons.speaker,
-					show_topbar: false,
+					actionOptions: (modeId) => ({
+						props: ['enable'],
+						mode: modeId,
+					}),
 				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'audioControl',
-								options: {
-									props: ['enable'],
-									mode: mode.id,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'audioEnabled',
-						isInverted: mode.id === 'false' ? true : false,
-						options: {},
-						style: {
-							bgcolor: Color.green,
-						},
-					},
-				],
-			}
+			)
 		}
 
 		// Audio Volume Set Value presets
