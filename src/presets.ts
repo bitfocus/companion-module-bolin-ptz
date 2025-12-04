@@ -822,12 +822,6 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 	}
 
-	presets['presetWhiteBalanceColorTemperatureHeader'] = {
-		category: 'White Balance',
-		name: 'White Balance Color Temperature',
-		type: 'text',
-		text: '',
-	}
 	createAdjustmentPresets(
 		'presetWhiteBalanceColorTemperature',
 		'White Balance',
@@ -1116,8 +1110,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'FLIP\\n' },
-		{ id: 'true', label: 'On', text: 'FLIP\\nON' },
 		{ id: 'false', label: 'Off', text: 'FLIP\\nOFF' },
+		{ id: 'true', label: 'On', text: 'FLIP\\nON' },
 	]) {
 		createTogglePreset(
 			presets,
@@ -1233,7 +1227,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						isInverted: modeId === 'false' ? true : false,
 						options: feedbackOptions,
 						style: {
-							bgcolor: Color.green,
+							bgcolor: modeId === 'true' ? Color.green : Color.red,
 						},
 					},
 				],
@@ -1250,8 +1244,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'MIRROR\\n' },
-		{ id: 'true', label: 'On', text: 'MIRROR\\nON' },
 		{ id: 'false', label: 'Off', text: 'MIRROR\\nOFF' },
+		{ id: 'true', label: 'On', text: 'MIRROR\\nON' },
 	]) {
 		const presetKey =
 			mode.id === 'toggle' ? `presetPictureMirrorToggle${mode.label}` : `presetPictureMirror${mode.label}`
@@ -1283,8 +1277,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'HLC MODE' },
-		{ id: 'true', label: 'On', text: 'HLC MODE\\nON' },
 		{ id: 'false', label: 'Off', text: 'HLC MODE\\nOFF' },
+		{ id: 'true', label: 'On', text: 'HLC MODE\\nON' },
 	]) {
 		createTogglePreset(
 			presets,
@@ -1308,8 +1302,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'BLC\\n' },
-		{ id: 'true', label: 'On', text: 'BLC\\nON' },
 		{ id: 'false', label: 'Off', text: 'BLC\\nOFF' },
+		{ id: 'true', label: 'On', text: 'BLC\\nON' },
 	]) {
 		createTogglePreset(
 			presets,
@@ -1443,21 +1437,35 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 	}
 
-	// Helper function to create picture value presets
-	function createPictureValuePresets(name: string, actionId: string, variableId: string, displayName: string): void {
-		const baseKey = `presetPicture${name}`
-		const displayUpper = displayName.toUpperCase().replace(/\s+/g, '\\n')
-		createAdjustmentPresets(baseKey, 'Picture', `Picture ${name}`, actionId, variableId, displayUpper)
-	}
-
 	// Create picture value presets
-	createPictureValuePresets('2DNR', '2dnr', '2dnr', '2DNR')
-	createPictureValuePresets('3DNR', '3dnr', '3dnr', '3DNR')
-	createPictureValuePresets('Sharpness', 'sharpness', 'sharpness', 'Sharpness')
-	createPictureValuePresets('Hue', 'hue', 'hue', 'Hue')
-	createPictureValuePresets('Contrast', 'contrast', 'contrast', 'Contrast')
-	createPictureValuePresets('Saturation', 'saturation', 'saturation', 'Saturation')
-	createPictureValuePresets('Defog Level', 'defogLevel', 'defog_level', 'Defog Level')
+	createAdjustmentPresets('presetPicture2DNR', 'Picture', 'Picture 2DNR', '2dnr', '2dnr', '2DNR')
+	createAdjustmentPresets('presetPicture3DNR', 'Picture', 'Picture 3DNR', '3dnr', '3dnr', '3DNR')
+	createAdjustmentPresets(
+		'presetPictureSharpness',
+		'Picture',
+		'Picture Sharpness',
+		'sharpness',
+		'sharpness',
+		'Sharpness',
+	)
+	createAdjustmentPresets('presetPictureHue', 'Picture', 'Picture Hue', 'hue', 'hue', 'Hue')
+	createAdjustmentPresets('presetPictureContrast', 'Picture', 'Picture Contrast', 'contrast', 'contrast', 'Contrast')
+	createAdjustmentPresets(
+		'presetPictureSaturation',
+		'Picture',
+		'Picture Saturation',
+		'saturation',
+		'saturation',
+		'Saturation',
+	)
+	createAdjustmentPresets(
+		'presetPictureDefogLevel',
+		'Picture',
+		'Picture Defog Level',
+		'defogLevel',
+		'defog_level',
+		'Defog\\nLevel',
+	)
 
 	// Gamma Level presets
 	presets['presetGammaLevelHeader'] = {
@@ -1513,12 +1521,6 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 
 	// Gamma Bright presets
-	presets['presetGammaBrightHeader'] = {
-		category: 'Gamma',
-		name: 'Gamma Bright',
-		type: 'text',
-		text: '',
-	}
 	createAdjustmentPresets(
 		'presetGammaBright',
 		'Gamma',
@@ -1540,8 +1542,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'GAMMA\\nWDR' },
-		{ id: 'true', label: 'On', text: 'GAMMA\\nWDR\\nON' },
 		{ id: 'false', label: 'Off', text: 'GAMMA\\nWDR\\nOFF' },
+		{ id: 'true', label: 'On', text: 'GAMMA\\nWDR\\nON' },
 	]) {
 		createTogglePreset(
 			presets,
@@ -1557,27 +1559,15 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 
 	// Gamma WDR Level presets
-	presets['presetGammaWDRLevelHeader'] = {
-		category: 'Gamma',
-		name: 'Gamma WDR Level',
-		type: 'text',
-		text: '',
-	}
 	createAdjustmentPresets('presetGammaWDRLevel', 'Gamma', 'Gamma WDR Level', 'wdrLevel', 'wdr_level', 'WDR\\nLEVEL', {
 		valueSize: 12,
 	})
 
-	presets['irisAdjustmentsHeader'] = {
-		category: 'Iris',
-		name: 'Iris Adjustments',
-		type: 'text',
-		text: '',
-	}
-	createAdjustmentPresets('presetIris', 'Iris', 'Iris', 'iris', 'iris', 'IRIS\\n', {
+	createAdjustmentPresets('presetIris', 'Exposure', 'Iris', 'iris', 'iris', 'IRIS', {
 		valueIcon: icons.aperture,
 	})
 	presets['irisSetValueHeader'] = {
-		category: 'Iris',
+		category: 'Exposure',
 		name: 'Iris Set Value',
 		type: 'text',
 		text: '',
@@ -1607,7 +1597,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 			presets[presetKey] = {
 				type: 'button',
-				category: 'Iris',
+				category: 'Exposure',
 				name: `Iris ${label}`,
 				style: {
 					bgcolor: Color.darkGray,
@@ -1645,12 +1635,6 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 	}
 
-	presets['shutterSpeedHeader'] = {
-		category: 'Shutter Speed',
-		name: 'Shutter Speed Adjustments',
-		type: 'text',
-		text: '',
-	}
 	createAdjustmentPresets(
 		'presetShutterSpeed',
 		'Shutter Speed',
@@ -1977,8 +1961,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'SMART\\nEXP' },
-		{ id: 'true', label: 'On', text: 'SMART\\nEXP\\nON' },
 		{ id: 'false', label: 'Off', text: 'SMART\\nEXP\\nOFF' },
+		{ id: 'true', label: 'On', text: 'SMART\\nEXP\\nON' },
 	]) {
 		createTogglePreset(
 			presets,
@@ -2039,7 +2023,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
 	if (hasRTSPCapability) {
 		presets['streamRTSPHeader'] = {
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'RTSP Control',
 			type: 'text',
 			text: '',
@@ -2054,8 +2038,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					label: 'Toggle',
 					text: `RTSP\\n${channel.label}`,
 				},
-				{ id: 'true', label: 'On', text: `RTSP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `RTSP\\n${channel.label}\\nOFF` },
+				{ id: 'true', label: 'On', text: `RTSP\\n${channel.label}\\nON` },
 			]) {
 				createTogglePreset(
 					presets,
@@ -2085,7 +2069,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	const hasRTMPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTMPInfo') ?? false)
 	if (hasRTMPCapability) {
 		presets['streamRTMPHeader'] = {
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'RTMP Control',
 			type: 'text',
 			text: '',
@@ -2100,8 +2084,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					label: 'Toggle',
 					text: `RTMP\\n${channel.label}`,
 				},
-				{ id: 'true', label: 'On', text: `RTMP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `RTMP\\n${channel.label}\\nOFF` },
+				{ id: 'true', label: 'On', text: `RTMP\\n${channel.label}\\nON` },
 			]) {
 				createTogglePreset(
 					presets,
@@ -2131,7 +2115,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	const hasAVOverUDPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('AVOverUDPInfo') ?? false)
 	if (hasAVOverUDPCapability) {
 		presets['streamAVOverUDPHeader'] = {
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'AV Over UDP Control',
 			type: 'text',
 			text: '',
@@ -2146,8 +2130,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					label: 'Toggle',
 					text: `AV UDP\\n${channel.label}`,
 				},
-				{ id: 'true', label: 'On', text: `AV UDP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `AV UDP\\n${channel.label}\\nOFF` },
+				{ id: 'true', label: 'On', text: `AV UDP\\n${channel.label}\\nON` },
 			]) {
 				createTogglePreset(
 					presets,
@@ -2177,7 +2161,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	const hasAVOverRTPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('AVOverRTPInfo') ?? false)
 	if (hasAVOverRTPCapability) {
 		presets['streamAVOverRTPHeader'] = {
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'AV Over RTP Control',
 			type: 'text',
 			text: '',
@@ -2192,8 +2176,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					label: 'Toggle',
 					text: `AV RTP\\n${channel.label}`,
 				},
-				{ id: 'true', label: 'On', text: `AV RTP\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `AV RTP\\n${channel.label}\\nOFF` },
+				{ id: 'true', label: 'On', text: `AV RTP\\n${channel.label}\\nON` },
 			]) {
 				createTogglePreset(
 					presets,
@@ -2223,15 +2207,15 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	const hasNDICapability = !capabilitiesLoaded || (self.camera?.hasCapability('NDIInfo') ?? false)
 	if (hasNDICapability) {
 		presets['streamNDIHeader'] = {
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'NDI Control',
 			type: 'text',
 			text: '',
 		}
 		for (const mode of [
 			{ id: 'toggle', label: 'Toggle', text: 'NDI\\n' },
-			{ id: 'true', label: 'On', text: 'NDI\\nON' },
 			{ id: 'false', label: 'Off', text: 'NDI\\nOFF' },
+			{ id: 'true', label: 'On', text: 'NDI\\nON' },
 		]) {
 			createTogglePreset(
 				presets,
@@ -2253,7 +2237,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['streamNDIName'] = {
 			type: 'button',
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'NDI Name',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2272,7 +2256,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['streamNDIHXBandwidthValue'] = {
 			type: 'button',
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'NDI HX Bandwidth Value',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2294,7 +2278,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	const hasSRTCapability = !capabilitiesLoaded || (self.camera?.hasCapability('SRTInfo') ?? false)
 	if (hasSRTCapability) {
 		presets['streamSRTHeader'] = {
-			category: 'Streams',
+			category: 'AV Streams',
 			name: 'SRT Control',
 			type: 'text',
 			text: '',
@@ -2309,8 +2293,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					label: 'Toggle',
 					text: `SRT\\n${channel.label}`,
 				},
-				{ id: 'true', label: 'On', text: `SRT\\n${channel.label}\\nON` },
 				{ id: 'false', label: 'Off', text: `SRT\\n${channel.label}\\nOFF` },
+				{ id: 'true', label: 'On', text: `SRT\\n${channel.label}\\nON` },
 			]) {
 				createTogglePreset(
 					presets,
@@ -2346,9 +2330,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			text: '',
 		}
 		for (const mode of [
-			{ id: 'toggle', label: 'Toggle', text: 'AUDIO', icon: 'speaker' },
-			{ id: 'true', label: 'On', text: 'AUDIO\\nON', icon: 'speaker' },
+			{ id: 'toggle', label: 'Toggle', text: 'AUDIO\\n', icon: 'speaker' },
 			{ id: 'false', label: 'Off', text: 'AUDIO\\nOFF', icon: 'speakerMute' },
+			{ id: 'true', label: 'On', text: 'AUDIO\\nON', icon: 'speaker' },
 		]) {
 			createTogglePreset(
 				presets,
