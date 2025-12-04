@@ -264,6 +264,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			color: Color.white,
 			text: `FOCUS\\nNEAR`,
 			size: '14',
+			alignment: 'center:bottom',
+			png64: icons.circleMinus,
 			show_topbar: false,
 		},
 		steps: [
@@ -297,6 +299,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			color: Color.white,
 			text: `FOCUS\\nFAR`,
 			size: '14',
+			alignment: 'center:bottom',
+			png64: icons.circlePlus,
 			show_topbar: false,
 		},
 		steps: [
@@ -648,6 +652,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				color: Color.white,
 				text: `CALL\\n${presetName}`,
 				size: '14',
+				png64: icons.preset,
+				alignment: 'center:bottom',
 				show_topbar: false,
 			},
 			steps: [
@@ -692,6 +698,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				color: Color.white,
 				text: `SAVE\\n${presetName}`,
 				size: '14',
+				png64: icons.save,
+				alignment: 'center:bottom',
 				show_topbar: false,
 			},
 			steps: [
