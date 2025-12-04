@@ -1563,78 +1563,6 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		valueSize: 12,
 	})
 
-	createAdjustmentPresets('presetIris', 'Exposure', 'Iris', 'iris', 'iris', 'IRIS', {
-		valueIcon: icons.aperture,
-	})
-	presets['irisSetValueHeader'] = {
-		category: 'Exposure',
-		name: 'Iris Set Value',
-		type: 'text',
-		text: '',
-	}
-	// Create presets for each common iris value
-	let irisMap = self.camera?.getIrisMapForActions() ?? {}
-	const irisRange = self.camera?.getIrisRangeForActions()
-
-	// If we have a range but no map, convert the range to a map
-	if (Object.keys(irisMap).length === 0 && irisRange) {
-		irisMap = convertIrisRangeToMap(irisRange)
-	}
-
-	// If we have a map (either from enum or converted from range), create presets
-	if (Object.keys(irisMap).length > 0) {
-		const irisEntries = sortIrisChoices(
-			Object.entries(irisMap).map(([value, label]) => ({
-				value: Number.parseInt(value, 10),
-				label: label,
-			})),
-		)
-
-		for (const { value, label } of irisEntries) {
-			// Create a safe key for the preset ID (replace special characters)
-			const safeLabel = label.replace(/[^a-zA-Z0-9]/g, '_')
-			const presetKey = `presetIris_${safeLabel}`
-
-			presets[presetKey] = {
-				type: 'button',
-				category: 'Exposure',
-				name: `Iris ${label}`,
-				style: {
-					bgcolor: Color.darkGray,
-					color: Color.white,
-					text: label,
-					size: '14',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'iris',
-								options: {
-									adjustment: 'set',
-									iris: value,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'iris',
-						options: {
-							iris: label,
-						},
-						style: {
-							bgcolor: Color.green,
-						},
-					},
-				],
-			}
-		}
-	}
-
 	createAdjustmentPresets(
 		'presetShutterSpeed',
 		'Shutter Speed',
@@ -1936,6 +1864,126 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			},
 		],
 		feedbacks: [],
+	}
+
+	// Exposure Mode presets
+	presets['presetExposureModeHeader'] = {
+		category: 'Exposure',
+		name: 'Exposure Mode',
+		type: 'text',
+		text: '',
+	}
+	for (const mode of [
+		{ id: 0, label: 'Auto', text: 'EXP\\nAUTO' },
+		{ id: 1, label: 'Manual', text: 'EXP\\nMANUAL' },
+		{ id: 2, label: 'ShutterPri', text: 'EXP\\nSHUTTER\\nPRI' },
+		{ id: 3, label: 'IrisPri', text: 'EXP\\nIRIS\\nPRI' },
+	]) {
+		presets[`presetExposureMode${mode.label}`] = {
+			type: 'button',
+			category: 'Exposure',
+			name: `Exposure Mode ${mode.label}`,
+			style: {
+				text: mode.text,
+				size: 14,
+				color: Color.white,
+				alignment: 'center:center',
+				bgcolor: Color.lightGray,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'exposureMode',
+							options: { mode: mode.id },
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'exposureMode',
+					options: { mode: mode.label },
+					style: {
+						bgcolor: Color.green,
+					},
+				},
+			],
+		}
+	}
+
+	createAdjustmentPresets('presetIris', 'Exposure', 'Iris', 'iris', 'iris', 'IRIS', {
+		valueIcon: icons.aperture,
+	})
+	presets['irisSetValueHeader'] = {
+		category: 'Exposure',
+		name: 'Iris Set Value',
+		type: 'text',
+		text: '',
+	}
+	// Create presets for each common iris value
+	let irisMap = self.camera?.getIrisMapForActions() ?? {}
+	const irisRange = self.camera?.getIrisRangeForActions()
+
+	// If we have a range but no map, convert the range to a map
+	if (Object.keys(irisMap).length === 0 && irisRange) {
+		irisMap = convertIrisRangeToMap(irisRange)
+	}
+
+	// If we have a map (either from enum or converted from range), create presets
+	if (Object.keys(irisMap).length > 0) {
+		const irisEntries = sortIrisChoices(
+			Object.entries(irisMap).map(([value, label]) => ({
+				value: Number.parseInt(value, 10),
+				label: label,
+			})),
+		)
+
+		for (const { value, label } of irisEntries) {
+			// Create a safe key for the preset ID (replace special characters)
+			const safeLabel = label.replace(/[^a-zA-Z0-9]/g, '_')
+			const presetKey = `presetIris_${safeLabel}`
+
+			presets[presetKey] = {
+				type: 'button',
+				category: 'Exposure',
+				name: `Iris ${label}`,
+				style: {
+					bgcolor: Color.darkGray,
+					color: Color.white,
+					text: label,
+					size: '14',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'iris',
+								options: {
+									adjustment: 'set',
+									iris: value,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'iris',
+						options: {
+							iris: label,
+						},
+						style: {
+							bgcolor: Color.green,
+						},
+					},
+				],
+			}
+		}
 	}
 
 	// Helper function to create exposure value presets

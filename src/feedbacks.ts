@@ -96,6 +96,34 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					return self.camera?.getState().exposureInfo?.SmartExposure ?? false
 				})
 
+				feedbacks['exposureMode'] = {
+					name: 'Exposure - Mode',
+					description: 'Exposure mode matches selected mode',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							id: 'mode',
+							choices: [
+								{ label: 'Auto', id: 'Auto' },
+								{ label: 'Manual', id: 'Manual' },
+								{ label: 'ShutterPri', id: 'ShutterPri' },
+								{ label: 'IrisPri', id: 'IrisPri' },
+							],
+							default: 'Auto',
+						},
+					],
+					callback: (event) => {
+						const currentMode = self.camera?.getState().exposureInfo?.Mode ?? 'Auto'
+						const selectedMode = event.options.mode as string
+						return currentMode === selectedMode
+					},
+				}
+
 				// Shutter Speed feedback - uses dynamic map from capabilities
 				const shutterSpeedMap = self.camera?.getShutterSpeedMapForActions() ?? {}
 				const shutterSpeedChoices = sortShutterSpeedChoices(

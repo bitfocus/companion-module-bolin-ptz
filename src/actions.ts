@@ -1578,6 +1578,29 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					},
 					'Enable or disable smart exposure',
 				)
+
+				actions['exposureMode'] = {
+					name: 'Exposure - Mode',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Mode',
+							choices: [
+								{ label: 'Auto', id: 0 },
+								{ label: 'Manual', id: 1 },
+								{ label: 'ShutterPri', id: 2 },
+								{ label: 'IrisPri', id: 3 },
+							],
+							default: 0,
+							id: 'mode',
+						},
+					],
+					description: 'Set the exposure mode',
+					callback: async (action) => {
+						if (!self.camera) return
+						await self.camera.setExposureInfo({ Mode: action.options.mode } as Partial<ExposureInfo>)
+					},
+				}
 			},
 		},
 		{
