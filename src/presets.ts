@@ -181,7 +181,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Auto',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `AUTO\\nFOCUS`,
 			size: 14,
@@ -217,7 +217,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Manual',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `MANUAL\\nFOCUS`,
 			size: 14,
@@ -260,7 +260,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Near',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `FOCUS\\nNEAR`,
 			size: '14',
@@ -293,7 +293,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'Focus',
 		name: 'Focus Far',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `FOCUS\\nFAR`,
 			size: '14',
@@ -433,7 +433,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Focus',
 			name: `AF Sensitivity ${key}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `AF SENS\\n${key}`,
 				size: '14',
@@ -584,8 +584,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	// Pan Direction Invert presets
 	for (const mode of [
 		{ id: 'toggle', label: 'Toggle', text: 'PAN\\nINVERT' },
-		{ id: 'true', label: 'On', text: 'PAN\\nINVERT\\nON' },
 		{ id: 'false', label: 'Off', text: 'PAN\\nINVERT\\nOFF' },
+		{ id: 'true', label: 'On', text: 'PAN\\nINVERT\\nON' },
 	]) {
 		createTogglePreset(
 			presets,
@@ -738,9 +738,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'White Balance',
 			name: 'White Balance ' + key,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
-				text: `WB MODE\\n${key}`,
+				text: `WB MODE\\n${key === 'ManualColorTemperature' ? 'Manual' : key}`,
 				size: '14',
 				show_topbar: false,
 			},
@@ -789,7 +789,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'White Balance',
 			name: 'White Balance Sensitivity ' + key,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `WB SENS\\n${key}`,
 				size: '14',
@@ -967,7 +967,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Scene ${key}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `SCENE\\n${key}`,
 				size: '14',
@@ -1018,7 +1018,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Defog Mode ${key}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `DEFOG\\n${key}`,
 				size: '14',
@@ -1068,7 +1068,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Picture',
 			name: `Picture Effect ${key}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `EFFECT\\n${key}`,
 				size: '14',
@@ -1487,7 +1487,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'Gamma',
 			name: `Gamma Level ${key}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `GAMMA\\n${key}`,
 				size: '14',
@@ -1606,7 +1606,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Shutter Speed',
 				name: `Shutter Speed ${label}`,
 				style: {
-					bgcolor: Color.darkGray,
+					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: label,
 					size: '14',
@@ -1951,7 +1951,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Exposure',
 				name: `Iris ${label}`,
 				style: {
-					bgcolor: Color.darkGray,
+					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: label,
 					size: '14',
@@ -2093,7 +2093,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					presets,
 					`streamRTSP${channel.label}${mode.label}`,
 					`RTSP ${channel.label} Stream ${mode.label}`,
-					'Streams',
+					'AV Streams',
 					mode.text,
 					'rtspControl',
 					mode.id,
@@ -2139,7 +2139,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					presets,
 					`streamRTMP${channel.label}${mode.label}`,
 					`RTMP ${channel.label} Stream ${mode.label}`,
-					'Streams',
+					'AV Streams',
 					mode.text,
 					'rtmpControl',
 					mode.id,
@@ -2185,7 +2185,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					presets,
 					`streamAVOverUDP${channel.label}${mode.label}`,
 					`AV Over UDP ${channel.label} Stream ${mode.label}`,
-					'Streams',
+					'AV Streams',
 					mode.text,
 					'avOverUDPControl',
 					mode.id,
@@ -2231,7 +2231,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					presets,
 					`streamAVOverRTP${channel.label}${mode.label}`,
 					`AV Over RTP ${channel.label} Stream ${mode.label}`,
-					'Streams',
+					'AV Streams',
 					mode.text,
 					'avOverRTPControl',
 					mode.id,
@@ -2269,7 +2269,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				presets,
 				`streamNDI${mode.label}`,
 				`NDI ${mode.label}`,
-				'Streams',
+				'AV Streams',
 				mode.text,
 				'ndiControl',
 				mode.id,
@@ -2348,7 +2348,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					presets,
 					`streamSRT${channel.label}${mode.label}`,
 					`SRT ${channel.label} Stream ${mode.label}`,
-					'Streams',
+					'AV Streams',
 					mode.text,
 					'srtControl',
 					mode.id,

@@ -511,6 +511,10 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					return self.camera?.getState().lensInfo?.ZoomRatioOSD ?? false
 				})
 
+				createToggleFeedback('lowLatency', 'Encode - Low Latency', 'Low latency encoding is enabled', () => {
+					return self.camera?.getState().encodeInfo?.LowLatency?.Enable ?? false
+				})
+
 				createValueFeedback(
 					'mfSpeed',
 					'Lens - MF Speed',
