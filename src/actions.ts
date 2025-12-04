@@ -136,15 +136,15 @@ export function UpdateActions(self: BolinModuleInstance): void {
 				if (!self.camera) return
 				const currentValue = getCurrentValue() ?? defaultValue
 				let newValue: number
+				const value = parseInt(action.options.value as string)
 
 				if (action.options.adjustment === 'increase') {
-					newValue = currentValue + step
+					newValue = currentValue + value
 				} else if (action.options.adjustment === 'decrease') {
-					newValue = currentValue - step
+					newValue = currentValue - value
 				} else {
-					const parsedValue = parseInteger(action.options.value as string, `${name} value`, self)
-					if (parsedValue === null) return
-					newValue = parsedValue
+					if (value === null) return
+					newValue = value
 				}
 
 				await setValue(newValue)
