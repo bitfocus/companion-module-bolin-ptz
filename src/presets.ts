@@ -1115,7 +1115,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'FLIP' },
+		{ id: 'toggle', label: 'Toggle', text: 'FLIP\\n' },
 		{ id: 'true', label: 'On', text: 'FLIP\\nON' },
 		{ id: 'false', label: 'Off', text: 'FLIP\\nOFF' },
 	]) {
@@ -1307,7 +1307,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		text: '',
 	}
 	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'BLC' },
+		{ id: 'toggle', label: 'Toggle', text: 'BLC\\n' },
 		{ id: 'true', label: 'On', text: 'BLC\\nON' },
 		{ id: 'false', label: 'Off', text: 'BLC\\nOFF' },
 	]) {
@@ -1397,7 +1397,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				size: valueSize as never,
 				show_topbar: false,
 				...(options?.valueIcon && { png64: options.valueIcon }),
-				...(typeof valueSize === 'number' && valueSize === 14 && { alignment: 'center:bottom' as const }),
+				...(typeof valueSize === 'number' &&
+					valueSize === 14 && { alignment: options?.valueIcon ? 'center:bottom' : 'center:center' }),
 			},
 			steps: [
 				{
