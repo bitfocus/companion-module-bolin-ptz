@@ -33,7 +33,7 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 		name: string,
 		description: string,
 		defaultValue: number,
-		currentValue: number,
+		getCurrentValue: () => number,
 	): void {
 		feedbacks[feedbackID] = {
 			name: name,
@@ -63,11 +63,12 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				},
 			],
 			callback: (feedback: CompanionFeedbackBooleanEvent) => {
+				const currentValue = getCurrentValue()
 				const comparison = feedback.options.comparison as string as 'equal' | 'greaterThan' | 'lessThan'
 				const value = Number(feedback.options.value)
 				switch (comparison) {
 					case 'equal':
-						return currentValue == value
+						return currentValue === value
 					case 'greaterThan':
 						return currentValue > value
 					case 'lessThan':
@@ -90,7 +91,7 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					'Exposure - Gain',
 					'Gain matches selected value',
 					50,
-					self.camera?.getState().exposureInfo?.Gain ?? 0,
+					() => self.camera?.getState().exposureInfo?.Gain ?? 0,
 				)
 				createToggleFeedback('smartExposure', 'Exposure - Smart Exposure', 'Smart exposure is enabled', () => {
 					return self.camera?.getState().exposureInfo?.SmartExposure ?? false
@@ -224,7 +225,7 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					'White Balance - Color Temperature',
 					'Color temperature matches selected value',
 					5000,
-					self.camera?.getState().whiteBalanceInfo?.ColorTemperature ?? 5500,
+					() => self.camera?.getState().whiteBalanceInfo?.ColorTemperature ?? 5500,
 				)
 				feedbacks['whiteBalanceMode'] = {
 					name: 'White Balance - Mode',
@@ -520,7 +521,7 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					'Lens - MF Speed',
 					'MF speed matches selected value',
 					0,
-					self.camera?.getState().lensInfo?.MFSpeed ?? 0,
+					() => self.camera?.getState().lensInfo?.MFSpeed ?? 0,
 				)
 				feedbacks['afSensitivity'] = {
 					name: 'Lens - AF Sensitivity',
@@ -597,14 +598,14 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					'Gamma - Bright',
 					'Gamma brightness matches selected value',
 					50,
-					self.camera?.getState().gammaInfo?.Bright ?? 0,
+					() => self.camera?.getState().gammaInfo?.Bright ?? 0,
 				)
 				createValueFeedback(
 					'wdrLevel',
 					'Gamma - WDR Level',
 					'WDR level matches selected value',
 					50,
-					self.camera?.getState().gammaInfo?.WDRLevel ?? 0,
+					() => self.camera?.getState().gammaInfo?.WDRLevel ?? 0,
 				)
 			},
 		},
@@ -841,7 +842,7 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					'Audio - Volume Level',
 					'Audio volume level matches selected value',
 					50,
-					self.camera?.getState().audioInfo?.Volume ?? 0,
+					() => self.camera?.getState().audioInfo?.Volume ?? 0,
 				)
 			},
 		},
