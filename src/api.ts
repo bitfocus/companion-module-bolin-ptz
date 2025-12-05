@@ -52,7 +52,7 @@ import type {
 } from './types.js'
 import type { BolinModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
-import { buildIrisMapFromCapabilities, buildShutterSpeedMapFromCapabilities } from './utils.js'
+import { buildIrisMapFromCapabilities, buildShutterSpeedMapFromCapabilities, deepEqual } from './utils.js'
 import {
 	AF_SENSITIVITY_MAP,
 	DE_FLICKER_MAP,
@@ -283,27 +283,8 @@ export class BolinCamera {
 			const previous = previousState[stateKey]
 
 			// Check if the value has changed
-			if (current !== previous) {
-				// For objects/arrays, do a deeper comparison
-				if (current !== null && previous !== null && typeof current === 'object' && typeof previous === 'object') {
-					if (Array.isArray(current) && Array.isArray(previous)) {
-						// For arrays, check if they're different
-						if (JSON.stringify(current) !== JSON.stringify(previous)) {
-							changedKeys.push(stateKey)
-						}
-					} else if (!Array.isArray(current) && !Array.isArray(previous)) {
-						// For objects, check if they're different
-						if (JSON.stringify(current) !== JSON.stringify(previous)) {
-							changedKeys.push(stateKey)
-						}
-					} else {
-						// Type mismatch (array vs object)
-						changedKeys.push(stateKey)
-					}
-				} else {
-					// Simple value change or null/undefined change
-					changedKeys.push(stateKey)
-				}
+			if (!deepEqual(current, previous)) {
+				changedKeys.push(stateKey)
 			}
 		}
 		return changedKeys
@@ -389,33 +370,53 @@ export class BolinCamera {
 		const data = (await response.json()) as ApiResponse
 		if (typeof data?.Content?.Status === 'number' && data.Content.Status !== 0) {
 			const errors = Array.isArray(data?.Content?.Errors) ? data.Content.Errors : []
-			if (errors.length > 0 && errors[0]?.ErrorCode === 109) {
-				this.self.log('debug', `API request "${cmd}" failed with status: ${JSON.stringify(data.Content)}`)
-			} else {
-				this.self.log('warn', `API request "${cmd}" failed with status: ${JSON.stringify(data.Content)}`)
-			}
+			const logLevel = errors.length > 0 && errors[0]?.ErrorCode === 109 ? 'debug' : 'warn'
+			const baseMessage = `API request "${cmd}" failed with status: ${JSON.stringify(data.Content)}`
+			this.self.log(logLevel, baseMessage)
+			const errorDetail = errors.length > 0 ? `; errors: ${JSON.stringify(errors)}` : ''
+			throw new Error(`${baseMessage}${errorDetail}`)
 		}
 		return data
+	}
+
+	/**
+	 * Helper to fetch, transform, and store Content into state with variable update
+	 */
+	private async fetchAndStore<K extends keyof CameraState>(
+		stateKey: K,
+		endpoint: string,
+		cmd: string,
+		transform: (content: ApiResponse['Content']) => NonNullable<CameraState[K]>,
+	): Promise<NonNullable<CameraState[K]>> {
+		const response = await this.sendRequest(endpoint, cmd)
+		const value = transform(response.Content)
+		this.state[stateKey] = value
+		this.updateVariablesOnStateChange()
+		return value
 	}
 
 	/**
 	 * Gets system information from the camera and stores it in state
 	 */
 	async getSystemInfo(): Promise<SystemInfo> {
-		const response = await this.sendRequest('/apiv2/system', 'ReqGetSystemInfo')
-		this.state.systemInfo = response.Content.SystemInfo as SystemInfo
-		this.updateVariablesOnStateChange()
-		return this.state.systemInfo
+		return this.fetchAndStore(
+			'systemInfo',
+			'/apiv2/system',
+			'ReqGetSystemInfo',
+			(content) => content.SystemInfo as SystemInfo,
+		)
 	}
 
 	/**
 	 * Gets the current presets from the camera and stores them in state
 	 */
 	async getCurrentPresets(): Promise<PresetInfo[]> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPreset')
-		this.state.presets = response.Content.PresetInfo as PresetInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.presets
+		return this.fetchAndStore(
+			'presets',
+			'/apiv2/ptzctrl',
+			'ReqGetPTZFPreset',
+			(content) => content.PresetInfo as PresetInfo[],
+		)
 	}
 
 	/**
@@ -428,10 +429,12 @@ export class BolinCamera {
 	}
 
 	async getPresetSpeed(): Promise<PresetSpeed> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPresetSpeed')
-		this.state.presetSpeed = response.Content.PTZFPresetSpeed as PresetSpeed
-		this.updateVariablesOnStateChange()
-		return this.state.presetSpeed
+		return this.fetchAndStore(
+			'presetSpeed',
+			'/apiv2/ptzctrl',
+			'ReqGetPTZFPresetSpeed',
+			(content) => content.PTZFPresetSpeed as PresetSpeed,
+		)
 	}
 
 	/**
@@ -447,10 +450,12 @@ export class BolinCamera {
 	 * Gets trace information from the camera and stores it in state
 	 */
 	async getTraceInfo(): Promise<TraceInfo[]> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetTraceInfo')
-		this.state.traceInfo = response.Content.TraceInfo as TraceInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.traceInfo
+		return this.fetchAndStore(
+			'traceInfo',
+			'/apiv2/ptzctrl',
+			'ReqGetTraceInfo',
+			(content) => content.TraceInfo as TraceInfo[],
+		)
 	}
 
 	/**
@@ -466,10 +471,12 @@ export class BolinCamera {
 	 * Gets scanning information from the camera and stores it in state
 	 */
 	async getScanningInfo(): Promise<ScanningInfo[]> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetScanningInfo')
-		this.state.scanningInfo = response.Content.ScanningInfo as ScanningInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.scanningInfo
+		return this.fetchAndStore(
+			'scanningInfo',
+			'/apiv2/ptzctrl',
+			'ReqGetScanningInfo',
+			(content) => content.ScanningInfo as ScanningInfo[],
+		)
 	}
 
 	/**
@@ -485,10 +492,12 @@ export class BolinCamera {
 	 * Gets cruise information from the camera and stores it in state
 	 */
 	async getCruiseInfo(): Promise<CruiseInfo[]> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetCruiseInfo')
-		this.state.cruiseInfo = response.Content.CruiseInfo as CruiseInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.cruiseInfo
+		return this.fetchAndStore(
+			'cruiseInfo',
+			'/apiv2/ptzctrl',
+			'ReqGetCruiseInfo',
+			(content) => content.CruiseInfo as CruiseInfo[],
+		)
 	}
 
 	/**
@@ -504,10 +513,12 @@ export class BolinCamera {
 	 * Gets auto restart information from the camera and stores it in state
 	 */
 	async getAutoRestartInfo(): Promise<AutoRestartInfo> {
-		const response = await this.sendRequest('/apiv2/system', 'ReqGetAutoRestartInfo')
-		this.state.autoRestartInfo = response.Content.AutoRestartInfo as AutoRestartInfo
-		this.updateVariablesOnStateChange()
-		return this.state.autoRestartInfo
+		return this.fetchAndStore(
+			'autoRestartInfo',
+			'/apiv2/system',
+			'ReqGetAutoRestartInfo',
+			(content) => content.AutoRestartInfo as AutoRestartInfo,
+		)
 	}
 
 	/**
@@ -523,27 +534,26 @@ export class BolinCamera {
 	 * Gets lens information from the camera and stores it in state
 	 */
 	async getLensInfo(): Promise<LensInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetLensInfo')
-		const rawLensInfo = response.Content.LensInfo as {
-			FocusMode: number
-			FocusArea: number
-			NearLimit: number
-			AFSensitivity: number
-			SmartFocus: boolean
-			DigitalZoom: boolean
-			ZoomRatioOSD: boolean
-			MFSpeed: number
-		}
+		return this.fetchAndStore('lensInfo', '/apiv2/image', 'ReqGetLensInfo', (content) => {
+			const rawLensInfo = content.LensInfo as {
+				FocusMode: number
+				FocusArea: number
+				NearLimit: number
+				AFSensitivity: number
+				SmartFocus: boolean
+				DigitalZoom: boolean
+				ZoomRatioOSD: boolean
+				MFSpeed: number
+			}
 
-		this.state.lensInfo = {
-			...rawLensInfo,
-			FocusMode: rawLensInfo.FocusMode === 0 ? 'Auto' : 'Manual',
-			FocusArea: safeEnumLookup(FOCUS_AREA_MAP, rawLensInfo.FocusArea, 'Default'),
-			NearLimit: safeEnumLookup(NEAR_LIMIT_MAP, rawLensInfo.NearLimit, '1cm'),
-			AFSensitivity: safeEnumLookup(AF_SENSITIVITY_MAP, rawLensInfo.AFSensitivity, 'Low'),
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.lensInfo
+			return {
+				...rawLensInfo,
+				FocusMode: rawLensInfo.FocusMode === 0 ? 'Auto' : 'Manual',
+				FocusArea: safeEnumLookup(FOCUS_AREA_MAP, rawLensInfo.FocusArea, 'Default'),
+				NearLimit: safeEnumLookup(NEAR_LIMIT_MAP, rawLensInfo.NearLimit, '1cm'),
+				AFSensitivity: safeEnumLookup(AF_SENSITIVITY_MAP, rawLensInfo.AFSensitivity, 'Low'),
+			}
+		})
 	}
 
 	async setLensInfo(lensInfo: Partial<LensInfo>): Promise<void> {
@@ -556,72 +566,70 @@ export class BolinCamera {
 	 * Gets picture information from the camera and stores it in state
 	 */
 	async getPictureInfo(): Promise<PictureInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetPictureInfo')
-		const rawPictureInfo = response.Content.PictureInfo as {
-			'2DNR': number
-			'3DNR': number
-			Sharpness: number
-			Hue: number
-			DeFlicker: number
-			Flip: boolean
-			Mirror: boolean
-			HLCMode: boolean
-			BLC: boolean
-			Contrast: number
-			Saturation: number
-			Scene: number
-			DefogMode: number
-			DefogLevel: number
-			Effect: number
-			MagentaSaturation: number
-			RedSaturation: number
-			YellowSaturation: number
-			GreenSaturation: number
-			CyanSaturation: number
-			BlueSaturation: number
-			MagentaHue: number
-			RedHue: number
-			YellowHue: number
-			GreenHue: number
-			CyanHue: number
-			BlueHue: number
-			MagentaValue: number
-			RedValue: number
-			YellowValue: number
-			GreenValue: number
-			CyanValue: number
-			BlueValue: number
-		}
+		return this.fetchAndStore('pictureInfo', '/apiv2/image', 'ReqGetPictureInfo', (content) => {
+			const rawPictureInfo = content.PictureInfo as {
+				'2DNR': number
+				'3DNR': number
+				Sharpness: number
+				Hue: number
+				DeFlicker: number
+				Flip: boolean
+				Mirror: boolean
+				HLCMode: boolean
+				BLC: boolean
+				Contrast: number
+				Saturation: number
+				Scene: number
+				DefogMode: number
+				DefogLevel: number
+				Effect: number
+				MagentaSaturation: number
+				RedSaturation: number
+				YellowSaturation: number
+				GreenSaturation: number
+				CyanSaturation: number
+				BlueSaturation: number
+				MagentaHue: number
+				RedHue: number
+				YellowHue: number
+				GreenHue: number
+				CyanHue: number
+				BlueHue: number
+				MagentaValue: number
+				RedValue: number
+				YellowValue: number
+				GreenValue: number
+				CyanValue: number
+				BlueValue: number
+			}
 
-		this.state.pictureInfo = {
-			...rawPictureInfo,
-			DeFlicker: safeEnumLookup(DE_FLICKER_MAP, rawPictureInfo.DeFlicker, 'OFF'),
-			Scene: safeEnumLookup(SCENE_MAP, rawPictureInfo.Scene, 'Standard'),
-			DefogMode: safeEnumLookup(DEFOG_MODE_MAP, rawPictureInfo.DefogMode, 'OFF'),
-			Effect: safeEnumLookup(EFFECT_MAP, rawPictureInfo.Effect, 'Day'),
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.pictureInfo
+			return {
+				...rawPictureInfo,
+				DeFlicker: safeEnumLookup(DE_FLICKER_MAP, rawPictureInfo.DeFlicker, 'OFF'),
+				Scene: safeEnumLookup(SCENE_MAP, rawPictureInfo.Scene, 'Standard'),
+				DefogMode: safeEnumLookup(DEFOG_MODE_MAP, rawPictureInfo.DefogMode, 'OFF'),
+				Effect: safeEnumLookup(EFFECT_MAP, rawPictureInfo.Effect, 'Day'),
+			}
+		})
 	}
 
 	/**
 	 * Gets gamma information from the camera and stores it in state
 	 */
 	async getGammaInfo(): Promise<GammaInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetGammaInfo')
-		const rawGammaInfo = response.Content.GammaInfo as {
-			Level: number
-			Bright: number
-			WDR: boolean
-			WDRLevel: number
-		}
+		return this.fetchAndStore('gammaInfo', '/apiv2/image', 'ReqGetGammaInfo', (content) => {
+			const rawGammaInfo = content.GammaInfo as {
+				Level: number
+				Bright: number
+				WDR: boolean
+				WDRLevel: number
+			}
 
-		this.state.gammaInfo = {
-			...rawGammaInfo,
-			Level: safeEnumLookup(GAMMA_LEVEL_MAP, rawGammaInfo?.Level ?? 0, 'Default'),
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.gammaInfo
+			return {
+				...rawGammaInfo,
+				Level: safeEnumLookup(GAMMA_LEVEL_MAP, rawGammaInfo?.Level ?? 0, 'Default'),
+			}
+		})
 	}
 
 	async setGammaInfo(gammaInfo: Partial<GammaInfo>): Promise<void> {
@@ -651,24 +659,23 @@ export class BolinCamera {
 	 * Gets white balance information from the camera and stores it in state
 	 */
 	async getWhiteBalanceInfo(): Promise<WhiteBalanceInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetWhiteBalanceInfo')
-		const rawWhiteBalanceInfo = response.Content.WhiteBalanceInfo as {
-			Mode: number
-			WBSensitivity: number
-			RGain: number
-			BGain: number
-			RTuning: number
-			GTuning: number
-			BTuning: number
-			ColorTemperature: number
-		}
+		return this.fetchAndStore('whiteBalanceInfo', '/apiv2/image', 'ReqGetWhiteBalanceInfo', (content) => {
+			const rawWhiteBalanceInfo = content.WhiteBalanceInfo as {
+				Mode: number
+				WBSensitivity: number
+				RGain: number
+				BGain: number
+				RTuning: number
+				GTuning: number
+				BTuning: number
+				ColorTemperature: number
+			}
 
-		this.state.whiteBalanceInfo = {
-			...rawWhiteBalanceInfo,
-			Mode: safeEnumLookup(WHITE_BALANCE_MODE_MAP, rawWhiteBalanceInfo.Mode, 'Auto'),
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.whiteBalanceInfo
+			return {
+				...rawWhiteBalanceInfo,
+				Mode: safeEnumLookup(WHITE_BALANCE_MODE_MAP, rawWhiteBalanceInfo.Mode, 'Auto'),
+			}
+		})
 	}
 
 	async setWhiteBalanceInfo(whiteBalanceInfo: Partial<WhiteBalanceInfo>): Promise<void> {
@@ -722,27 +729,25 @@ export class BolinCamera {
 	 * Gets exposure information from the camera and stores it in state
 	 */
 	async getExposureInfo(): Promise<ExposureInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetExposureInfo')
-		const rawExposureInfo = response.Content.ExposureInfo as {
-			Mode: number
-			Gain: number
-			GainLimit: number
-			ExCompLevel: number
-			SmartExposure: boolean
-			ShutterSpeed: number
-			Iris: number
-		}
+		return this.fetchAndStore('exposureInfo', '/apiv2/image', 'ReqGetExposureInfo', (content) => {
+			const rawExposureInfo = content.ExposureInfo as {
+				Mode: number
+				Gain: number
+				GainLimit: number
+				ExCompLevel: number
+				SmartExposure: boolean
+				ShutterSpeed: number
+				Iris: number
+			}
 
-		// Cache the map lookup to avoid repeated calls
-		const shutterSpeedMap = this.getShutterSpeedMap()
-		const shutterSpeedValue = shutterSpeedMap[rawExposureInfo.ShutterSpeed] ?? '1/60'
-		this.state.exposureInfo = {
-			...rawExposureInfo,
-			Mode: safeEnumLookup(EXPOSURE_MODE_MAP, rawExposureInfo.Mode, 'Auto'),
-			ShutterSpeed: shutterSpeedValue,
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.exposureInfo
+			const shutterSpeedMap = this.getShutterSpeedMap()
+			const shutterSpeedValue = shutterSpeedMap[rawExposureInfo.ShutterSpeed] ?? '1/60'
+			return {
+				...rawExposureInfo,
+				Mode: safeEnumLookup(EXPOSURE_MODE_MAP, rawExposureInfo.Mode, 'Auto'),
+				ShutterSpeed: shutterSpeedValue,
+			}
+		})
 	}
 
 	async setExposureInfo(exposureInfo: Partial<ExposureInfo>): Promise<void> {
@@ -819,11 +824,12 @@ export class BolinCamera {
 	 * Gets the current PTZ position from the camera.
 	 */
 	async getPTZPosition(): Promise<PTZFPosition> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPTZFPosition')
-		const position = response.Content.PTZFPosition as PTZFPosition
-		this.state.ptzPosition = position
-		this.updateVariablesOnStateChange()
-		return position
+		return this.fetchAndStore(
+			'ptzPosition',
+			'/apiv2/ptzctrl',
+			'ReqGetPTZFPosition',
+			(content) => content.PTZFPosition as PTZFPosition,
+		)
 	}
 
 	/**
@@ -850,11 +856,12 @@ export class BolinCamera {
 	 * Gets the position limitations from the camera.
 	 */
 	async getPositionLimits(): Promise<PositionLimitations> {
-		const response = await this.sendRequest('/apiv2/ptzctrl', 'ReqGetPositionLimitations')
-		const positionLimitations = response.Content.PositionLimitations as PositionLimitations
-		this.state.positionLimitations = positionLimitations
-		this.updateVariablesOnStateChange()
-		return positionLimitations
+		return this.fetchAndStore(
+			'positionLimitations',
+			'/apiv2/ptzctrl',
+			'ReqGetPositionLimitations',
+			(content) => content.PositionLimitations as PositionLimitations,
+		)
 	}
 
 	/**
@@ -883,10 +890,12 @@ export class BolinCamera {
 	 * Gets pan/tilt information from the camera and stores it in state
 	 */
 	async getPTInfo(): Promise<PanTiltInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetPanTiltInfo')
-		this.state.panTiltInfo = response.Content.PanTiltInfo as PanTiltInfo
-		this.updateVariablesOnStateChange()
-		return this.state.panTiltInfo
+		return this.fetchAndStore(
+			'panTiltInfo',
+			'/apiv2/image',
+			'ReqGetPanTiltInfo',
+			(content) => content.PanTiltInfo as PanTiltInfo,
+		)
 	}
 
 	/**
@@ -903,10 +912,12 @@ export class BolinCamera {
 	 * Gets video output information from the camera and stores it in state
 	 */
 	async getVideoOutput(): Promise<VideoOutputInfo> {
-		const response = await this.sendRequest('/apiv2/general', 'ReqGetVideoOutputInfo')
-		this.state.videoOutputInfo = response.Content.VideoOutputInfo as VideoOutputInfo
-		this.updateVariablesOnStateChange()
-		return this.state.videoOutputInfo
+		return this.fetchAndStore(
+			'videoOutputInfo',
+			'/apiv2/general',
+			'ReqGetVideoOutputInfo',
+			(content) => content.VideoOutputInfo as VideoOutputInfo,
+		)
 	}
 
 	async setVideoOutput(output: Partial<VideoOutputInfo>): Promise<void> {
@@ -1002,107 +1013,99 @@ export class BolinCamera {
 	 * Gets general capabilities from the camera and stores it in state
 	 */
 	async getGeneralCapabilities(): Promise<GeneralCapabilities> {
-		const response = await this.sendRequest('/apiv2/general', 'ReqGetGeneralCapabilities')
-		const generalCapabilities = response.Content as GeneralCapabilities
-
-		this.state.generalCapabilities = generalCapabilities
-
-		this.updateVariablesOnStateChange()
-		return this.state.generalCapabilities
+		return this.fetchAndStore(
+			'generalCapabilities',
+			'/apiv2/general',
+			'ReqGetGeneralCapabilities',
+			(content) => content as GeneralCapabilities,
+		)
 	}
 
 	/**
 	 * Gets overlay information from the camera and stores it in state
 	 */
 	async getOverlayInfo(): Promise<OverlayInfo[]> {
-		const response = await this.sendRequest('/apiv2/general', 'ReqGetOverlayInfo')
-		this.state.overlayInfo = response.Content.OverlayInfo as OverlayInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.overlayInfo
+		return this.fetchAndStore(
+			'overlayInfo',
+			'/apiv2/general',
+			'ReqGetOverlayInfo',
+			(content) => content.OverlayInfo as OverlayInfo[],
+		)
 	}
 
 	/**
 	 * Gets network information from the camera and stores it in state
 	 */
 	async getNetworkInfo(): Promise<NetworkInfo | null> {
-		const response = await this.sendRequest('/apiv2/network', 'ReqGetNetworkInfo')
-		this.state.networkInfo = {
-			NetworkInfo: response.Content.NetworkInfo as NetworkInfo['NetworkInfo'],
-			Fallback: response.Content.Fallback as NetworkInfo['Fallback'],
-			Status: response.Content.Status,
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.networkInfo
+		return this.fetchAndStore('networkInfo', '/apiv2/network', 'ReqGetNetworkInfo', (content) => ({
+			NetworkInfo: content.NetworkInfo as NetworkInfo['NetworkInfo'],
+			Fallback: content.Fallback as NetworkInfo['Fallback'],
+			Status: content.Status,
+		}))
 	}
 
 	/**
 	 * Gets OSD system information from the camera and stores it in state
 	 */
 	async getOSDSystemInfo(): Promise<OSDSystemInfo> {
-		const response = await this.sendRequest('/apiv2/image', 'ReqGetOSDSystemInfo')
-		this.state.osdSystemInfo = response.Content.OSDSystemInfo as OSDSystemInfo
-		this.updateVariablesOnStateChange()
-		return this.state.osdSystemInfo
+		return this.fetchAndStore(
+			'osdSystemInfo',
+			'/apiv2/image',
+			'ReqGetOSDSystemInfo',
+			(content) => content.OSDSystemInfo as OSDSystemInfo,
+		)
 	}
 
 	/**
 	 * Gets RTSP stream information from the camera and stores it in state
 	 */
 	async getRTSPInfo(): Promise<RTSPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetRTSPInfo')
-		this.state.rtspInfo = response.Content.RTSPInfo as RTSPInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.rtspInfo
+		return this.fetchAndStore('rtspInfo', '/apiv2/av', 'ReqGetRTSPInfo', (content) => content.RTSPInfo as RTSPInfo[])
 	}
 
 	/**
 	 * Gets RTMP stream information from the camera and stores it in state
 	 */
 	async getRTMPInfo(): Promise<RTMPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetRTMPInfo')
-		this.state.rtmpInfo = response.Content.RTMPInfo as RTMPInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.rtmpInfo
+		return this.fetchAndStore('rtmpInfo', '/apiv2/av', 'ReqGetRTMPInfo', (content) => content.RTMPInfo as RTMPInfo[])
 	}
 
 	/**
 	 * Gets AV over UDP stream information from the camera and stores it in state
 	 */
 	async getAVOverUDPInfo(): Promise<AVOverUDPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetAVOverUDPInfo')
-		this.state.avOverUDPInfo = response.Content.AVOverUDPInfo as AVOverUDPInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.avOverUDPInfo
+		return this.fetchAndStore(
+			'avOverUDPInfo',
+			'/apiv2/av',
+			'ReqGetAVOverUDPInfo',
+			(content) => content.AVOverUDPInfo as AVOverUDPInfo[],
+		)
 	}
 
 	/**
 	 * Gets AV over RTP stream information from the camera and stores it in state
 	 */
 	async getAVOverRTPInfo(): Promise<AVOverRTPInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetAVOverRTPInfo')
-		this.state.avOverRTPInfo = response.Content.AVOverRTPInfo as AVOverRTPInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.avOverRTPInfo
+		return this.fetchAndStore(
+			'avOverRTPInfo',
+			'/apiv2/av',
+			'ReqGetAVOverRTPInfo',
+			(content) => content.AVOverRTPInfo as AVOverRTPInfo[],
+		)
 	}
 
 	/**
 	 * Gets NDI stream information from the camera and stores it in state
 	 */
 	async getNDIInfo(): Promise<NDIInfo> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetNDIInfo')
-		this.state.ndiInfo = response.Content.NDIInfo as NDIInfo
-		this.updateVariablesOnStateChange()
-		return this.state.ndiInfo
+		return this.fetchAndStore('ndiInfo', '/apiv2/av', 'ReqGetNDIInfo', (content) => content.NDIInfo as NDIInfo)
 	}
 
 	/**
 	 * Gets SRT stream information from the camera and stores it in state
 	 */
 	async getSRTInfo(): Promise<SRTInfo[]> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetSRTInfo')
-		this.state.srtInfo = response.Content.SRTInfo as SRTInfo[]
-		this.updateVariablesOnStateChange()
-		return this.state.srtInfo
+		return this.fetchAndStore('srtInfo', '/apiv2/av', 'ReqGetSRTInfo', (content) => content.SRTInfo as SRTInfo[])
 	}
 
 	/**
@@ -1111,14 +1114,7 @@ export class BolinCamera {
 	 * @param info The RTSP stream information parameters (all fields optional)
 	 */
 	async setRTSPInfo(channel: number, info: Partial<RTSPInfo>): Promise<void> {
-		// Only send channel and the fields that are actually being updated
-		const payload: Partial<RTSPInfo> = {
-			Channel: channel,
-			...info,
-		}
-		await this.sendRequest('/apiv2/av', 'ReqSetRTSPInfo', {
-			RTSPInfo: [payload],
-		})
+		await this.setStreamInfo('ReqSetRTSPInfo', 'RTSPInfo', channel, info)
 	}
 
 	/**
@@ -1127,14 +1123,7 @@ export class BolinCamera {
 	 * @param info The RTMP stream information parameters (all fields optional)
 	 */
 	async setRTMPInfo(channel: number, info: Partial<RTMPInfo>): Promise<void> {
-		// Only send channel and the fields that are actually being updated
-		const payload: Partial<RTMPInfo> = {
-			Channel: channel,
-			...info,
-		}
-		await this.sendRequest('/apiv2/av', 'ReqSetRTMPInfo', {
-			RTMPInfo: [payload],
-		})
+		await this.setStreamInfo('ReqSetRTMPInfo', 'RTMPInfo', channel, info)
 	}
 
 	/**
@@ -1143,14 +1132,7 @@ export class BolinCamera {
 	 * @param info The AV over UDP stream information parameters (all fields optional)
 	 */
 	async setAVOverUDPInfo(channel: number, info: Partial<AVOverUDPInfo>): Promise<void> {
-		// Only send channel and the fields that are actually being updated
-		const payload: Partial<AVOverUDPInfo> = {
-			Channel: channel,
-			...info,
-		}
-		await this.sendRequest('/apiv2/av', 'ReqSetAVOverUDPInfo', {
-			AVOverUDPInfo: [payload],
-		})
+		await this.setStreamInfo('ReqSetAVOverUDPInfo', 'AVOverUDPInfo', channel, info)
 	}
 
 	/**
@@ -1159,14 +1141,7 @@ export class BolinCamera {
 	 * @param info The AV over RTP stream information parameters (all fields optional)
 	 */
 	async setAVOverRTPInfo(channel: number, info: Partial<AVOverRTPInfo>): Promise<void> {
-		// Only send channel and the fields that are actually being updated
-		const payload: Partial<AVOverRTPInfo> = {
-			Channel: channel,
-			...info,
-		}
-		await this.sendRequest('/apiv2/av', 'ReqSetAVOverRTPInfo', {
-			AVOverRTPInfo: [payload],
-		})
+		await this.setStreamInfo('ReqSetAVOverRTPInfo', 'AVOverRTPInfo', channel, info)
 	}
 
 	/**
@@ -1209,13 +1184,10 @@ export class BolinCamera {
 	 * Gets encode information from the camera and stores it in state
 	 */
 	async getEncodeInfo(): Promise<EncodeInfo> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetEncodeInfo')
-		this.state.encodeInfo = {
-			EncodeInfo: response.Content.EncodeInfo as EncodeInfo['EncodeInfo'],
-			LowLatency: response.Content.LowLatency as EncodeInfo['LowLatency'],
-		}
-		this.updateVariablesOnStateChange()
-		return this.state.encodeInfo
+		return this.fetchAndStore('encodeInfo', '/apiv2/av', 'ReqGetEncodeInfo', (content) => ({
+			EncodeInfo: content.EncodeInfo as EncodeInfo['EncodeInfo'],
+			LowLatency: content.LowLatency as EncodeInfo['LowLatency'],
+		}))
 	}
 
 	/**
@@ -1230,10 +1202,7 @@ export class BolinCamera {
 	 * Gets audio information from the camera and stores it in state
 	 */
 	async getAudioInfo(): Promise<AudioInfo> {
-		const response = await this.sendRequest('/apiv2/av', 'ReqGetAudioInfo')
-		this.state.audioInfo = response.Content.AudioInfo as AudioInfo
-		this.updateVariablesOnStateChange()
-		return this.state.audioInfo
+		return this.fetchAndStore('audioInfo', '/apiv2/av', 'ReqGetAudioInfo', (content) => content.AudioInfo as AudioInfo)
 	}
 
 	/**
@@ -1293,6 +1262,25 @@ export class BolinCamera {
 			}
 		}
 		return names
+	}
+
+	/**
+	 * Shared helper for stream setters to reduce duplication
+	 */
+	private async setStreamInfo<T extends Record<string, unknown>>(
+		cmd: string,
+		payloadKey: string,
+		channel: number,
+		info: Partial<T>,
+	): Promise<void> {
+		// Only send channel and the fields that are actually being updated
+		const payload: Partial<T> & { Channel: number } = {
+			Channel: channel,
+			...info,
+		}
+		await this.sendRequest('/apiv2/av', cmd, {
+			[payloadKey]: [payload],
+		})
 	}
 
 	/**
