@@ -320,15 +320,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						},
 					},
 				],
-				up: [
-					{
-						actionId: 'zoom',
-						options: {
-							direction: 'Stop',
-							speed: '5',
-						},
-					},
-				],
+				up: [],
 			},
 		],
 		feedbacks: [],
@@ -480,7 +472,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		presets[`positionLimit${limit}`] = {
 			type: 'button',
 			category: 'PTZ Control',
-			name: `Position Limit ${limit}}`,
+			name: `Position Limit ${limit}`,
 			style: {
 				bgcolor: Color.darkGray,
 				color: Color.white,

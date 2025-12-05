@@ -1,6 +1,6 @@
 import type { BolinModuleInstance } from './main.js'
 import type { CameraState, PictureInfo } from './types.js'
-import { convertIrisValueToFStop, calculateNextAutoRestartTime } from './utils.js'
+import { convertIrisValueToFStop, calculateNextAutoRestartTime, deepEqual } from './utils.js'
 
 /**
  * Helper function to check if a value has changed between previous and current state
@@ -903,7 +903,7 @@ export function UpdateVariablesOnStateChange(
 	// Update trace info variables if changed
 	if (currentState.traceInfo) {
 		const previousTraceInfo = previousState?.traceInfo
-		if (!previousTraceInfo || JSON.stringify(previousTraceInfo) !== JSON.stringify(currentState.traceInfo)) {
+		if (!previousTraceInfo || !deepEqual(previousTraceInfo, currentState.traceInfo)) {
 			// Update trace names only for existing traces
 			for (const trace of currentState.traceInfo) {
 				variables[`trace_${trace.Number}_name`] = trace.Name
@@ -914,7 +914,7 @@ export function UpdateVariablesOnStateChange(
 	// Update scanning info variables if changed
 	if (currentState.scanningInfo) {
 		const previousScanningInfo = previousState?.scanningInfo
-		if (!previousScanningInfo || JSON.stringify(previousScanningInfo) !== JSON.stringify(currentState.scanningInfo)) {
+		if (!previousScanningInfo || !deepEqual(previousScanningInfo, currentState.scanningInfo)) {
 			// Update scanning names only for existing scanning patterns
 			for (const scanning of currentState.scanningInfo) {
 				variables[`scanning_${scanning.Number}_name`] = scanning.Name
@@ -925,7 +925,7 @@ export function UpdateVariablesOnStateChange(
 	// Update cruise info variables if changed
 	if (currentState.cruiseInfo) {
 		const previousCruiseInfo = previousState?.cruiseInfo
-		if (!previousCruiseInfo || JSON.stringify(previousCruiseInfo) !== JSON.stringify(currentState.cruiseInfo)) {
+		if (!previousCruiseInfo || !deepEqual(previousCruiseInfo, currentState.cruiseInfo)) {
 			// Update cruise names only for existing cruises
 			for (const cruise of currentState.cruiseInfo) {
 				variables[`cruise_${cruise.Number}_name`] = cruise.Name
