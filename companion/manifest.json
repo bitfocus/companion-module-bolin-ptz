@@ -2,7 +2,7 @@
 	"id": "bolin-ptz",
 	"name": "bolin-ptz",
 	"shortname": "bolin-ptz",
-	"description": "Control Bolin PTZ cameras.",
+	"description": "Control Bolin Technology PTZ cameras.",
 	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-bolin-ptz.git",
