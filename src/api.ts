@@ -169,9 +169,26 @@ export class BolinCamera {
 
 			const data = (await response.json()) as LoginResponse
 
-			if (data.Content.Status === 0 && data.Content.Token) {
-				this.authToken = data.Content.Token.Value ?? null
-				return this.authToken
+			if (data.Content.Status === 0) {
+				const tokenValue = data.Content?.Token?.Value
+				if (tokenValue) {
+					this.authToken = tokenValue
+
+					// After a successful login, try to fetch system info and log the camera name
+					try {
+						const sys = await this.getSystemInfo()
+						const deviceName = sys?.DeviceName ?? this.config.host
+						this.self.log('info', `Connected to camera: ${deviceName}`)
+					} catch (error) {
+						this.self.log('debug', `Connected but failed to fetch system info: ${this.getErrorMessage(error)}`)
+					}
+
+					return this.authToken
+				}
+
+				// Status indicates success but token is missing - treat as an error
+				this.authToken = null
+				throw new Error('Login succeeded but token missing from response')
 			} else {
 				this.authToken = null
 				throw new Error(`Login failed with status: ${data.Content.Status}`)
@@ -1352,10 +1369,7 @@ export class BolinCamera {
 		] = await Promise.allSettled([
 			this.fetchCapabilities('/apiv2/system', 'ReqGetSystemCapabilities', 'system capabilities'),
 			this.fetchCapabilities('/apiv2/ptzctrl', 'ReqGetPTZFCapabilities', 'PTZF capabilities'),
-			this.sendRequest('/apiv2/image', 'ReqGetImageCapabilities').catch((error) => {
-				this.self.log('debug', `Failed to get image capabilities: ${this.getErrorMessage(error)}`)
-				return null
-			}),
+			this.fetchCapabilities('/apiv2/image', 'ReqGetImageCapabilities', 'image capabilities'),
 			this.fetchCapabilities('/apiv2/av', 'ReqGetAVStreamCapabilities', 'AV stream capabilities'),
 			this.fetchCapabilities('/apiv2/network', 'ReqGetNetworkCapabilities', 'network capabilities'),
 			this.fetchCapabilities('/apiv2/general', 'ReqGetGeneralCapabilities', 'general capabilities'),
@@ -1369,11 +1383,16 @@ export class BolinCamera {
 			capabilities.ptzfCapabilities = ptzfCapabilities.value
 		}
 		if (imageResponse.status === 'fulfilled' && imageResponse.value) {
-			capabilities.imageCapabilities = this.extractObjectNames(imageResponse.value.Content)
-			const imageContent = imageResponse.value.Content as Record<string, unknown>
-			// Build shutter speed and iris maps - extractEnumMap will search all levels recursively
-			this.buildShutterSpeedMap(imageContent)
-			this.buildIrisMap(imageContent)
+			capabilities.imageCapabilities = imageResponse.value
+			// Fetch the full image capabilities content separately so we can build the maps
+			try {
+				const fullImageResp = await this.sendRequest('/apiv2/image', 'ReqGetImageCapabilities')
+				const imageContent = fullImageResp.Content as Record<string, unknown>
+				this.buildShutterSpeedMap(imageContent)
+				this.buildIrisMap(imageContent)
+			} catch (error) {
+				this.self.log('debug', `Failed to get image capabilities content: ${this.getErrorMessage(error)}`)
+			}
 		}
 		if (avStreamCapabilities.status === 'fulfilled' && avStreamCapabilities.value) {
 			capabilities.avStreamCapabilities = avStreamCapabilities.value

@@ -94,7 +94,7 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 						if (attempt === 6) {
 							// Last attempt failed - rethrow to be caught by outer catch
 							const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-							this.log('warn', `Camera initialization failed after 7 attempts (~60s): ${errorMessage}`)
+							this.log('debug', `Camera initialization failed after 7 attempts (~60s): ${errorMessage}`)
 							throw error
 						}
 						const delay = 1000 * Math.pow(2, attempt)
@@ -111,7 +111,7 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 			this.updateStatus(InstanceStatus.ConnectionFailure)
 			// Only log error if we're not already in reconnection mode
 			if (!this.isReconnecting) {
-				this.log('warn', `Camera connection error: ${errorMessage}`)
+				this.log('error', `Camera connection error: ${errorMessage}`)
 			}
 			// Start reconnection polling if not already active
 			this.startReconnectionPoll()
