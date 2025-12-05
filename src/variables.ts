@@ -198,7 +198,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 			],
 		},
 		{
-			capabilities: ['VideoOutputInfo'],
+			capabilities: ['VideoOutputInfo.SystemFormat'],
 			variables: [{ name: 'System - Video Format', variableId: 'system_format' }],
 		},
 		{

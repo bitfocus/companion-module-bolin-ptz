@@ -631,7 +631,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 
 	presets['presetCallHeader'] = {
-		category: 'PTZ Presets',
+		category: 'Presets',
 		name: 'Call Presets',
 		type: 'text',
 		text: '',
@@ -645,10 +645,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 		presets[`presetCall${presetNumberStr}`] = {
 			type: 'button',
-			category: 'PTZ Presets',
+			category: 'Presets',
 			name: 'Call ' + presetName + ' (' + presetNumber + ')',
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `CALL\\n${presetName}`,
 				size: '14',
@@ -678,7 +678,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 
 	presets['presetSaveHeader'] = {
-		category: 'PTZ Presets',
+		category: 'Presets',
 		name: 'Save Presets',
 		type: 'text',
 		text: '',
@@ -691,10 +691,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 		presets[`presetSave${presetNumberStr}`] = {
 			type: 'button',
-			category: 'PTZ Presets',
+			category: 'Presets',
 			name: 'Save ' + presetName + ' (' + presetNumber + ')',
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `SAVE\\n${presetName}`,
 				size: '14',
@@ -1661,7 +1661,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		style: {
 			bgcolor: Color.darkGray,
 			color: Color.white,
-			text: `CAMERA\n$(bolin-ptz:device_name)`,
+			text: `CAMERA\\nNAME\\n\\n$(bolin-ptz:device_name)`,
 			size: 12,
 			show_topbar: false,
 		},
@@ -1680,7 +1680,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		style: {
 			bgcolor: Color.darkGray,
 			color: Color.white,
-			text: `MODEL\n$(bolin-ptz:model_name)`,
+			text: `CAMERA\\nMODEL\\n\n\\n$(bolin-ptz:model_name)`,
 			size: 12,
 			show_topbar: false,
 		},
@@ -1692,14 +1692,207 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-	presets['systemFormat'] = {
+
+	const hasSystemFormat = self.camera?.hasCapability('VideoOutputInfo.SystemFormat') ?? false
+	if (hasSystemFormat) {
+		presets['systemFormat'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'Format',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SYSTEM\\nFORMAT\\n\\n$(bolin-ptz:system_format)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
+	const hasHdmiFormat = self.camera?.hasCapability('VideoOutputInfo.HDMIResolution') ?? false
+	if (hasHdmiFormat) {
+		presets['hdmiFormat'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'HDMI Format',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `HDMI\\nFORMAT\\n\\n$(bolin-ptz:hdmi_resolution)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+	const hasSdiFormat = self.camera?.hasCapability('VideoOutputInfo.SDIResolution') ?? false
+	if (hasSdiFormat) {
+		presets['sdiFormat'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'SDI Format',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SDI\\nFORMAT\\n\\n$(bolin-ptz:sdi_resolution)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
+	presets['pelcoID'] = {
 		type: 'button',
 		category: 'System Info',
-		name: 'Format',
+		name: 'Pelco ID',
 		style: {
 			bgcolor: Color.darkGray,
 			color: Color.white,
-			text: `FORMAT\n$(bolin-ptz:system_format)`,
+			text: `PELCO\\nID\\n\\n$(bolin-ptz:pelco_id)\\n`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['viscaID'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'VISCA ID',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: `VISCA\\nID\\n\\n$(bolin-ptz:visca_id)\\n`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['ipAddressHeader'] = {
+		category: 'System Info',
+		name: 'Network Info',
+		type: 'text',
+		text: '',
+	}
+	presets['ipAddress'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'IP Address',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: `IP\\nADDRESS\\n\\n$(bolin-ptz:ip_address)\\n`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['subnetMask'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Subnet Mask',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: `SUBNET\\nMASK\\n\\n$(bolin-ptz:subnet_mask)\\n`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['gateway'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Gateway',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: `GATEWAY\\n\\n$(bolin-ptz:gateway)\\n`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+	presets['fallbackIP'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'Fallback IP',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: `FALLBACK\\nIP\\n\\n$(bolin-ptz:fallback_ip_address)\\n`,
+			size: 12,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+
+	presets['macAddress'] = {
+		type: 'button',
+		category: 'System Info',
+		name: 'MAC Address',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: `MAC\\nADDRESS\\n\\n$(bolin-ptz:mac_address)\\n`,
 			size: 12,
 			show_topbar: false,
 		},
@@ -1714,15 +1907,15 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 	// Auto Restart presets
 	const autoRestartModes = [
-		{ id: 0, label: 'Never', text: 'AUTO RESTART\nNEVER' },
-		{ id: 1, label: 'Every Day', text: 'AUTO RESTART\nDAILY' },
-		{ id: 2, label: 'Every Week', text: 'AUTO RESTART\nWEEKLY' },
-		{ id: 3, label: 'Every Month', text: 'AUTO RESTART\nMONTHLY' },
+		{ id: 0, label: 'Never', text: 'AUTO RESTART\\nNEVER' },
+		{ id: 1, label: 'Every Day', text: 'AUTO RESTART\\nDAILY' },
+		{ id: 2, label: 'Every Week', text: 'AUTO RESTART\\nWEEKLY' },
+		{ id: 3, label: 'Every Month', text: 'AUTO RESTART\\nMONTHLY' },
 	]
 
 	presets['autoRestartHeader'] = {
 		category: 'System Info',
-		name: 'Auto Restart Mode',
+		name: 'Set Auto Restart Mode',
 		type: 'text',
 		text: '',
 	}
@@ -1733,7 +1926,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'System Info',
 			name: `Auto Restart ${mode.label}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: mode.text,
 				size: '14',
@@ -2418,8 +2611,29 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			type: 'text',
 			text: '',
 		}
+		presets[`presetAudioVolumeStatus`] = {
+			type: 'button',
+			category: 'Audio',
+			name: `Audio Volume Status`,
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `VOLUME\\n$(bolin-ptz:audio_volume)%`,
+				size: 12,
+				alignment: 'center:bottom',
+				png64: icons.meters,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
 		for (const volume of [
-			{ value: 0, label: '0%' },
+			{ value: 1, label: '1%' },
 			{ value: 25, label: '25%' },
 			{ value: 50, label: '50%' },
 			{ value: 75, label: '75%' },
@@ -2430,12 +2644,11 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'Audio',
 				name: `Audio Volume ${volume.label}`,
 				style: {
-					bgcolor: Color.darkGray,
+					bgcolor: Color.lightGray,
 					color: Color.white,
-					text: `VOLUME\\n${volume.label}`,
+					text: `SET\\nVOLUME\\n${volume.label}`,
 					size: 12,
-					alignment: 'center:bottom',
-					png64: icons.meters,
+					alignment: 'center:center',
 					show_topbar: false,
 				},
 				steps: [
@@ -2473,14 +2686,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	if (hasEncodeInfoCapability) {
 		// Main Stream Info
 		presets['encoderInfoMainStreamHeader'] = {
-			category: 'Encoder Info',
-			name: 'Main Stream',
+			category: 'AV Streams',
+			name: 'Main Stream Info',
 			type: 'text',
 			text: '',
 		}
 		presets['encoderInfoMainStreamInfo'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Main Stream Info',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2499,7 +2712,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['encoderInfoMainStreamResolution'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Main Stream Resolution',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2518,7 +2731,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['encoderInfoMainStreamFrameRate'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Main Stream Frame Rate',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2537,7 +2750,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['encoderInfoMainStreamBitrate'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Main Stream Bitrate',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2557,14 +2770,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 		// Sub Stream Info
 		presets['encoderInfoSubStreamHeader'] = {
-			category: 'Encoder Info',
-			name: 'Sub Stream',
+			category: 'AV Streams',
+			name: 'Sub Stream Info',
 			type: 'text',
 			text: '',
 		}
 		presets['encoderInfoSubStreamInfo'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Sub Stream Info',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2583,7 +2796,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['encoderInfoSubStreamResolution'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Sub Stream Resolution',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2602,7 +2815,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['encoderInfoSubStreamFrameRate'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Sub Stream Frame Rate',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2621,7 +2834,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 		presets['encoderInfoSubStreamBitrate'] = {
 			type: 'button',
-			category: 'Encoder Info',
+			category: 'AV Streams',
 			name: 'Sub Stream Bitrate',
 			style: {
 				bgcolor: Color.darkGray,
@@ -2641,14 +2854,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		// Other encoder info
 		if (self.camera?.hasCapability('EncodeInfo.LowLatency')) {
 			presets['encoderInfoOtherHeader'] = {
-				category: 'Encoder Info',
+				category: 'AV Streams',
 				name: 'Other',
 				type: 'text',
 				text: '',
 			}
 			presets['encoderInfoLowLatency'] = {
 				type: 'button',
-				category: 'Encoder Info',
+				category: 'AV Streams',
 				name: 'Low Latency',
 				style: {
 					bgcolor: Color.darkGray,
@@ -2680,7 +2893,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Modes',
 		name: 'Auto Scanning',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `AUTO\\nSCAN\\nSTART`,
 			size: '14',
@@ -2706,7 +2919,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Modes',
 		name: 'Auto Scanning Stop',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `AUTO\\nSCAN\\nSTOP`,
 			size: '14',
@@ -2748,7 +2961,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			category: 'PTZ Modes',
 			name: `CALL Cruise ${cruiseName}`,
 			style: {
-				bgcolor: Color.darkGray,
+				bgcolor: Color.lightGray,
 				color: Color.white,
 				text: `CALL\\nCRUISE\\n$(bolin-ptz:cruise_${cruise.Number}_name)`,
 				size: '14',
@@ -2779,7 +2992,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		category: 'PTZ Modes',
 		name: 'STOP Cruise',
 		style: {
-			bgcolor: Color.darkGray,
+			bgcolor: Color.lightGray,
 			color: Color.white,
 			text: `STOP\\nCRUISE`,
 			size: '14',
@@ -2829,7 +3042,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'PTZ Modes',
 				name: `Trace ${traceNumber} - ${cmd.name}`,
 				style: {
-					bgcolor: Color.darkGray,
+					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `TRACE ${traceNumber}\n${cmd.label}`,
 					size: '14',
@@ -2883,7 +3096,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				category: 'PTZ Modes',
 				name: `Scanning ${scanningNumber} - ${cmd.name}`,
 				style: {
-					bgcolor: Color.darkGray,
+					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `SCAN ${scanningNumber}\n${cmd.label}`,
 					size: '14',
