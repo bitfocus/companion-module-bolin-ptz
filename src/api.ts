@@ -246,7 +246,7 @@ export class BolinCamera {
 	 */
 	private getFeedbackIdsForStateKey(stateKey: keyof CameraState): string[] {
 		const feedbackMap: Partial<Record<keyof CameraState, string[]>> = {
-			exposureInfo: ['gain', 'smartExposure', 'shutterSpeed', 'iris'],
+			exposureInfo: ['exposureMode', 'gain', 'smartExposure', 'shutterSpeed', 'iris'],
 			whiteBalanceInfo: ['whiteBalanceMode', 'whiteBalanceSensitivity', 'colorTemperature'],
 			pictureInfo: ['flip', 'mirror', 'hlcMode', 'blcMode', 'scene', 'defogMode', 'effect', 'colorMatrix'],
 			lensInfo: ['smart', 'focusMode', 'digitalZoom', 'zoomRatioOSD', 'afSensitivity', 'mfSpeed'],
