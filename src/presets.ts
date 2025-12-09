@@ -1161,7 +1161,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				text,
 				size: '14' as const,
 				alignment: 'center:bottom' as const,
-				png64: options?.toggleOffIcon || icons.toggleOff,
+				png64: options?.toggleOffIcon || icons.toggleSmall,
+				pngalignment: 'center:top' as const,
 				show_topbar: false,
 			}
 
