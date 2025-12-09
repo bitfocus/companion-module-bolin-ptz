@@ -1793,6 +1793,40 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		],
 		feedbacks: [],
 	}
+	const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
+	if (hasTallyMode) {
+		presets['tallyModeHeader'] = {
+			category: 'System Info',
+			name: 'Tally Mode',
+			type: 'text',
+			text: '',
+		}
+
+		for (const mode of [
+			{ id: 'toggle', label: 'Toggle', text: 'TALLY MODE' },
+			{ id: 'false', label: 'Off', text: 'TALLY\\nOFF' },
+			{ id: 'true', label: 'On', text: 'TALLY\\nON' },
+		]) {
+			const presetKey = mode.id === 'toggle' ? `presetTallyModeToggle${mode.label}` : `presetTallyMode${mode.label}`
+			createTogglePreset(
+				presets,
+				presetKey,
+				`Tally Mode ${mode.label}`,
+				'System Info',
+				mode.text,
+				'tallyMode',
+				mode.id,
+				'tallyMode',
+				mode.id === 'toggle',
+				{
+					toggleOffIcon: icons.toggleOff,
+					toggleOnIcon: icons.toggleOn,
+					defaultIcon: icons.mirror,
+					alignment: 'center:bottom',
+				},
+			)
+		}
+	}
 
 	presets['ipAddressHeader'] = {
 		category: 'System Info',

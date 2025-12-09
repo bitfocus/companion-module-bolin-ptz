@@ -25,6 +25,7 @@ import type {
 	ScanningRequest,
 	CruiseRequest,
 	AutoRestartRequest,
+	OSDSystemInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -1056,6 +1057,18 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							await self.camera.setVideoOutput(currentFormat)
 						},
 					}
+				}
+
+				if (self.camera?.hasCapability('OSDSystemInfo')) {
+					createToggleAction(
+						'tallyMode',
+						'Tally Mode',
+						() => self.camera?.getState().osdSystemInfo?.TallyMode,
+						async (value) => {
+							if (!self.camera) return
+							await self.camera.setOSDSystemInfo({ TallyMode: value } as Partial<OSDSystemInfo>)
+						},
+					)
 				}
 			},
 		},

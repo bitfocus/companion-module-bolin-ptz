@@ -261,6 +261,7 @@ export class BolinCamera {
 			ndiInfo: ['ndiEnabled'],
 			audioInfo: ['audioEnabled', 'audioVolume'],
 			autoRestartInfo: ['autoRestartEnabled'],
+			osdSystemInfo: ['tallyMode'],
 		}
 		return feedbackMap[stateKey] ?? []
 	}
@@ -1054,6 +1055,16 @@ export class BolinCamera {
 			'ReqGetOSDSystemInfo',
 			(content) => content.OSDSystemInfo as OSDSystemInfo,
 		)
+	}
+
+	/**
+	 * Sets the OSD system information on the camera
+	 * @param osdSystemInfo The OSD system information array
+	 */
+	async setOSDSystemInfo(osdSystemInfo: Partial<OSDSystemInfo>): Promise<void> {
+		await this.sendRequest('/apiv2/image', 'ReqSetOSDSystemInfo', {
+			OSDSystemInfo: osdSystemInfo,
+		})
 	}
 
 	/**

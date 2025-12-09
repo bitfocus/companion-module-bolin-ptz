@@ -878,6 +878,14 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				}
 			},
 		},
+		{
+			capabilities: ['OSDSystemInfo'],
+			createFeedbacks: () => {
+				createToggleFeedback('tallyMode', 'Tally - Mode', 'Tally mode is enabled', () => {
+					return self.camera?.getState()?.osdSystemInfo?.TallyMode ?? false
+				})
+			},
+		},
 	]
 
 	// Filter and create feedbacks based on capabilities
