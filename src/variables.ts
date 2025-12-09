@@ -59,8 +59,8 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['OverlayInfo'],
 			variables: Array.from({ length: 8 }, (_, i) => ({
-				name: `Overlay ${i + 1} Enabled`,
-				variableId: `overlay_${i + 1}_enabled`,
+				name: `Overlay ${i + 1} Status`,
+				variableId: `overlay_${i + 1}_status`,
 			})),
 		},
 		{
@@ -241,10 +241,10 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['RTSPInfo'],
 			variables: [
-				{ name: 'Stream - RTSP Main Enable', variableId: 'rtsp_main_enable' },
+				{ name: 'Stream - RTSP Main Enable', variableId: 'rtsp_main_status' },
 				{ name: 'Stream - RTSP Main Port', variableId: 'rtsp_main_port' },
 				{ name: 'Stream - RTSP Main Stream Key', variableId: 'rtsp_main_stream_key' },
-				{ name: 'Stream - RTSP Sub Enable', variableId: 'rtsp_sub_enable' },
+				{ name: 'Stream - RTSP Sub Enable', variableId: 'rtsp_sub_status' },
 				{ name: 'Stream - RTSP Sub Port', variableId: 'rtsp_sub_port' },
 				{ name: 'Stream - RTSP Sub Stream Key', variableId: 'rtsp_sub_stream_key' },
 			],
@@ -252,11 +252,11 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['RTMPInfo'],
 			variables: [
-				{ name: 'Stream - RTMP Main Enable', variableId: 'rtmp_main_enable' },
+				{ name: 'Stream - RTMP Main Enable', variableId: 'rtmp_main_status' },
 				{ name: 'Stream - RTMP Main Port', variableId: 'rtmp_main_port' },
 				{ name: 'Stream - RTMP Main Url', variableId: 'rtmp_main_url' },
 				{ name: 'Stream - RTMP Main Stream Key', variableId: 'rtmp_main_stream_key' },
-				{ name: 'Stream - RTMP Sub Enable', variableId: 'rtmp_sub_enable' },
+				{ name: 'Stream - RTMP Sub Enable', variableId: 'rtmp_sub_status' },
 				{ name: 'Stream - RTMP Sub Port', variableId: 'rtmp_sub_port' },
 				{ name: 'Stream - RTMP Sub Url', variableId: 'rtmp_sub_url' },
 				{ name: 'Stream - RTMP Sub Stream Key', variableId: 'rtmp_sub_stream_key' },
@@ -265,10 +265,10 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['AVOverUDPInfo'],
 			variables: [
-				{ name: 'Stream - AV Over UDP Main Enable', variableId: 'av_over_udp_main_enable' },
+				{ name: 'Stream - AV Over UDP Main Enable', variableId: 'av_over_udp_main_status' },
 				{ name: 'Stream - AV Over UDP Main Address', variableId: 'av_over_udp_main_address' },
 				{ name: 'Stream - AV Over UDP Main Port', variableId: 'av_over_udp_main_port' },
-				{ name: 'Stream - AV Over UDP Sub Enable', variableId: 'av_over_udp_sub_enable' },
+				{ name: 'Stream - AV Over UDP Sub Enable', variableId: 'av_over_udp_sub_status' },
 				{ name: 'Stream - AV Over UDP Sub Address', variableId: 'av_over_udp_sub_address' },
 				{ name: 'Stream - AV Over UDP Sub Port', variableId: 'av_over_udp_sub_port' },
 			],
@@ -276,10 +276,10 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['AVOverRTPInfo'],
 			variables: [
-				{ name: 'Stream - AV Over RTP Main Enable', variableId: 'av_over_rtp_main_enable' },
+				{ name: 'Stream - AV Over RTP Main Enable', variableId: 'av_over_rtp_main_status' },
 				{ name: 'Stream - AV Over RTP Main Address', variableId: 'av_over_rtp_main_address' },
 				{ name: 'Stream - AV Over RTP Main Port', variableId: 'av_over_rtp_main_port' },
-				{ name: 'Stream - AV Over RTP Sub Enable', variableId: 'av_over_rtp_sub_enable' },
+				{ name: 'Stream - AV Over RTP Sub Enable', variableId: 'av_over_rtp_sub_status' },
 				{ name: 'Stream - AV Over RTP Sub Address', variableId: 'av_over_rtp_sub_address' },
 				{ name: 'Stream - AV Over RTP Sub Port', variableId: 'av_over_rtp_sub_port' },
 			],
@@ -287,7 +287,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['NDIInfo'],
 			variables: [
-				{ name: 'Stream - NDI Enable', variableId: 'ndi_enable' },
+				{ name: 'Stream - NDI Enable', variableId: 'ndi_status' },
 				{ name: 'Stream - NDI Name', variableId: 'ndi_name' },
 				{ name: 'Stream - NDI HX Bandwidth', variableId: 'ndi_hx_bandwidth' },
 			],
@@ -295,14 +295,14 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['SRTInfo'],
 			variables: [
-				{ name: 'Stream - SRT Main Enable', variableId: 'srt_main_enable' },
+				{ name: 'Stream - SRT Main Enable', variableId: 'srt_main_status' },
 				{ name: 'Stream - SRT Main Port', variableId: 'srt_main_port' },
 				{ name: 'Stream - SRT Main Mode', variableId: 'srt_main_mode' },
 				{ name: 'Stream - SRT Main IP Address', variableId: 'srt_main_ip_address' },
 				{ name: 'Stream - SRT Main Stream ID', variableId: 'srt_main_stream_id' },
 				{ name: 'Stream - SRT Main Latency', variableId: 'srt_main_latency' },
 				{ name: 'Stream - SRT Main Overhead Bandwidth', variableId: 'srt_main_overhead_bandwidth' },
-				{ name: 'Stream - SRT Sub Enable', variableId: 'srt_sub_enable' },
+				{ name: 'Stream - SRT Sub Enable', variableId: 'srt_sub_status' },
 				{ name: 'Stream - SRT Sub Port', variableId: 'srt_sub_port' },
 				{ name: 'Stream - SRT Sub Mode', variableId: 'srt_sub_mode' },
 				{ name: 'Stream - SRT Sub IP Address', variableId: 'srt_sub_ip_address' },
@@ -314,7 +314,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['AudioInfo'],
 			variables: [
-				{ name: 'Audio - Enable', variableId: 'audio_enable' },
+				{ name: 'Audio - Status', variableId: 'audio_status' },
 				{ name: 'Audio - Bit Rate', variableId: 'audio_bit_rate' },
 				{ name: 'Audio - Sampling Rate', variableId: 'audio_sampling_rate' },
 				{ name: 'Audio - Volume', variableId: 'audio_volume' },
@@ -486,9 +486,27 @@ export function UpdateVariablesOnStateChange(
 		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.FocusArea, 'focus_area')
 		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.NearLimit, 'near_limit')
 		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.AFSensitivity, 'af_sensitivity')
-		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.SmartFocus, 'smart_focus')
-		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.DigitalZoom, 'digital_zoom')
-		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.ZoomRatioOSD, 'zoom_ratio_osd')
+		updateIfChanged(
+			variables,
+			previousState?.lensInfo,
+			currentState.lensInfo,
+			(l) => (l.SmartFocus ? 'On' : 'Off'),
+			'smart_focus',
+		)
+		updateIfChanged(
+			variables,
+			previousState?.lensInfo,
+			currentState.lensInfo,
+			(l) => (l.DigitalZoom ? 'On' : 'Off'),
+			'digital_zoom',
+		)
+		updateIfChanged(
+			variables,
+			previousState?.lensInfo,
+			currentState.lensInfo,
+			(l) => (l.ZoomRatioOSD ? 'On' : 'Off'),
+			'zoom_ratio_osd',
+		)
 		updateIfChanged(variables, previousState?.lensInfo, currentState.lensInfo, (l) => l.MFSpeed, 'mf_speed')
 	}
 
@@ -509,10 +527,10 @@ export function UpdateVariablesOnStateChange(
 		{ getValue: (p: PictureInfo) => p.DefogMode, variableId: 'defog_mode' },
 		{ getValue: (p: PictureInfo) => p.DefogLevel, variableId: 'defog_level' },
 		{ getValue: (p: PictureInfo) => p.Effect, variableId: 'effect' },
-		{ getValue: (p: PictureInfo) => p.Flip, variableId: 'flip' },
-		{ getValue: (p: PictureInfo) => p.Mirror, variableId: 'mirror' },
-		{ getValue: (p: PictureInfo) => p.HLCMode, variableId: 'hlc_mode' },
-		{ getValue: (p: PictureInfo) => p.BLC, variableId: 'blc' },
+		{ getValue: (p: PictureInfo) => (p.Flip ? 'On' : 'Off'), variableId: 'flip' },
+		{ getValue: (p: PictureInfo) => (p.Mirror ? 'On' : 'Off'), variableId: 'mirror' },
+		{ getValue: (p: PictureInfo) => (p.HLCMode ? 'On' : 'Off'), variableId: 'hlc_mode' },
+		{ getValue: (p: PictureInfo) => (p.BLC ? 'On' : 'Off'), variableId: 'blc' },
 	]
 
 	// Check if camera has color matrix capabilities
@@ -582,7 +600,7 @@ export function UpdateVariablesOnStateChange(
 	updateFields(variables, previousState?.gammaInfo, currentState.gammaInfo, [
 		{ getValue: (g) => g?.Level, variableId: 'gamma_level' },
 		{ getValue: (g) => g.Bright, variableId: 'gamma_bright' },
-		{ getValue: (g) => g.WDR, variableId: 'wdr' },
+		{ getValue: (g) => (g.WDR ? 'On' : 'Off'), variableId: 'wdr' },
 		{ getValue: (g) => g.WDRLevel, variableId: 'wdr_level' },
 	])
 
@@ -605,7 +623,7 @@ export function UpdateVariablesOnStateChange(
 			{ getValue: (e) => e.Gain, variableId: 'gain' },
 			{ getValue: (e) => e.GainLimit, variableId: 'gain_limit' },
 			{ getValue: (e) => e.ExCompLevel, variableId: 'ex_comp_level' },
-			{ getValue: (e) => e.SmartExposure, variableId: 'smart_exposure' },
+			{ getValue: (e) => (e.SmartExposure ? 'On' : 'Off'), variableId: 'smart_exposure' },
 			{ getValue: (e) => e.ShutterSpeed, variableId: 'shutter_speed' },
 		])
 		// Special handling for Iris (needs map lookup or range conversion)
@@ -633,10 +651,10 @@ export function UpdateVariablesOnStateChange(
 
 	// Update position limitations variables if changed
 	updateFields(variables, previousState?.positionLimitations, currentState.positionLimitations, [
-		{ getValue: (p) => p.DownLimit, variableId: 'position_limit_down' },
-		{ getValue: (p) => p.UpLimit, variableId: 'position_limit_up' },
-		{ getValue: (p) => p.LeftLimit, variableId: 'position_limit_left' },
-		{ getValue: (p) => p.RightLimit, variableId: 'position_limit_right' },
+		{ getValue: (p) => (p.DownLimit ? 'Locked' : 'Unlocked'), variableId: 'position_limit_down' },
+		{ getValue: (p) => (p.UpLimit ? 'Locked' : 'Unlocked'), variableId: 'position_limit_up' },
+		{ getValue: (p) => (p.LeftLimit ? 'Locked' : 'Unlocked'), variableId: 'position_limit_left' },
+		{ getValue: (p) => (p.RightLimit ? 'Locked' : 'Unlocked'), variableId: 'position_limit_right' },
 	])
 
 	// Update video output info variables if changed
@@ -681,7 +699,7 @@ export function UpdateVariablesOnStateChange(
 				!previousState.overlayInfo[i - 1] ||
 				previousState.overlayInfo[i - 1].Enable !== currentOverlay.Enable
 			) {
-				variables[`overlay_${i}_enabled`] = currentOverlay.Enable
+				variables[`overlay_${i}_status`] = currentOverlay.Enable ? 'On' : 'Off'
 			}
 		}
 	}
@@ -702,7 +720,7 @@ export function UpdateVariablesOnStateChange(
 		updateFields(variables, previousState?.osdSystemInfo, currentState.osdSystemInfo, [
 			{ getValue: (o) => o.PelcoID, variableId: 'pelco_id' },
 			{ getValue: (o) => o.VISCAID, variableId: 'visca_id' },
-			{ getValue: (o) => o.TallyMode, variableId: 'tally' },
+			{ getValue: (o) => (o.TallyMode ? 'On' : 'Off'), variableId: 'tally_mode' },
 		])
 	}
 
@@ -713,7 +731,7 @@ export function UpdateVariablesOnStateChange(
 			const previousStream = previousState?.rtspInfo?.find((s) => s.Channel === stream.Channel)
 
 			if (!previousStream || previousStream.Enable !== stream.Enable) {
-				variables[`${channelPrefix}_enable`] = stream.Enable
+				variables[`${channelPrefix}_status`] = stream.Enable ? 'On' : 'Off'
 			}
 			if (!previousStream || previousStream.Port !== stream.Port) {
 				variables[`${channelPrefix}_port`] = stream.Port
@@ -731,7 +749,7 @@ export function UpdateVariablesOnStateChange(
 			const previousStream = previousState?.rtmpInfo?.find((s) => s.Channel === stream.Channel)
 
 			if (!previousStream || previousStream.Enable !== stream.Enable) {
-				variables[`${channelPrefix}_enable`] = stream.Enable
+				variables[`${channelPrefix}_status`] = stream.Enable ? 'On' : 'Off'
 			}
 			if (!previousStream || previousStream.Port !== stream.Port) {
 				variables[`${channelPrefix}_port`] = stream.Port
@@ -752,7 +770,7 @@ export function UpdateVariablesOnStateChange(
 			const previousStream = previousState?.avOverUDPInfo?.find((s) => s.Channel === stream.Channel)
 
 			if (!previousStream || previousStream.Enable !== stream.Enable) {
-				variables[`${channelPrefix}_enable`] = stream.Enable
+				variables[`${channelPrefix}_status`] = stream.Enable ? 'On' : 'Off'
 			}
 			if (!previousStream || previousStream.Address !== stream.Address) {
 				variables[`${channelPrefix}_address`] = stream.Address ?? ''
@@ -770,7 +788,7 @@ export function UpdateVariablesOnStateChange(
 			const previousStream = previousState?.avOverRTPInfo?.find((s) => s.Channel === stream.Channel)
 
 			if (!previousStream || previousStream.Enable !== stream.Enable) {
-				variables[`${channelPrefix}_enable`] = stream.Enable
+				variables[`${channelPrefix}_status`] = stream.Enable ? 'On' : 'Off'
 			}
 			if (!previousStream || previousStream.Address !== stream.Address) {
 				variables[`${channelPrefix}_address`] = stream.Address ?? ''
@@ -784,7 +802,7 @@ export function UpdateVariablesOnStateChange(
 	// Update NDI stream variables if changed
 	if (currentState.ndiInfo) {
 		updateFields(variables, previousState?.ndiInfo, currentState.ndiInfo, [
-			{ getValue: (n) => n.NDIEnable, variableId: 'ndi_enable' },
+			{ getValue: (n) => (n.NDIEnable ? 'On' : 'Off'), variableId: 'ndi_status' },
 			{ getValue: (n) => n.NDIName ?? '', variableId: 'ndi_name', defaultValue: '' },
 			{ getValue: (n) => n.NDIHXBandwidth, variableId: 'ndi_hx_bandwidth' },
 		])
@@ -797,7 +815,7 @@ export function UpdateVariablesOnStateChange(
 			const previousStream = previousState?.srtInfo?.find((s) => s.Channel === stream.Channel)
 
 			if (!previousStream || previousStream.Enable !== stream.Enable) {
-				variables[`${channelPrefix}_enable`] = stream.Enable
+				variables[`${channelPrefix}_status`] = stream.Enable ? 'On' : 'Off'
 			}
 			if (!previousStream || previousStream.Port !== stream.Port) {
 				variables[`${channelPrefix}_port`] = stream.Port
@@ -827,7 +845,7 @@ export function UpdateVariablesOnStateChange(
 
 		// Enable
 		if (!previousAudio || previousAudio.Enable !== currentAudio.Enable) {
-			variables.audio_enable = currentAudio.Enable
+			variables.audio_status = currentAudio.Enable ? 'On' : 'Off'
 		}
 
 		// BitRate - map numeric values to strings
@@ -863,7 +881,7 @@ export function UpdateVariablesOnStateChange(
 			variables,
 			previousState?.encodeInfo,
 			currentState.encodeInfo,
-			(e) => e.LowLatency?.Enable,
+			(e) => (e.LowLatency?.Enable ? 'On' : 'Off'),
 			'low_latency',
 		)
 
