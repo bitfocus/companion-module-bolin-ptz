@@ -590,7 +590,15 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			},
 		],
 	}
+	createAdjustmentPresets('ptSpeed', 'PTZ Control', 'PT Speed', 'adjPTSpeed', 'pt_speed', 'P/T SPEED', {
+		adjustmentValue: 10,
+		headerName: 'Pan / Tilt Speed Control',
+	})
 
+	createAdjustmentPresets('zoomSpeed', 'PTZ Control', 'Zoom Speed', 'adjZoomSpeed', 'zoom_speed', 'ZOOM SPEED', {
+		adjustmentValue: 1,
+		headerName: 'Zoom Speed',
+	})
 	presets['ptzControlHeaderDirection'] = {
 		category: 'PTZ Control',
 		name: 'Direction Invert',

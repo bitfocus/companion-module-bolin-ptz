@@ -69,6 +69,8 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 				{ name: 'PTZ - Pan Position', variableId: 'pan_position' },
 				{ name: 'PTZ - Tilt Position', variableId: 'tilt_position' },
 				{ name: 'PTZ - Zoom Position', variableId: 'zoom_position' },
+				{ name: 'PTZ - Pan/Tilt Speed', variableId: 'pt_speed' },
+				{ name: 'PTZ - Zoom Speed', variableId: 'zoom_speed' },
 			],
 		},
 		{
@@ -417,6 +419,13 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 	}
 
 	self.setVariableDefinitions(variables)
+}
+
+export function updateSpeedVariables(self: BolinModuleInstance): void {
+	self.setVariableValues({
+		pt_speed: self.ptSpeed,
+		zoom_speed: self.zoomSpeed,
+	})
 }
 
 export function UpdateVariablesOnStateChange(

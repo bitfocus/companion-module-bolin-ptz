@@ -1,4 +1,5 @@
 import type { BolinModuleInstance } from './main.js'
+import { updateSpeedVariables } from './variables.js'
 import type {
 	CapabilityDataValue,
 	ZoomCommand,
@@ -578,6 +579,32 @@ export function UpdateActions(self: BolinModuleInstance): void {
 		{
 			capabilities: [],
 			createActions: () => {
+				createValueAction(
+					'adjPTSpeed',
+					'PTZ - Pan/Tilt Speed',
+					() => self.ptSpeed,
+					async (value) => {
+						self.ptSpeed = Math.max(1, Math.min(255, value))
+						updateSpeedVariables(self)
+					},
+					128,
+					10,
+					'Adjust the Pan/Tilt Speed',
+				)
+
+				createValueAction(
+					'adjZoomSpeed',
+					'PTZ - Zoom Speed',
+					() => self.zoomSpeed,
+					async (value) => {
+						self.zoomSpeed = Math.max(1, Math.min(8, value))
+						updateSpeedVariables(self)
+					},
+					5,
+					1,
+					'Adjust the Zoom Speed',
+				)
+
 				// Basic PTZ controls - always available
 				actions['goHome'] = {
 					name: 'PTZ - Go Home',

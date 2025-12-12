@@ -1,6 +1,6 @@
 import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
 import { GetConfigFields, type ModuleConfig } from './config.js'
-import { UpdateVariableDefinitions } from './variables.js'
+import { UpdateVariableDefinitions, updateSpeedVariables } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
@@ -18,6 +18,9 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	public interval: NodeJS.Timeout | null = null
 	public reconnectionInterval: NodeJS.Timeout | null = null
 	private isReconnecting: boolean = false
+	public ptSpeed: number = 128
+	public zoomSpeed: number = 5
+
 	constructor(internal: unknown) {
 		super(internal)
 	}
@@ -201,11 +204,16 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 		UpdatePresets(this)
 	}
 
+	updateSpeedVariables(): void {
+		updateSpeedVariables(this)
+	}
+
 	updateModuleComponents(): void {
 		this.updateActions()
 		this.updateFeedbacks()
 		this.updatePresets()
 		this.updateVariableDefinitions()
+		this.updateSpeedVariables()
 	}
 }
 
