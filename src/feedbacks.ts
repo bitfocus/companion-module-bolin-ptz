@@ -1,5 +1,5 @@
 import type { BolinModuleInstance } from './main.js'
-import type { PositionLimitations, PictureInfo } from './types.js'
+import type { PictureInfo } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
 import { sortIrisChoices, sortShutterSpeedChoices, convertIrisRangeToMap, convertIrisValueToFStop } from './utils.js'
@@ -643,7 +643,7 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					},
 					options: [
 						{
-							type: 'dropdown',
+							type: 'multidropdown',
 							label: 'Direction',
 							choices: [
 								{ label: 'Up', id: 'UpLimit' },
@@ -651,13 +651,24 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 								{ label: 'Left', id: 'LeftLimit' },
 								{ label: 'Right', id: 'RightLimit' },
 							],
-							default: 'UpLimit',
+							default: ['UpLimit'],
 							id: 'direction',
 						},
 					],
 					callback: (feedback: CompanionFeedbackBooleanEvent) => {
-						const direction = feedback.options.direction as keyof PositionLimitations
-						return self.camera?.getState().positionLimitations?.[direction] ?? false
+						const directions = feedback.options.direction as string[]
+						const state = self.camera?.getState().positionLimitations
+
+						if (!state) {
+							return false
+						}
+
+						for (const direction of directions) {
+							if (!state[direction as keyof typeof state]) {
+								return false
+							}
+						}
+						return true
 					},
 				}
 			},

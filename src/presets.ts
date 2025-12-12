@@ -500,10 +500,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					feedbackId: 'positionLimitEnabled',
 					options: {
-						direction: `${limit}Limit`,
+						direction: [`${limit}Limit`],
 					},
 					style: {
-						bgcolor: 0xcc0000,
+						bgcolor: Color.red,
 						text: `UNLOCK\\n${limit}`,
 						png64: icons.lock,
 					},
@@ -538,7 +538,17 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				up: [],
 			},
 		],
-		feedbacks: [],
+		feedbacks: [
+			{
+				feedbackId: 'positionLimitEnabled',
+				options: {
+					direction: [`UpLimit`, `DownLimit`, `LeftLimit`, `RightLimit`],
+				},
+				style: {
+					bgcolor: Color.red,
+				},
+			},
+		],
 	}
 	presets[`positionLimitUnlockAll`] = {
 		type: 'button',
@@ -567,7 +577,18 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				up: [],
 			},
 		],
-		feedbacks: [],
+		feedbacks: [
+			{
+				feedbackId: 'positionLimitEnabled',
+				isInverted: true,
+				options: {
+					direction: [`UpLimit`, `DownLimit`, `LeftLimit`, `RightLimit`],
+				},
+				style: {
+					bgcolor: Color.green,
+				},
+			},
+		],
 	}
 
 	presets['ptzControlHeaderDirection'] = {
