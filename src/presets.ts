@@ -55,6 +55,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							actionId: 'ptMove',
 							options: {
 								direction: direction,
+								customSpeed: false,
 								speed: '128',
 							},
 						},
@@ -64,6 +65,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							actionId: 'ptMove',
 							options: {
 								direction: 'Stop',
+								customSpeed: false,
 								speed: '128',
 							},
 						},
@@ -117,6 +119,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						actionId: 'zoom',
 						options: {
 							direction: 'Tele',
+							customSpeed: false,
 							speed: '5',
 						},
 					},
@@ -126,6 +129,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						actionId: 'zoom',
 						options: {
 							direction: 'Stop',
+							customSpeed: false,
 							speed: '5',
 						},
 					},
@@ -153,6 +157,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						actionId: 'zoom',
 						options: {
 							direction: 'Wide',
+							customSpeed: false,
 							speed: '5',
 						},
 					},
@@ -162,6 +167,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						actionId: 'zoom',
 						options: {
 							direction: 'Stop',
+							customSpeed: false,
 							speed: '5',
 						},
 					},
@@ -590,12 +596,12 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			},
 		],
 	}
-	createAdjustmentPresets('ptSpeed', 'PTZ Control', 'PT Speed', 'adjPTSpeed', 'pt_speed', 'P/T SPEED', {
+	createAdjustmentPresets('ptSpeed', 'PTZ Control', 'PT Speed', 'panTiltSpeed', 'pt_speed', 'P/T SPEED', {
 		adjustmentValue: 10,
 		headerName: 'Pan / Tilt Speed Control',
 	})
 
-	createAdjustmentPresets('zoomSpeed', 'PTZ Control', 'Zoom Speed', 'adjZoomSpeed', 'zoom_speed', 'ZOOM SPEED', {
+	createAdjustmentPresets('zoomSpeed', 'PTZ Control', 'Zoom Speed', 'zoomSpeed', 'zoom_speed', 'ZOOM SPEED', {
 		adjustmentValue: 1,
 		headerName: 'Zoom Speed',
 	})
@@ -2988,6 +2994,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						actionId: 'ptMove',
 						options: {
 							direction: 'Stop',
+							customSpeed: false,
 							speed: '128',
 						},
 					},

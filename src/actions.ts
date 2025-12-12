@@ -580,7 +580,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 			capabilities: [],
 			createActions: () => {
 				createValueAction(
-					'adjPTSpeed',
+					'panTiltSpeed',
 					'PTZ - Pan/Tilt Speed',
 					() => self.ptSpeed,
 					async (value) => {
@@ -593,7 +593,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 				)
 
 				createValueAction(
-					'adjZoomSpeed',
+					'zoomSpeed',
 					'PTZ - Zoom Speed',
 					() => self.zoomSpeed,
 					async (value) => {
@@ -630,18 +630,27 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							id: 'direction',
 						},
 						{
+							type: 'checkbox',
+							label: 'Custom Speed',
+							default: false,
+							id: 'customSpeed',
+							tooltip: 'This will override the speed set by the module',
+							isVisibleExpression: `$(options:direction) !=='Stop'`,
+						},
+						{
 							type: 'textinput',
 							label: 'Speed',
 							default: '5',
 							id: 'speed',
 							description: '(1 - 8)',
 							useVariables: true,
+							isVisibleExpression: `$(options:direction) !=='Stop' && $(options:customSpeed) === true`,
 						},
 					],
 					description: 'Zoom the camera',
 					callback: async (action) => {
 						if (!self.camera) return
-						const speed = parseInt(action.options.speed as string)
+						const speed = action.options.customSpeed ? parseInt(action.options.speed as string) : self.zoomSpeed
 						if (isNaN(speed)) {
 							self.log('warn', 'Speed must be a number')
 							return
@@ -678,18 +687,27 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							id: 'direction',
 						},
 						{
+							type: 'checkbox',
+							label: 'Custom Speed',
+							default: false,
+							id: 'customSpeed',
+							tooltip: 'This will override the speed set by the module',
+							isVisibleExpression: `$(options:direction) !=='Stop'`,
+						},
+						{
 							type: 'textinput',
 							label: 'Speed',
 							default: '128',
 							id: 'speed',
 							description: '(1 - 255)',
 							useVariables: true,
+							isVisibleExpression: `$(options:direction) !=='Stop' && $(options:customSpeed) === true`,
 						},
 					],
 					description: 'Move the camera',
 					callback: async (action) => {
 						if (!self.camera) return
-						const speed = parseInt(action.options.speed as string)
+						const speed = action.options.customSpeed ? parseInt(action.options.speed as string) : self.ptSpeed
 						if (isNaN(speed)) {
 							self.log('warn', 'Speed must be a number')
 							return
