@@ -1279,9 +1279,9 @@ export function UpdateActions(self: BolinModuleInstance): void {
 				createToggleAction(
 					'blcMode',
 					'Picture - BLC',
-					() => self.camera?.getState().pictureInfo?.BLC,
+					() => self.camera?.getState().pictureInfo?.BacklightCom ?? self.camera?.getState().pictureInfo?.BLC,
 					async (value) => {
-						await self.camera!.setPictureInfo({ BLC: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ BLC: value, BacklightCom: value } as Partial<PictureInfo>)
 					},
 					'Enable or disable back light compensation',
 				)
@@ -1593,7 +1593,11 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					1,
 					'Set the wide dynamic range level',
 				)
-
+			},
+		},
+		{
+			capabilities: ['ExposureInfo', 'Exposure'],
+			createActions: () => {
 				createValueAction(
 					'gain',
 					'Exposure - Gain',
@@ -1659,11 +1663,6 @@ export function UpdateActions(self: BolinModuleInstance): void {
 						await self.camera.setExposureInfo({ Mode: action.options.mode } as Partial<ExposureInfo>)
 					},
 				}
-			},
-		},
-		{
-			capabilities: ['ExposureInfo', 'Exposure'],
-			createActions: () => {
 				// Shutter Speed action - uses dynamic map from capabilities
 
 				const shutterSpeedMap = self.camera?.getShutterSpeedMapForActions() ?? {}

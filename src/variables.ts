@@ -74,7 +74,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 			],
 		},
 		{
-			capabilities: ['SystemInfo'],
+			capabilities: ['SystemInfo', 'OSDSystemInfo'],
 			variables: [
 				{ name: 'System - Device Name', variableId: 'device_name' },
 				{ name: 'System - Model Name', variableId: 'model_name' },
@@ -480,13 +480,7 @@ export function UpdateVariablesOnStateChange(
 	// Update system info variables if changed
 	if (currentState.systemInfo) {
 		updateIfChanged(variables, previousState?.systemInfo, currentState.systemInfo, (s) => s.DeviceName, 'device_name')
-		if (variables.device_name === undefined) {
-			variables.device_name = currentState.systemInfo.DeviceName ?? ''
-		}
 		updateIfChanged(variables, previousState?.systemInfo, currentState.systemInfo, (s) => s.ModelName, 'model_name')
-		if (variables.model_name === undefined) {
-			variables.model_name = currentState.systemInfo.ModelName ?? ''
-		}
 	}
 
 	// Update lens info variables if changed
@@ -539,7 +533,7 @@ export function UpdateVariablesOnStateChange(
 		{ getValue: (p: PictureInfo) => (p.Flip ? 'On' : 'Off'), variableId: 'flip' },
 		{ getValue: (p: PictureInfo) => (p.Mirror ? 'On' : 'Off'), variableId: 'mirror' },
 		{ getValue: (p: PictureInfo) => (p.HLCMode ? 'On' : 'Off'), variableId: 'hlc_mode' },
-		{ getValue: (p: PictureInfo) => (p.BLC ? 'On' : 'Off'), variableId: 'blc' },
+		{ getValue: (p: PictureInfo) => (p.BLC || p.BacklightCom ? 'On' : 'Off'), variableId: 'blc' },
 	]
 
 	// Check if camera has color matrix capabilities

@@ -329,7 +329,10 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				})
 
 				createToggleFeedback('blcMode', 'Picture - BLC', 'BLC mode is enabled', () => {
-					return self.camera?.getState().pictureInfo?.BLC ?? false
+					return (
+						(self.camera?.getState().pictureInfo?.BLC ?? false) ||
+						(self.camera?.getState().pictureInfo?.BacklightCom ?? false)
+					)
 				})
 				feedbacks['scene'] = {
 					name: 'Picture - Scene',

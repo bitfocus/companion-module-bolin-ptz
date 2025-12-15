@@ -1504,101 +1504,103 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	)
 
 	// Gamma Level presets
-	presets['presetGammaLevelHeader'] = {
-		category: 'Gamma',
-		name: 'Gamma Level',
-		type: 'text',
-		text: '',
-	}
-	const gammaLevels = {
-		Default: 0,
-		'0.45': 1,
-		'0.50': 2,
-		'0.55': 3,
-		'0.63': 4,
-	}
-	for (const [key, value] of Object.entries(gammaLevels)) {
-		presets[`presetGammaLevel${key.replace('.', '_')}`] = {
-			type: 'button',
+	const hasGammaLevelCapability = !capabilitiesLoaded || (self.camera?.hasCapability('GammaLevel') ?? false)
+	if (hasGammaLevelCapability) {
+		presets['presetGammaLevelHeader'] = {
 			category: 'Gamma',
-			name: `Gamma Level ${key}`,
-			style: {
-				bgcolor: Color.lightGray,
-				color: Color.white,
-				text: `GAMMA\\n${key}`,
-				size: '14',
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'gammaLevel',
-							options: {
-								level: value,
-							},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'gammaLevel',
-					options: {
-						level: value,
-					},
-					style: {
-						bgcolor: Color.green,
-					},
-				},
-			],
+			name: 'Gamma Level',
+			type: 'text',
+			text: '',
 		}
-	}
+		const gammaLevels = {
+			Default: 0,
+			'0.45': 1,
+			'0.50': 2,
+			'0.55': 3,
+			'0.63': 4,
+		}
+		for (const [key, value] of Object.entries(gammaLevels)) {
+			presets[`presetGammaLevel${key.replace('.', '_')}`] = {
+				type: 'button',
+				category: 'Gamma',
+				name: `Gamma Level ${key}`,
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `GAMMA\\n${key}`,
+					size: '14',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'gammaLevel',
+								options: {
+									level: value,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'gammaLevel',
+						options: {
+							level: value,
+						},
+						style: {
+							bgcolor: Color.green,
+						},
+					},
+				],
+			}
+		}
 
-	// Gamma Bright presets
-	createAdjustmentPresets(
-		'presetGammaBright',
-		'Gamma',
-		'Gamma Bright',
-		'gammaBright',
-		'gamma_bright',
-		'GAMMA\\nBRIGHT',
-		{
-			valueSize: 12,
-		},
-	)
-
-	// Gamma WDR presets
-	presets['presetGammaWDRHeader'] = {
-		category: 'Gamma',
-		name: 'Gamma WDR',
-		type: 'text',
-		text: '',
-	}
-	for (const mode of [
-		{ id: 'toggle', label: 'Toggle', text: 'GAMMA\\nWDR' },
-		{ id: 'false', label: 'Off', text: 'GAMMA\\nWDR\\nOFF' },
-		{ id: 'true', label: 'On', text: 'GAMMA\\nWDR\\nON' },
-	]) {
-		createTogglePreset(
-			presets,
-			`presetGammaWDR${mode.label}`,
-			`Gamma WDR ${mode.label}`,
+		// Gamma Bright presets
+		createAdjustmentPresets(
+			'presetGammaBright',
 			'Gamma',
-			mode.text,
-			'wdr',
-			mode.id,
-			'wdr',
-			mode.id === 'toggle',
+			'Gamma Bright',
+			'gammaBright',
+			'gamma_bright',
+			'GAMMA\\nBRIGHT',
+			{
+				valueSize: 12,
+			},
 		)
+
+		// Gamma WDR presets
+		presets['presetGammaWDRHeader'] = {
+			category: 'Gamma',
+			name: 'Gamma WDR',
+			type: 'text',
+			text: '',
+		}
+		for (const mode of [
+			{ id: 'toggle', label: 'Toggle', text: 'GAMMA\\nWDR' },
+			{ id: 'false', label: 'Off', text: 'GAMMA\\nWDR\\nOFF' },
+			{ id: 'true', label: 'On', text: 'GAMMA\\nWDR\\nON' },
+		]) {
+			createTogglePreset(
+				presets,
+				`presetGammaWDR${mode.label}`,
+				`Gamma WDR ${mode.label}`,
+				'Gamma',
+				mode.text,
+				'wdr',
+				mode.id,
+				'wdr',
+				mode.id === 'toggle',
+			)
+		}
+
+		// Gamma WDR Level presets
+		createAdjustmentPresets('presetGammaWDRLevel', 'Gamma', 'Gamma WDR Level', 'wdrLevel', 'wdr_level', 'WDR\\nLEVEL', {
+			valueSize: 12,
+		})
 	}
-
-	// Gamma WDR Level presets
-	createAdjustmentPresets('presetGammaWDRLevel', 'Gamma', 'Gamma WDR Level', 'wdrLevel', 'wdr_level', 'WDR\\nLEVEL', {
-		valueSize: 12,
-	})
-
 	createAdjustmentPresets(
 		'presetShutterSpeed',
 		'Shutter Speed',
@@ -1968,167 +1970,169 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 
 	// Auto Restart presets
-	const autoRestartModes = [
-		{ id: 0, label: 'Never', text: 'AUTO RESTART\\nNEVER' },
-		{ id: 1, label: 'Every Day', text: 'AUTO RESTART\\nDAILY' },
-		{ id: 2, label: 'Every Week', text: 'AUTO RESTART\\nWEEKLY' },
-		{ id: 3, label: 'Every Month', text: 'AUTO RESTART\\nMONTHLY' },
-	]
+	const hasAutoRestartCapability = !capabilitiesLoaded || (self.camera?.hasCapability('AutoRestartInfo') ?? false)
+	if (hasAutoRestartCapability) {
+		const autoRestartModes = [
+			{ id: 0, label: 'Never', text: 'AUTO RESTART\\nNEVER' },
+			{ id: 1, label: 'Every Day', text: 'AUTO RESTART\\nDAILY' },
+			{ id: 2, label: 'Every Week', text: 'AUTO RESTART\\nWEEKLY' },
+			{ id: 3, label: 'Every Month', text: 'AUTO RESTART\\nMONTHLY' },
+		]
 
-	presets['autoRestartHeader'] = {
-		category: 'System Info',
-		name: 'Set Auto Restart Mode',
-		type: 'text',
-		text: '',
-	}
+		presets['autoRestartHeader'] = {
+			category: 'System Info',
+			name: 'Set Auto Restart Mode',
+			type: 'text',
+			text: '',
+		}
 
-	for (const mode of autoRestartModes) {
-		presets[`autoRestart${mode.label.replace(' ', '')}`] = {
+		for (const mode of autoRestartModes) {
+			presets[`autoRestart${mode.label.replace(' ', '')}`] = {
+				type: 'button',
+				category: 'System Info',
+				name: `Auto Restart ${mode.label}`,
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: mode.text,
+					size: '14',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'setAutoRestartType',
+								options: {
+									type: mode.id,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'autoRestartEnabled',
+						options: {
+							mode: mode.id,
+						},
+						style: {
+							bgcolor: Color.green,
+						},
+					},
+				],
+			}
+		}
+
+		// Auto Restart Status Presets
+		presets['autoRestartStatusHeader'] = {
+			category: 'System Info',
+			name: 'Auto Restart Status',
+			type: 'text',
+			text: '',
+		}
+
+		presets['autoRestartNext'] = {
 			type: 'button',
 			category: 'System Info',
-			name: `Auto Restart ${mode.label}`,
+			name: 'Auto Restart Next Time',
 			style: {
-				bgcolor: Color.lightGray,
+				bgcolor: Color.darkGray,
 				color: Color.white,
-				text: mode.text,
-				size: '14',
+				text: `AUTO RESTART\nNEXT\n$(bolin-ptz:auto_restart_next)`,
+				size: 12,
 				show_topbar: false,
 			},
 			steps: [
 				{
-					down: [
-						{
-							actionId: 'setAutoRestartType',
-							options: {
-								type: mode.id,
-							},
-						},
-					],
+					down: [],
 					up: [],
 				},
 			],
-			feedbacks: [
+			feedbacks: [],
+		}
+
+		presets['autoRestartFrequency'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'Auto Restart Frequency',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `AUTO RESTART\nFREQ\n$(bolin-ptz:auto_restart_frequency)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
 				{
-					feedbackId: 'autoRestartEnabled',
-					options: {
-						mode: mode.id,
-					},
-					style: {
-						bgcolor: Color.green,
-					},
+					down: [],
+					up: [],
 				},
 			],
+			feedbacks: [],
+		}
+
+		presets['autoRestartDay'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'Auto Restart Day',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `AUTO RESTART\nDAY\n$(bolin-ptz:auto_restart_day)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		presets['autoRestartHour'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'Auto Restart Hour',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `AUTO RESTART\nHOUR\n$(bolin-ptz:auto_restart_hour)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		presets['autoRestartMinute'] = {
+			type: 'button',
+			category: 'System Info',
+			name: 'Auto Restart Minute',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `AUTO RESTART\nMINUTE\n$(bolin-ptz:auto_restart_minute)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
 		}
 	}
-
-	// Auto Restart Status Presets
-	presets['autoRestartStatusHeader'] = {
-		category: 'System Info',
-		name: 'Auto Restart Status',
-		type: 'text',
-		text: '',
-	}
-
-	presets['autoRestartNext'] = {
-		type: 'button',
-		category: 'System Info',
-		name: 'Auto Restart Next Time',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `AUTO RESTART\nNEXT\n$(bolin-ptz:auto_restart_next)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-
-	presets['autoRestartFrequency'] = {
-		type: 'button',
-		category: 'System Info',
-		name: 'Auto Restart Frequency',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `AUTO RESTART\nFREQ\n$(bolin-ptz:auto_restart_frequency)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-
-	presets['autoRestartDay'] = {
-		type: 'button',
-		category: 'System Info',
-		name: 'Auto Restart Day',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `AUTO RESTART\nDAY\n$(bolin-ptz:auto_restart_day)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-
-	presets['autoRestartHour'] = {
-		type: 'button',
-		category: 'System Info',
-		name: 'Auto Restart Hour',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `AUTO RESTART\nHOUR\n$(bolin-ptz:auto_restart_hour)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-
-	presets['autoRestartMinute'] = {
-		type: 'button',
-		category: 'System Info',
-		name: 'Auto Restart Minute',
-		style: {
-			bgcolor: Color.darkGray,
-			color: Color.white,
-			text: `AUTO RESTART\nMINUTE\n$(bolin-ptz:auto_restart_minute)`,
-			size: 12,
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [],
-				up: [],
-			},
-		],
-		feedbacks: [],
-	}
-
 	// Exposure Mode presets
 	presets['presetExposureModeHeader'] = {
 		category: 'Exposure',

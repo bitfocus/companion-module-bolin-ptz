@@ -218,6 +218,7 @@ export interface PictureInfo {
 	Mirror: boolean
 	HLCMode: boolean
 	BLC: boolean
+	BacklightCom?: boolean
 	Contrast: number
 	Saturation: number
 	Scene: Scene

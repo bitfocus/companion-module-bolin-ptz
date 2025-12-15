@@ -578,6 +578,7 @@ export class BolinCamera {
 				Mirror: boolean
 				HLCMode: boolean
 				BLC: boolean
+				BacklightCom?: boolean // Some cameras call this BacklightCom
 				Contrast: number
 				Saturation: number
 				Scene: number
