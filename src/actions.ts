@@ -677,7 +677,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								{ label: 'Down', id: 'Down' },
 								{ label: 'Left', id: 'Left' },
 								{ label: 'Right', id: 'Right' },
-								{ label: 'Up Lef', id: 'LeftUp' },
+								{ label: 'Up Left', id: 'LeftUp' },
 								{ label: 'Up Right', id: 'RightUp' },
 								{ label: 'Down Left', id: 'LeftDown' },
 								{ label: 'Down Right', id: 'RightDown' },
