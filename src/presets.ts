@@ -1858,7 +1858,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				{
 					toggleOffIcon: icons.toggleOff,
 					toggleOnIcon: icons.toggleOn,
-					defaultIcon: icons.mirror,
+					defaultIcon: icons.bulb,
 					alignment: 'center:bottom',
 				},
 			)
