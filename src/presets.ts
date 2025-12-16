@@ -3192,5 +3192,374 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 	}
 
+	for (const preset of cameraPresets) {
+		const presetNumber = preset.Number
+
+		if (presetNumber === 58) {
+			// Preset 58: Night Mode (Set) / Day Mode (Call)
+			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Night Mode (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `NIGHT\\nMODE`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Day Mode (Call)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `DAY\\nMODE`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		} else if (presetNumber === 59) {
+			// Preset 59: Auto Day/Night (Call)
+			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Auto Day/Night',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `AUTO\\nDAY/NIGHT`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		} else if (presetNumber === 61) {
+			// Preset 61: Defog OFF (Set) / ON (Call)
+			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Defog OFF (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `DEFOG\\nOFF`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Defog ON (Call)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `DEFOG\\nON`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		} else if (presetNumber === 62) {
+			// Preset 62: Sngl.Wiper ON (Set) / OFF (Call)
+			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Wiper ON (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `WIPER\\nON`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Wiper OFF (Call)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `WIPER\\nOFF`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		} else if (presetNumber === 63) {
+			// Preset 63: Heater OFF (Set) / ON (Call)
+			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Heater OFF (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `HEATER\\nOFF`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Heater ON (Call)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `HEATER\\nON`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		} else if (presetNumber === 64) {
+			// Preset 64: Cont.Wiper ON (Set) / OFF (Call)
+			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Cont. Wiper ON (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `CONT.\\nWIPER ON`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+				type: 'button',
+				category: 'External Presets',
+				name: 'Cont. Wiper OFF (Call)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `CONT.\\nWIPER OFF`,
+					size: '14',
+					png64: icons.preset,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		}
+	}
 	self.setPresetDefinitions(presets)
 }
