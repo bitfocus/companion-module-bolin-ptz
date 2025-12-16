@@ -237,7 +237,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 			variables: [
 				{ name: 'System - Pelco ID', variableId: 'pelco_id' },
 				{ name: 'System - VISCA ID', variableId: 'visca_id' },
-				{ name: 'System - Tally Mode', variableId: 'tally' },
+				{ name: 'System - Tally Mode', variableId: 'tally_mode' },
 			],
 		},
 		{
