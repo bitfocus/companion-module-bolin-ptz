@@ -2961,7 +2961,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		style: {
 			bgcolor: Color.lightGray,
 			color: Color.white,
-			text: `AUTO\\nSCAN\\nSTART`,
+			text: `AUTO\\nSCAN\\n\\nSTART`,
 			size: '14',
 			show_topbar: false,
 		},
@@ -2987,7 +2987,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		style: {
 			bgcolor: Color.lightGray,
 			color: Color.white,
-			text: `AUTO\\nSCAN\\nSTOP`,
+			text: `AUTO\\nSCAN\\n\\nSTOP`,
 			size: '14',
 			show_topbar: false,
 		},
@@ -3030,7 +3030,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			style: {
 				bgcolor: Color.lightGray,
 				color: Color.white,
-				text: `CALL\\nCRUISE\\n$(bolin-ptz:cruise_${cruise.Number}_name)`,
+				text: `CRUISE\\n$(bolin-ptz:cruise_${cruise.Number}_name)\\n\\nCALL`,
 				size: '14',
 				show_topbar: false,
 			},
@@ -3061,7 +3061,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		style: {
 			bgcolor: Color.lightGray,
 			color: Color.white,
-			text: `STOP\\nCRUISE`,
+			text: `CRUISE\\n\\n\\nSTOP`,
 			size: '14',
 			show_topbar: false,
 		},
@@ -3098,7 +3098,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			{ command: 'StartRecord', label: 'START\nRECORD', name: 'Start Record' },
 			{ command: 'EndRecord', label: 'END\nRECORD', name: 'End Record' },
 			{ command: 'Call', label: 'CALL\nTRACE', name: 'Call' },
-			{ command: 'Delete', label: 'DELETE', name: 'Delete' },
+			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
 			{ command: 'Stop', label: 'STOP\nTRACE', name: 'Stop' },
 		]
 
@@ -3111,7 +3111,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
-					text: `TRACE ${traceNumber}\n${cmd.label}`,
+					text: `TRACE ${traceNumber}\n\n${cmd.label}`,
 					size: '14',
 					show_topbar: false,
 				},
@@ -3152,7 +3152,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			{ command: 'LeftLimit', label: 'LEFT\nLIMIT', name: 'Left Limit' },
 			{ command: 'RightLimit', label: 'RIGHT\nLIMIT', name: 'Right Limit' },
 			{ command: 'Call', label: 'CALL\nSCAN', name: 'Call' },
-			{ command: 'Delete', label: 'DELETE', name: 'Delete' },
+			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
 			{ command: 'Stop', label: 'STOP\nSCAN', name: 'Stop' },
 		]
 
@@ -3165,7 +3165,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
-					text: `SCAN ${scanningNumber}\n${cmd.label}`,
+					text: `SCAN ${scanningNumber}\n\n${cmd.label}`,
 					size: '14',
 					show_topbar: false,
 				},
@@ -3197,16 +3197,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 
 		if (presetNumber === 58) {
 			// Preset 58: Night Mode (Set) / Day Mode (Call)
-			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetSetNightMode`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Night Mode (Set)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `NIGHT\\nMODE`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.moon,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3229,16 +3229,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				],
 				feedbacks: [],
 			}
-			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetCallDayMode`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Day Mode (Call)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `DAY\\nMODE`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.sun,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3263,16 +3263,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 59) {
 			// Preset 59: Auto Day/Night (Call)
-			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetCallAutoDayNight`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Auto Day/Night',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
-					text: `AUTO\\nDAY/NIGHT`,
-					size: '14',
-					png64: icons.preset,
+					text: `AUTO\\nDAY/ NIGHT`,
+					size: 12,
+					png64: icons.dayNight,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3297,16 +3297,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 61) {
 			// Preset 61: Defog OFF (Set) / ON (Call)
-			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetSetDefogOff`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Defog OFF (Set)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `DEFOG\\nOFF`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.fog,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3329,16 +3329,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				],
 				feedbacks: [],
 			}
-			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetCallDefogOn`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Defog ON (Call)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `DEFOG\\nON`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.fog,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3363,16 +3363,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 62) {
 			// Preset 62: Sngl.Wiper ON (Set) / OFF (Call)
-			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetSetWiperOn`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Wiper ON (Set)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `WIPER\\nON`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.wiper,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3395,16 +3395,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				],
 				feedbacks: [],
 			}
-			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetCallWiperOff`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Wiper OFF (Call)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `WIPER\\nOFF`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.wiper,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3429,16 +3429,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 63) {
 			// Preset 63: Heater OFF (Set) / ON (Call)
-			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetSetHeaterOff`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Heater OFF (Set)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `HEATER\\nOFF`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.temp,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3461,16 +3461,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				],
 				feedbacks: [],
 			}
-			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetCallHeaterOn`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Heater ON (Call)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `HEATER\\nON`,
 					size: '14',
-					png64: icons.preset,
+					png64: icons.temp,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3495,16 +3495,16 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 64) {
 			// Preset 64: Cont.Wiper ON (Set) / OFF (Call)
-			presets[`presetSet${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetSetContWiperOn`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Cont. Wiper ON (Set)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `CONT.\\nWIPER ON`,
-					size: '14',
-					png64: icons.preset,
+					size: 12,
+					png64: icons.wiper,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
@@ -3527,16 +3527,82 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				],
 				feedbacks: [],
 			}
-			presets[`presetCall${preset.Name.replace(/[^a-zA-Z0-9]/g, '')}`] = {
+			presets[`presetCallContWiperOff`] = {
 				type: 'button',
-				category: 'External Presets',
+				category: 'Outdoor Features',
 				name: 'Cont. Wiper OFF (Call)',
 				style: {
 					bgcolor: Color.lightGray,
 					color: Color.white,
 					text: `CONT.\\nWIPER OFF`,
-					size: '14',
-					png64: icons.preset,
+					size: 12,
+					png64: icons.wiper,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Call',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		} else if (presetNumber === 65) {
+			// Preset 65:Illumination ON (Set) / OFF (Call)
+			presets[`presetSetIlluminationOn`] = {
+				type: 'button',
+				category: 'Outdoor Features',
+				name: 'Illumination ON (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `EXT LIGHT\\nON`,
+					size: 12,
+					png64: icons.bulb,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+			presets[`presetCallIlluminationOff`] = {
+				type: 'button',
+				category: 'Outdoor Features',
+				name: 'Illumination OFF (Call)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `EXT LIGHT\\nOFF`,
+					size: 12,
+					png64: icons.bulb,
 					alignment: 'center:bottom',
 					show_topbar: false,
 				},
