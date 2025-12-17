@@ -635,6 +635,18 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 			},
 		},
 		{
+			capabilities: ['RollInfo'],
+			createFeedbacks: () => {
+				createValueFeedback(
+					'rollPosition',
+					'PTZ - Roll Position',
+					'Roll position matches selected value',
+					0,
+					() => self.camera?.getState().rollInfo?.RollPosition ?? 0,
+				)
+			},
+		},
+		{
 			capabilities: ['PositionLimitations'],
 			createFeedbacks: () => {
 				feedbacks['positionLimitEnabled'] = {

@@ -74,6 +74,10 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 			],
 		},
 		{
+			capabilities: ['RollInfo'],
+			variables: [{ name: 'PTZ - Roll Position', variableId: 'roll_position' }],
+		},
+		{
 			capabilities: ['SystemInfo', 'OSDSystemInfo'],
 			variables: [
 				{ name: 'System - Device Name', variableId: 'device_name' },
@@ -457,6 +461,11 @@ export function UpdateVariablesOnStateChange(
 			(p) => p.ZoomPosition,
 			'zoom_position',
 		)
+	}
+
+	// Update Roll Position variable if changed
+	if (currentState.rollInfo) {
+		updateIfChanged(variables, previousState?.rollInfo, currentState.rollInfo, (r) => r.RollPosition, 'roll_position')
 	}
 
 	// Update preset speed variables if changed

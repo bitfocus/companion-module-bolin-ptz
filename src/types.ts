@@ -143,6 +143,13 @@ export interface PTZFPositionSet {
 }
 
 /**
+ * Roll position information
+ */
+export interface RollInfo {
+	RollPosition: number
+}
+
+/**
  * PTZ relative position command parameters (all fields optional)
  */
 export interface PTZFRelPosition {
@@ -778,6 +785,7 @@ export interface CameraState {
 	videoOutputInfo: VideoOutputInfo | null
 	generalCapabilities: GeneralCapabilities | null
 	panTiltInfo: PanTiltInfo | null
+	rollInfo: RollInfo | null
 	overlayInfo: OverlayInfo[] | null
 	networkInfo: NetworkInfo | null
 	osdSystemInfo: OSDSystemInfo | null

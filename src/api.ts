@@ -35,6 +35,7 @@ import type {
 	VideoOutputInfo,
 	GeneralCapabilities,
 	PanTiltInfo,
+	RollInfo,
 	OverlayInfo,
 	NetworkInfo,
 	OSDSystemInfo,
@@ -97,6 +98,7 @@ function createEmptyState(): CameraState {
 		srtInfo: null,
 		encodeInfo: null,
 		audioInfo: null,
+		rollInfo: null,
 		traceInfo: null,
 		scanningInfo: null,
 		cruiseInfo: null,
@@ -911,6 +913,27 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Gets roll position from the camera and stores it in state
+	 */
+	async getRollPosition(): Promise<RollInfo> {
+		return this.fetchAndStore(
+			'rollInfo',
+			'/apiv2/ptzctrl',
+			'ReqGetRollPosition',
+			(content) => content.RollInfo as RollInfo,
+		)
+	}
+
+	/**
+	 * Sets roll position on the camera
+	 */
+	async setRollPosition(rollInfo: RollInfo): Promise<void> {
+		await this.sendRequest('/apiv2/ptzctrl', 'ReqSetRollPosition', {
+			RollInfo: rollInfo,
+		})
+	}
+
+	/**
 	 * Gets video output information from the camera and stores it in state
 	 */
 	async getVideoOutput(): Promise<VideoOutputInfo> {
@@ -1464,6 +1487,7 @@ export class BolinCamera {
 				method: async () => this.getPresetSpeed(),
 			},
 			{ capabilities: ['PanTiltInfo', 'PTZFMoveInfo'], method: async () => this.getPTInfo() },
+			{ capabilities: ['RollInfo'], method: async () => this.getRollPosition() },
 			{ capabilities: ['OverlayInfo'], method: async () => this.getOverlayInfo() },
 			{ capabilities: ['OSDSystemInfo'], method: async () => this.getOSDSystemInfo() },
 			{ capabilities: ['RTSPInfo'], method: async () => this.getRTSPInfo() },

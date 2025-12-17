@@ -577,6 +577,23 @@ export function UpdateActions(self: BolinModuleInstance): void {
 			},
 		},
 		{
+			capabilities: ['RollInfo'],
+			createActions: () => {
+				createValueAction(
+					'setRollPosition',
+					'PTZ - Set Roll Position',
+					() => self.camera?.getState().rollInfo?.RollPosition ?? 0,
+					async (value) => {
+						value = Math.max(-15, Math.min(15, value))
+						await self.camera?.setRollPosition({ RollPosition: value })
+					},
+					0,
+					1,
+					'Set the Roll Position',
+				)
+			},
+		},
+		{
 			capabilities: [],
 			createActions: () => {
 				createValueAction(

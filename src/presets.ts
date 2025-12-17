@@ -605,6 +605,20 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		adjustmentValue: 1,
 		headerName: 'Zoom Speed',
 	})
+
+	createAdjustmentPresets(
+		'rollPosition',
+		'PTZ Control',
+		'Roll Position',
+		'setRollPosition',
+		'roll_position',
+		'ROLL POS',
+		{
+			adjustmentValue: 1,
+			headerName: 'Roll Position',
+		},
+	)
+
 	presets['ptzControlHeaderDirection'] = {
 		category: 'PTZ Control',
 		name: 'Direction Invert',
