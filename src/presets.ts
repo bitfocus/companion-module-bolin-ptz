@@ -606,19 +606,21 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		headerName: 'Zoom Speed',
 	})
 
-	createAdjustmentPresets(
-		'rollPosition',
-		'PTZ Control',
-		'Roll Position',
-		'setRollPosition',
-		'roll_position',
-		'ROLL POS',
-		{
-			adjustmentValue: 1,
-			headerName: 'Roll Position',
-		},
-	)
-
+	const rollPositionCapabilities = !capabilitiesLoaded || (self.camera?.hasCapability('RollInfo') ?? false)
+	if (rollPositionCapabilities) {
+		createAdjustmentPresets(
+			'rollPosition',
+			'PTZ Control',
+			'Roll Position',
+			'setRollPosition',
+			'roll_position',
+			'ROLL POS',
+			{
+				adjustmentValue: 1,
+				headerName: 'Roll Position',
+			},
+		)
+	}
 	presets['ptzControlHeaderDirection'] = {
 		category: 'PTZ Control',
 		name: 'Direction Invert',
