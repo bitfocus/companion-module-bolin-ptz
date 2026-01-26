@@ -23,18 +23,18 @@
 		"yarn": "^4"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.14.0"
+		"@companion-module/base": "~1.14.1"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.5.0",
-		"@types/node": "^25.0.3",
+		"@types/node": "^25.0.10",
 		"eslint": "^9.39.2",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
-		"prettier": "^3.7.4",
+		"prettier": "^3.8.1",
 		"rimraf": "^6.1.2",
 		"typescript": "~5.9.3",
-		"typescript-eslint": "^8.50.0"
+		"typescript-eslint": "^8.53.1"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"lint-staged": {
