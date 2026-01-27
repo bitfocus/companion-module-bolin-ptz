@@ -683,7 +683,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	// Always create presets for values 1-12, even if they don't exist on the camera
 	for (let presetNumber = 1; presetNumber <= 12; presetNumber++) {
 		const preset = presetMap.get(presetNumber)
-		const presetName = preset?.Name ?? `Preset ${presetNumber}`
+		const presetName = preset?.Name !== undefined ? preset?.Name : `Preset ${presetNumber}`
 		const presetNumberStr = presetNumber.toString()
 
 		presets[`presetCall${presetNumberStr}`] = {
@@ -3025,16 +3025,17 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		feedbacks: [],
 	}
 
-	// Cruise presets
-	presets['ptzModesCruiseHeader'] = {
-		category: 'PTZ Modes',
-		name: 'Cruise Mode',
-		type: 'text',
-		text: '',
-	}
-
-	// Create presets for each available cruise
 	const cruiseInfo = self.camera?.getState().cruiseInfo ?? []
+	if (cruiseInfo.length > 0) {
+		// Cruise presets
+		presets['ptzModesCruiseHeader'] = {
+			category: 'PTZ Modes',
+			name: 'Cruise Mode',
+			type: 'text',
+			text: '',
+		}
+	}
+	// Create presets for each available cruise
 	for (const cruise of cruiseInfo) {
 		const cruiseName = cruise.Name || `Cruise ${cruise.Number}`
 		const presetKey = `ptzModesCruiseCall${cruise.Number}`
@@ -3068,35 +3069,36 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			feedbacks: [],
 		}
 	}
-
-	// Stop Cruise preset
-	presets['ptzModesCruiseStop'] = {
-		type: 'button',
-		category: 'PTZ Modes',
-		name: 'STOP Cruise',
-		style: {
-			bgcolor: Color.lightGray,
-			color: Color.white,
-			text: `CRUISE\\n\\n\\nSTOP`,
-			size: '14',
-			show_topbar: false,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: 'cruiseControl',
-						options: {
-							command: 'Stop',
-							cruise: 1, // Default cruise number, doesn't matter for Stop
-							customCruise: false,
-						},
-					},
-				],
-				up: [],
+	if (cruiseInfo.length > 0) {
+		// Stop Cruise preset
+		presets['ptzModesCruiseStop'] = {
+			type: 'button',
+			category: 'PTZ Modes',
+			name: 'STOP Cruise',
+			style: {
+				bgcolor: Color.lightGray,
+				color: Color.white,
+				text: `CRUISE\\n\\n\\nSTOP`,
+				size: '14',
+				show_topbar: false,
 			},
-		],
-		feedbacks: [],
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'cruiseControl',
+							options: {
+								command: 'Stop',
+								cruise: 1, // Default cruise number, doesn't matter for Stop
+								customCruise: false,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
 	}
 
 	// Trace presets - sections for Trace 1 through 4
@@ -3114,8 +3116,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			{ command: 'StartRecord', label: 'START\nRECORD', name: 'Start Record' },
 			{ command: 'EndRecord', label: 'END\nRECORD', name: 'End Record' },
 			{ command: 'Call', label: 'CALL\nTRACE', name: 'Call' },
-			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
 			{ command: 'Stop', label: 'STOP\nTRACE', name: 'Stop' },
+			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
 		]
 
 		for (const cmd of traceCommands) {
@@ -3168,8 +3170,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			{ command: 'LeftLimit', label: 'LEFT\nLIMIT', name: 'Left Limit' },
 			{ command: 'RightLimit', label: 'RIGHT\nLIMIT', name: 'Right Limit' },
 			{ command: 'Call', label: 'CALL\nSCAN', name: 'Call' },
-			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
 			{ command: 'Stop', label: 'STOP\nSCAN', name: 'Stop' },
+			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
 		]
 
 		for (const cmd of scanningCommands) {

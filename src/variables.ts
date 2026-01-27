@@ -909,7 +909,11 @@ export function UpdateVariablesOnStateChange(
 				variables.encode_main_resolution = mainStream.Resolution ?? ''
 			}
 			if (!previousMainStream || previousMainStream.FrameRate !== mainStream.FrameRate) {
-				variables.encode_main_frame_rate = mainStream.FrameRate ?? 0
+				const followInputFPS =
+					currentState.videoOutputInfo?.SystemFormat?.match(/[PI](\d+(?:\.\d+)?)/i)?.[1] ??
+					currentState.videoOutputInfo?.SystemFormat ??
+					0
+				variables.encode_main_frame_rate = mainStream.FrameRate === 0 ? followInputFPS : mainStream.FrameRate
 			}
 			if (!previousMainStream || previousMainStream.BitRate !== mainStream.BitRate) {
 				variables.encode_main_bitrate = mainStream.BitRate ?? 0

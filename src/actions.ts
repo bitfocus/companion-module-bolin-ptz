@@ -2713,7 +2713,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 						},
 						{
 							type: 'dropdown',
-							label: 'Mode',
+							label: 'Enable',
 							choices: [
 								{ label: 'Toggle', id: 'toggle' },
 								{ label: 'Enable', id: 'true' },

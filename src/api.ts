@@ -1245,8 +1245,13 @@ export class BolinCamera {
 	 * @param audioInfo The audio information to set
 	 */
 	async setAudioInfo(audioInfo: Partial<AudioInfo>): Promise<void> {
+		const currentAudioInfo = this.state.audioInfo
+		const completeAudioInfo: Partial<AudioInfo> = {
+			...(currentAudioInfo ?? {}),
+			...(audioInfo ?? {}),
+		}
 		await this.sendRequest('/apiv2/av', 'ReqSetAudioInfo', {
-			AudioInfo: audioInfo,
+			AudioInfo: completeAudioInfo as AudioInfo,
 		})
 	}
 
