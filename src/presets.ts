@@ -3111,17 +3111,47 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			text: '',
 		}
 
-		// Commands for each trace
+		// Commands for each trace, with optional feedback configuration
 		const traceCommands = [
-			{ command: 'StartRecord', label: 'START\nRECORD', name: 'Start Record' },
-			{ command: 'EndRecord', label: 'END\nRECORD', name: 'End Record' },
-			{ command: 'Call', label: 'CALL\nTRACE', name: 'Call' },
-			{ command: 'Stop', label: 'STOP\nTRACE', name: 'Stop' },
-			{ command: 'Delete', label: '\nDELETE', name: 'Delete' },
+			{ command: 'StartRecord', label: 'START\nRECORD', name: 'Start Record', feedbackId: 'traceRecording' },
+			{ command: 'EndRecord', label: 'END\nRECORD', name: 'End Record', feedbackId: null },
+			{ command: 'Call', label: 'CALL\nTRACE', name: 'Call', feedbackId: 'traceActive' },
+			{ command: 'Stop', label: 'STOP\nTRACE', name: 'Stop', feedbackId: null },
+			{ command: 'Delete', label: '\nDELETE', name: 'Delete', feedbackId: null },
 		]
 
 		for (const cmd of traceCommands) {
 			const presetKey = `ptzModesTrace${traceNumber}${cmd.command}`
+
+			// Build feedbacks array based on command type
+			const feedbacksArray: Array<{
+				feedbackId: string
+				options: CompanionOptionValues
+				style: Record<string, unknown>
+			}> = []
+
+			if (cmd.feedbackId === 'traceRecording') {
+				feedbacksArray.push({
+					feedbackId: 'traceRecording',
+					options: {
+						traceNumber: traceNumber.toString(),
+					},
+					style: {
+						bgcolor: Color.red,
+					},
+				})
+			} else if (cmd.feedbackId === 'traceActive') {
+				feedbacksArray.push({
+					feedbackId: 'traceActive',
+					options: {
+						traceNumber: traceNumber.toString(),
+					},
+					style: {
+						bgcolor: Color.green,
+					},
+				})
+			}
+
 			presets[presetKey] = {
 				type: 'button',
 				category: 'PTZ Modes',
@@ -3150,7 +3180,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: feedbacksArray,
 			}
 		}
 	}

@@ -376,6 +376,24 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							Number: traceNumber,
 							Name: traceName,
 						})
+
+						// Update local trace state based on command
+						if (command === 'StartRecord') {
+							self.traceRecording.set(traceNumber, true)
+						} else if (command === 'EndRecord') {
+							self.traceRecording.set(traceNumber, false)
+						} else if (command === 'Call') {
+							self.traceActive.set(traceNumber, true)
+						} else if (command === 'Stop') {
+							self.traceActive.set(traceNumber, false)
+						} else if (command === 'Delete') {
+							// Clear both states when trace is deleted
+							self.traceRecording.set(traceNumber, false)
+							self.traceActive.set(traceNumber, false)
+						}
+
+						// Trigger feedback check for trace state changes
+						self.checkFeedbacks('traceRecording', 'traceActive')
 					},
 				}
 			},

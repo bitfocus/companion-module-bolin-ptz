@@ -912,6 +912,54 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				})
 			},
 		},
+		{
+			capabilities: ['TraceInfo'],
+			createFeedbacks: () => {
+				feedbacks['traceRecording'] = {
+					name: 'Trace - Recording',
+					description: 'Trace is currently recording (lights button red while recording)',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x990000,
+					},
+					options: [
+						{
+							type: 'textinput',
+							label: 'Trace Number',
+							id: 'traceNumber',
+							default: '1',
+							useVariables: true,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const traceNumber = Number(feedback.options.traceNumber)
+						return self.traceRecording.get(traceNumber) ?? false
+					},
+				}
+
+				feedbacks['traceActive'] = {
+					name: 'Trace - Active',
+					description: 'Trace is currently active/playing (lights button green while active)',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+					options: [
+						{
+							type: 'textinput',
+							label: 'Trace Number',
+							id: 'traceNumber',
+							default: '1',
+							useVariables: true,
+						},
+					],
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const traceNumber = Number(feedback.options.traceNumber)
+						return self.traceActive.get(traceNumber) ?? false
+					},
+				}
+			},
+		},
 	]
 
 	// Filter and create feedbacks based on capabilities
