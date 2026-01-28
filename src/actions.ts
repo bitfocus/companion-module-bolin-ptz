@@ -1705,6 +1705,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					Object.entries(shutterSpeedMap).map(([value, label]) => ({
 						label: label,
 						id: Number.parseInt(value, 10),
+						sortKey: Number.parseInt(value, 10),
 					})),
 				)
 

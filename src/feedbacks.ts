@@ -128,9 +128,10 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				// Shutter Speed feedback - uses dynamic map from capabilities
 				const shutterSpeedMap = self.camera?.getShutterSpeedMapForActions() ?? {}
 				const shutterSpeedChoices = sortShutterSpeedChoices(
-					Object.entries(shutterSpeedMap).map(([_value, label]) => ({
+					Object.entries(shutterSpeedMap).map(([value, label]) => ({
 						label: label,
 						id: label,
+						sortKey: Number.parseInt(value, 10),
 					})),
 				)
 

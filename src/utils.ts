@@ -126,7 +126,13 @@ export function buildIrisMapFromCapabilities(imageCapabilitiesContent: Record<st
 export function buildShutterSpeedMapFromCapabilities(
 	imageCapabilitiesContent: Record<string, unknown>,
 ): Record<number, string> | null {
-	const cap = findCapability(imageCapabilitiesContent, 'ShutterSpeed')
+	// First try to find 'ShutterSpeed' capability directly
+	let cap = findCapability(imageCapabilitiesContent, 'ShutterSpeed')
+
+	// Some camera models use 'Speed' with Description 'ShutterSpeed' instead
+	if (!cap) {
+		cap = findCapability(imageCapabilitiesContent, 'Speed')
+	}
 
 	if (cap?.Type === 'enum' && cap.Data && Array.isArray(cap.Data)) {
 		const map: Record<number, string> = {}
@@ -280,27 +286,23 @@ export function getAdjacentIrisValue(
 }
 
 /**
- * Helper function to sort shutter speed choices by numeric value
+ * Helper function to sort shutter speed choices by numeric sortKey value
+ * Use sortKey for sorting order, preserves id for dropdown choices
  */
-export function sortShutterSpeedChoices<T extends { label: string }>(choices: T[]): T[] {
-	return choices.sort((a, b) => {
-		// Sort by numeric value from label (e.g., "1/60" -> 60, "1/1000" -> 1000)
-		const aNum = Number.parseInt(a.label.split('/')[1] || '0', 10)
-		const bNum = Number.parseInt(b.label.split('/')[1] || '0', 10)
-		return aNum - bNum
-	})
+export function sortShutterSpeedChoices<T extends { sortKey: number }>(choices: T[]): T[] {
+	return choices.sort((a, b) => a.sortKey - b.sortKey)
 }
 
 /**
  * Helper function to get next/previous shutter speed value from sorted choices
- * @param choices Sorted array of shutter speed choices with id (numeric) and label
+ * @param choices Sorted array of shutter speed choices with sortKey (numeric) and label
  * @param shutterSpeedMap Map of numeric id to string label
  * @param currentShutterSpeed Current shutter speed string value (e.g., "1/60")
  * @param direction 'increase' or 'decrease'
  * @returns Shutter speed string value
  */
 export function getAdjacentShutterSpeedValue(
-	choices: Array<{ id: number; label: string }>,
+	choices: Array<{ sortKey: number; label: string }>,
 	shutterSpeedMap: Record<number, string>,
 	currentShutterSpeed: string | undefined,
 	direction: 'increase' | 'decrease',
@@ -311,19 +313,19 @@ export function getAdjacentShutterSpeedValue(
 	const currentNumeric = Object.entries(shutterSpeedMap).find(([_value, label]) => label === currentShutterSpeed)?.[0]
 
 	if (currentNumeric) {
-		const currentIdx = choices.findIndex((c) => c.id === Number.parseInt(currentNumeric, 10))
+		const currentIdx = choices.findIndex((c) => c.sortKey === Number.parseInt(currentNumeric, 10))
 		if (currentIdx >= 0) {
 			// Found current value, move to adjacent shutter speed
 			const newIdx =
 				direction === 'increase' ? Math.min(currentIdx + 1, choices.length - 1) : Math.max(currentIdx - 1, 0)
-			return shutterSpeedMap[choices[newIdx].id] ?? '1/60'
+			return shutterSpeedMap[choices[newIdx].sortKey] ?? '1/60'
 		}
 	}
 
 	// Current value not found, return first/last value
 	return direction === 'increase'
-		? (shutterSpeedMap[choices[choices.length - 1]?.id] ?? '1/60')
-		: (shutterSpeedMap[choices[0]?.id] ?? '1/60')
+		? (shutterSpeedMap[choices[choices.length - 1]?.sortKey] ?? '1/60')
+		: (shutterSpeedMap[choices[0]?.sortKey] ?? '1/60')
 }
 
 /**

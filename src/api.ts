@@ -119,6 +119,7 @@ export class BolinCamera {
 	private irisMap: Record<number, string> | null = null
 	private irisRange: { min: number; max: number } | null = null
 	private capabilitySet: Set<string> | null = null
+	private usesSpeedField = false // Some camera models use 'Speed' instead of 'ShutterSpeed'
 
 	constructor(config: ModuleConfig, password: string, self: BolinModuleInstance) {
 		this.config = config
@@ -740,12 +741,21 @@ export class BolinCamera {
 				GainLimit: number
 				ExCompLevel: number
 				SmartExposure: boolean
-				ShutterSpeed: number
+				ShutterSpeed?: number
+				Speed?: number // Some camera models use 'Speed' instead of 'ShutterSpeed'
 				Iris: number
 			}
 
 			const shutterSpeedMap = this.getShutterSpeedMap()
-			const shutterSpeedValue = shutterSpeedMap[rawExposureInfo.ShutterSpeed] ?? '1/60'
+			// Support both 'ShutterSpeed' and 'Speed' field names
+			const rawShutterSpeed = rawExposureInfo.ShutterSpeed ?? rawExposureInfo.Speed ?? 0
+			const shutterSpeedValue = shutterSpeedMap[rawShutterSpeed] ?? '1/60'
+
+			// Track which field name this camera uses for setExposureInfo
+			if (rawExposureInfo.Speed !== undefined && rawExposureInfo.ShutterSpeed === undefined) {
+				this.usesSpeedField = true
+			}
+
 			return {
 				...rawExposureInfo,
 				Mode: safeEnumLookup(EXPOSURE_MODE_MAP, rawExposureInfo.Mode, 'Auto'),
@@ -755,7 +765,7 @@ export class BolinCamera {
 	}
 
 	async setExposureInfo(exposureInfo: Partial<ExposureInfo>): Promise<void> {
-		// Prepare the request payload - API expects numeric ShutterSpeed
+		// Prepare the request payload - API expects numeric ShutterSpeed or Speed
 		const requestPayload: Record<string, unknown> = { ...exposureInfo }
 
 		// If ShutterSpeed is provided as a string, convert it to the numeric enum value
@@ -764,7 +774,14 @@ export class BolinCamera {
 			// Find the numeric key for this string value
 			const numericValue = Object.entries(shutterSpeedMap).find(([, value]) => value === exposureInfo.ShutterSpeed)?.[0]
 			if (numericValue !== undefined) {
-				requestPayload.ShutterSpeed = Number.parseInt(numericValue, 10)
+				const numericSpeed = Number.parseInt(numericValue, 10)
+				// Use 'Speed' or 'ShutterSpeed' based on what the camera supports
+				if (this.usesSpeedField) {
+					requestPayload.Speed = numericSpeed
+					delete requestPayload.ShutterSpeed
+				} else {
+					requestPayload.ShutterSpeed = numericSpeed
+				}
 			}
 		}
 

@@ -1643,12 +1643,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				value: Number.parseInt(value, 10),
 				label: label,
 			}))
-			.sort((a, b) => {
-				// Sort by numeric value from label (e.g., "1/60" -> 60, "1/1000" -> 1000)
-				const aNum = Number.parseInt(a.label.split('/')[1] || '0', 10)
-				const bNum = Number.parseInt(b.label.split('/')[1] || '0', 10)
-				return aNum - bNum
-			})
+			.sort((a, b) => a.value - b.value)
 
 		for (const { value, label } of shutterSpeedEntries) {
 			// Create a safe key for the preset ID (replace special characters)
