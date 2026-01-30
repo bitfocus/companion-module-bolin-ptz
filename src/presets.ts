@@ -1841,7 +1841,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-	const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
+	/* const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
 	if (hasTallyMode) {
 		presets['tallyModeHeader'] = {
 			category: 'System Info',
@@ -1874,7 +1874,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				},
 			)
 		}
-	}
+	} */
 
 	presets['ipAddressHeader'] = {
 		category: 'System Info',
@@ -2346,7 +2346,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 	}
 
 	// Stream control presets
-	const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
+	/* const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
 	if (hasRTSPCapability) {
 		presets['streamRTSPHeader'] = {
 			category: 'AV Streams',
@@ -2646,7 +2646,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		}
 	}
-
+ */
 	// Audio Enable presets
 	if (!capabilitiesLoaded || self.camera?.hasCapability('AudioInfo')) {
 		presets['presetAudioInputHeader'] = {
@@ -2681,7 +2681,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			)
 		}
 
-		// Audio Volume Set Value presets
+		/* 		// Audio Volume Set Value presets
 		presets['audioVolumeSetValueHeader'] = {
 			category: 'Audio',
 			name: 'Volume',
@@ -2755,7 +2755,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					},
 				],
 			}
-		}
+		} */
 	}
 
 	// Encoder Info presets
