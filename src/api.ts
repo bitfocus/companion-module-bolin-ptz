@@ -53,7 +53,15 @@ import type {
 } from './types.js'
 import type { BolinModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
-import { buildIrisMapFromCapabilities, buildShutterSpeedMapFromCapabilities, deepEqual } from './utils.js'
+import {
+	buildAudioVolumeControlFromCapabilities,
+	buildIrisMapFromCapabilities,
+	buildShutterSpeedMapFromCapabilities,
+	deepEqual,
+	formatAudioVolumeDisplay,
+	getEffectiveAudioVolume,
+	type AudioVolumeControl,
+} from './utils.js'
 import {
 	AF_SENSITIVITY_MAP,
 	DE_FLICKER_MAP,
@@ -120,6 +128,7 @@ export class BolinCamera {
 	private irisRange: { min: number; max: number } | null = null
 	private capabilitySet: Set<string> | null = null
 	private usesSpeedField = false // Some camera models use 'Speed' instead of 'ShutterSpeed'
+	private audioVolumeControl: AudioVolumeControl | null = null
 
 	constructor(config: ModuleConfig, password: string, self: BolinModuleInstance) {
 		this.config = config
@@ -233,6 +242,7 @@ export class BolinCamera {
 		this.cameraCapabilities = null
 		this.capabilitySet = null
 		this.previousState = null
+		this.audioVolumeControl = null
 	}
 
 	/**
@@ -1004,6 +1014,13 @@ export class BolinCamera {
 		}
 	}
 
+	private buildAudioVolumeControl(avCapabilitiesContent?: Record<string, unknown>): void {
+		this.audioVolumeControl = null
+		if (avCapabilitiesContent) {
+			this.audioVolumeControl = buildAudioVolumeControlFromCapabilities(avCapabilitiesContent)
+		}
+	}
+
 	/**
 	 * Gets the shutter speed map, building it from capabilities if available
 	 * Falls back to the static map if capabilities haven't been loaded
@@ -1049,6 +1066,18 @@ export class BolinCamera {
 	 */
 	getIrisRangeForActions(): { min: number; max: number } | null {
 		return this.irisRange
+	}
+
+	getAudioVolumeControl(): AudioVolumeControl | null {
+		return this.audioVolumeControl
+	}
+
+	getEffectiveAudioVolumeFromState(): number {
+		return getEffectiveAudioVolume(this.audioVolumeControl, this.state.audioInfo) ?? 0
+	}
+
+	formatAudioVolumeForVariable(): string {
+		return formatAudioVolumeDisplay(this.audioVolumeControl, this.state.audioInfo)
 	}
 
 	/**
@@ -1267,6 +1296,15 @@ export class BolinCamera {
 			...(currentAudioInfo ?? {}),
 			...(audioInfo ?? {}),
 		}
+		if (this.audioVolumeControl?.kind === 'enum') {
+			if (this.audioVolumeControl.apiField === 'VolumeLevel') {
+				delete completeAudioInfo.Volume
+			} else {
+				delete completeAudioInfo.VolumeLevel
+			}
+		} else if (this.audioVolumeControl?.kind === 'range') {
+			delete completeAudioInfo.VolumeLevel
+		}
 		await this.sendRequest('/apiv2/av', 'ReqSetAudioInfo', {
 			AudioInfo: completeAudioInfo as AudioInfo,
 		})
@@ -1441,6 +1479,17 @@ export class BolinCamera {
 		}
 		if (avStreamCapabilities.status === 'fulfilled' && avStreamCapabilities.value) {
 			capabilities.avStreamCapabilities = avStreamCapabilities.value
+			try {
+				const fullAvResp = await this.sendRequest('/apiv2/av', 'ReqGetAVStreamCapabilities')
+				const avContent = fullAvResp.Content as Record<string, unknown>
+
+				this.buildAudioVolumeControl(avContent)
+			} catch (error) {
+				this.self.log('debug', `Failed to get AV stream capabilities content: ${this.getErrorMessage(error)}`)
+				this.buildAudioVolumeControl()
+			}
+		} else {
+			this.buildAudioVolumeControl()
 		}
 		if (networkCapabilities.status === 'fulfilled' && networkCapabilities.value) {
 			capabilities.networkCapabilities = networkCapabilities.value
@@ -1455,8 +1504,8 @@ export class BolinCamera {
 		this.cameraCapabilities = capabilities
 		// Build capability set for efficient lookups
 		this.buildCapabilitySet()
-		// Trigger action update after maps are built so actions can use the dynamic maps
-		this.self.updateActions()
+		// Refresh module UI so actions, feedbacks, and presets match capability-derived maps
+		this.self.updateModuleComponents()
 		return capabilities
 	}
 

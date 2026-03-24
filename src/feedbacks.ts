@@ -2,7 +2,13 @@ import type { BolinModuleInstance } from './main.js'
 import type { PictureInfo } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
-import { sortIrisChoices, sortShutterSpeedChoices, convertIrisRangeToMap, convertIrisValueToFStop } from './utils.js'
+import {
+	defaultAudioVolumeFeedbackValue,
+	sortIrisChoices,
+	sortShutterSpeedChoices,
+	convertIrisRangeToMap,
+	convertIrisValueToFStop,
+} from './utils.js'
 
 export function UpdateFeedbacks(self: BolinModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
@@ -867,9 +873,9 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				createValueFeedback(
 					'audioVolume',
 					'Audio - Volume Level',
-					'Audio volume level matches selected value',
-					50,
-					() => self.camera?.getState().audioInfo?.Volume ?? 0,
+					'Audio gain matches selected value (percent for range cameras, dB for discrete-step cameras)',
+					defaultAudioVolumeFeedbackValue(self.camera?.getAudioVolumeControl() ?? null),
+					() => self.camera?.getEffectiveAudioVolumeFromState() ?? 0,
 				)
 			},
 		},

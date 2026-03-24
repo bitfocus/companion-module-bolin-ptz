@@ -666,7 +666,10 @@ export interface AudioInfo {
 	SamplingRate: number
 	ChannelNumber: number
 	Type: number
-	Volume: number
+	/** Percent-style gain (some models, see AV capabilities `Volume` range). */
+	Volume?: number
+	/** Discrete dB step index (some models, see AV capabilities `VolumeLevel` enum). */
+	VolumeLevel?: number
 }
 
 /**

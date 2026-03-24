@@ -1,4 +1,5 @@
 import type { BolinModuleInstance } from './main.js'
+import { formatAudioVolumeDisplay, getEffectiveAudioVolume } from './utils.js'
 import type { CameraState, PictureInfo } from './types.js'
 import { convertIrisValueToFStop, calculateNextAutoRestartTime, deepEqual } from './utils.js'
 
@@ -880,9 +881,12 @@ export function UpdateVariablesOnStateChange(
 			variables.audio_sampling_rate = samplingRateMap[currentAudio.SamplingRate] ?? currentAudio.SamplingRate.toString()
 		}
 
-		// Volume
-		if (!previousAudio || previousAudio.Volume !== currentAudio.Volume) {
-			variables.audio_volume = currentAudio.Volume
+		// Volume (percent or dB step depending on camera capabilities)
+		const volCtrl = self.camera?.getAudioVolumeControl() ?? null
+		const prevVol = getEffectiveAudioVolume(volCtrl, previousAudio)
+		const currVol = getEffectiveAudioVolume(volCtrl, currentAudio)
+		if (!previousAudio || prevVol !== currVol) {
+			variables.audio_volume = formatAudioVolumeDisplay(volCtrl, currentAudio)
 		}
 	}
 

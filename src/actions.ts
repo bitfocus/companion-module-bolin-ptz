@@ -30,6 +30,9 @@ import type {
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
+	defaultAudioVolumeFeedbackValue,
+	getAudioVolumeEnumDbSteps,
+	resolveAudioVolumeLevelFromDb,
 	sortIrisChoices,
 	getAdjacentIrisValue,
 	sortShutterSpeedChoices,
@@ -2715,6 +2718,44 @@ export function UpdateActions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['AudioInfo'],
 			createActions: () => {
+				const audioVolCtrl = self.camera?.getAudioVolumeControl() ?? null
+
+				const volumeOptions =
+					audioVolCtrl?.kind === 'enum'
+						? (() => {
+								const steps = getAudioVolumeEnumDbSteps(audioVolCtrl)
+								const span =
+									steps.length > 0 ? `${steps[0]} … ${steps[steps.length - 1]} dB` : 'camera-specific dB steps'
+								return [
+									{
+										type: 'textinput' as const,
+										label: 'Volume (dB)',
+										tooltip: `Gain in discrete dB steps (${span}). Use variables if needed.`,
+										default: String(defaultAudioVolumeFeedbackValue(audioVolCtrl)),
+										id: 'volume',
+										useVariables: true,
+										isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
+									},
+								]
+							})()
+						: [
+								{
+									type: 'textinput' as const,
+									label: 'Volume',
+									tooltip:
+										audioVolCtrl?.kind === 'range'
+											? `Volume level (${audioVolCtrl.min}–${audioVolCtrl.max})`
+											: 'Volume level (1–100)',
+									default:
+										audioVolCtrl?.kind === 'range'
+											? String(Math.round((audioVolCtrl.min + audioVolCtrl.max) / 2))
+											: '50',
+									id: 'volume',
+									useVariables: true,
+									isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
+								},
+							]
+
 				actions['audioControl'] = {
 					name: 'Audio Control',
 					options: [
@@ -2766,15 +2807,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							id: 'samplingRate',
 							isVisibleExpression: `arrayIncludes($(options:props), 'samplingRate')`,
 						},
-						{
-							type: 'textinput',
-							label: 'Volume',
-							tooltip: 'Volume level (1-100)',
-							default: '50',
-							id: 'volume',
-							useVariables: true,
-							isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
-						},
+						...volumeOptions,
 					],
 					description: 'Set the audio control',
 					callback: async (action) => {
@@ -2782,6 +2815,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 						const props = action.options.props as string[]
 
 						const audioInfo: Partial<AudioInfo> = {}
+						const volCtrl = self.camera.getAudioVolumeControl()
 
 						for (const prop of props) {
 							if (prop === 'enable') {
@@ -2800,13 +2834,30 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								audioInfo.SamplingRate = action.options.samplingRate as number
 							}
 							if (prop === 'volume') {
-								const volume = parseInteger(action.options.volume as string, 'Volume', self)
-								if (volume === null) return
-								if (volume < 1 || volume > 100) {
-									self.log('warn', 'Volume must be between 1 and 100')
-									return
+								if (volCtrl?.kind === 'enum') {
+									const db = parseInteger(action.options.volume as string, 'Volume (dB)', self)
+									if (db === null) return
+									const level = resolveAudioVolumeLevelFromDb(volCtrl, db)
+									if (level === null) {
+										self.log('warn', `${db} dB is not a valid gain step for this camera`)
+										return
+									}
+									if (volCtrl.apiField === 'Volume') {
+										audioInfo.Volume = level
+									} else {
+										audioInfo.VolumeLevel = level
+									}
+								} else {
+									const volume = parseInteger(action.options.volume as string, 'Volume', self)
+									if (volume === null) return
+									const min = volCtrl?.kind === 'range' ? volCtrl.min : 1
+									const max = volCtrl?.kind === 'range' ? volCtrl.max : 100
+									if (volume < min || volume > max) {
+										self.log('warn', `Volume must be between ${min} and ${max}`)
+										return
+									}
+									audioInfo.Volume = volume
 								}
-								audioInfo.Volume = volume
 							}
 						}
 

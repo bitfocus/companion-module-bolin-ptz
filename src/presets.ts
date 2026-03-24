@@ -1,6 +1,6 @@
 import { CompanionPresetDefinitions, type CompanionOptionValues } from '@companion-module/base'
 import type { BolinModuleInstance } from './main.js'
-import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
+import { sortIrisChoices, convertIrisRangeToMap, parseDbFromVolumeLabel } from './utils.js'
 import { icons } from './icons.js'
 
 export function UpdatePresets(self: BolinModuleInstance): void {
@@ -2681,13 +2681,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			)
 		}
 
-		/* 		// Audio Volume Set Value presets
+		// Audio Volume Set Value presets
 		presets['audioVolumeSetValueHeader'] = {
 			category: 'Audio',
 			name: 'Volume',
 			type: 'text',
 			text: '',
 		}
+		const audioVolCtrl = self.camera?.getAudioVolumeControl() ?? null
 		presets[`presetAudioVolumeStatus`] = {
 			type: 'button',
 			category: 'Audio',
@@ -2695,7 +2696,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			style: {
 				bgcolor: Color.darkGray,
 				color: Color.white,
-				text: `VOLUME\\n$(bolin-ptz:audio_volume)%`,
+				text: `VOLUME\\n$(bolin-ptz:audio_volume) ${audioVolCtrl?.kind === 'enum' ? 'dB' : '%'}`,
 				size: 12,
 				alignment: 'center:bottom',
 				png64: icons.meters,
@@ -2709,53 +2710,148 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			],
 			feedbacks: [],
 		}
-		for (const volume of [
-			{ value: 1, label: '1%' },
-			{ value: 25, label: '25%' },
-			{ value: 50, label: '50%' },
-			{ value: 75, label: '75%' },
-			{ value: 100, label: '100%' },
-		]) {
-			presets[`presetAudioVolume${volume.label}`] = {
-				type: 'button',
-				category: 'Audio',
-				name: `Audio Volume ${volume.label}`,
-				style: {
-					bgcolor: Color.lightGray,
-					color: Color.white,
-					text: `SET\\nVOLUME\\n${volume.label}`,
-					size: 12,
-					alignment: 'center:center',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'audioControl',
-								options: {
-									props: ['volume'],
-									volume: volume.value.toString(),
+
+		if (audioVolCtrl?.kind === 'enum') {
+			for (const c of audioVolCtrl.choices) {
+				const db = parseDbFromVolumeLabel(c.label)
+				if (db === null) continue
+				const dbLabel = `${db} dB`
+				presets[`presetAudioVolDb_${db}`] = {
+					type: 'button',
+					category: 'Audio',
+					name: `Audio Volume ${dbLabel}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `SET\\nVOLUME\\n${dbLabel}`,
+						size: 12,
+						alignment: 'center:center',
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'audioControl',
+									options: {
+										props: ['volume'],
+										volume: db.toString(),
+									},
 								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'audioVolume',
+							options: {
+								comparison: 'equal',
+								value: db.toString(),
 							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'audioVolume',
-						options: {
-							comparison: 'equal',
-							value: volume.value.toString(),
+							style: {
+								bgcolor: Color.green,
+							},
 						},
-						style: {
-							bgcolor: Color.green,
-						},
-					},
-				],
+					],
+				}
 			}
-		} */
+		} else if (audioVolCtrl?.kind === 'range') {
+			const defaultSteps = [1, 25, 50, 75, 100]
+			const clamped = [
+				...new Set(defaultSteps.map((p) => Math.min(audioVolCtrl.max, Math.max(audioVolCtrl.min, p)))),
+			].sort((a, b) => a - b)
+			for (const value of clamped) {
+				const label = `${value}%`
+				presets[`presetAudioVolume${value}pct`] = {
+					type: 'button',
+					category: 'Audio',
+					name: `Audio Volume ${label}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `SET\\nVOLUME\\n${label}`,
+						size: 12,
+						alignment: 'center:center',
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'audioControl',
+									options: {
+										props: ['volume'],
+										volume: value.toString(),
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'audioVolume',
+							options: {
+								comparison: 'equal',
+								value: value.toString(),
+							},
+							style: {
+								bgcolor: Color.green,
+							},
+						},
+					],
+				}
+			}
+		} else {
+			for (const volume of [
+				{ value: 1, label: '1%' },
+				{ value: 25, label: '25%' },
+				{ value: 50, label: '50%' },
+				{ value: 75, label: '75%' },
+				{ value: 100, label: '100%' },
+			]) {
+				presets[`presetAudioVolume${volume.label}`] = {
+					type: 'button',
+					category: 'Audio',
+					name: `Audio Volume ${volume.label}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `SET\\nVOLUME\\n${volume.label}`,
+						size: 12,
+						alignment: 'center:center',
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'audioControl',
+									options: {
+										props: ['volume'],
+										volume: volume.value.toString(),
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'audioVolume',
+							options: {
+								comparison: 'equal',
+								value: volume.value.toString(),
+							},
+							style: {
+								bgcolor: Color.green,
+							},
+						},
+					],
+				}
+			}
+		}
 	}
 
 	// Encoder Info presets
