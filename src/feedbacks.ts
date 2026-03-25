@@ -988,5 +988,24 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 		}
 	}
 
+	// EXU outdoor unit feedbacks — only shown when camera is confirmed EXU model
+	if (self.camera?.getIsEXUModel()) {
+		createToggleFeedback('exuWiper', 'Outdoor - Wiper Active', 'Wiper is currently running', () => {
+			return self.camera?.getState().exuInfo?.wiper ?? false
+		})
+		createToggleFeedback('exuAutoWiper', 'Outdoor - Auto Wiper Active', 'Auto wiper is currently running', () => {
+			return self.camera?.getState().exuInfo?.autowiper ?? false
+		})
+		createToggleFeedback('exuDefog', 'Outdoor - Defog Active', 'Defog is currently active', () => {
+			return self.camera?.getState().exuInfo?.defog ?? false
+		})
+		createToggleFeedback('exuHeater', 'Outdoor - Heater Active', 'Heater is currently on', () => {
+			return self.camera?.getState().exuInfo?.heater ?? false
+		})
+		createToggleFeedback('exuLaser', 'Outdoor - Laser Active', 'Laser illuminator is currently on', () => {
+			return self.camera?.getState().exuInfo?.laser ?? false
+		})
+	}
+
 	self.setFeedbackDefinitions(feedbacks)
 }

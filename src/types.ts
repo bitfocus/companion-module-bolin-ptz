@@ -773,6 +773,18 @@ export interface AutoRestartRequest {
 }
 
 /**
+ * EXU outdoor unit status (from /api/ptz/exu-info)
+ */
+export interface ExuInfo {
+	defog: boolean
+	wiper: boolean
+	heater: boolean
+	autowiper: boolean
+	laser: boolean
+	status: number
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -805,4 +817,5 @@ export interface CameraState {
 	scanningInfo: ScanningInfo[] | null
 	cruiseInfo: CruiseInfo[] | null
 	autoRestartInfo: AutoRestartInfo | null
+	exuInfo: ExuInfo | null
 }

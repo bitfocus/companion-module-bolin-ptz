@@ -411,6 +411,17 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		},
 	]
 
+	// EXU outdoor unit variables — only shown when camera is confirmed EXU model
+	if (self.camera?.getIsEXUModel()) {
+		variables.push(
+			{ name: 'Outdoor - Wiper', variableId: 'exu_wiper' },
+			{ name: 'Outdoor - Auto Wiper', variableId: 'exu_autowiper' },
+			{ name: 'Outdoor - Defog', variableId: 'exu_defog' },
+			{ name: 'Outdoor - Heater', variableId: 'exu_heater' },
+			{ name: 'Outdoor - Laser', variableId: 'exu_laser' },
+		)
+	}
+
 	// Filter and collect variables based on capabilities
 	for (const mapping of variableMappings) {
 		if (!capabilitiesLoaded || mapping.capabilities.some((cap) => self.camera?.hasCapability(cap))) {
@@ -1006,6 +1017,17 @@ export function UpdateVariablesOnStateChange(
 			variables.auto_restart_hour = autoRestart.Hour.toString()
 			variables.auto_restart_minute = autoRestart.Minute.toString()
 		}
+	}
+
+	// Update EXU outdoor unit variables if changed
+	if (currentState.exuInfo) {
+		updateFields(variables, previousState?.exuInfo, currentState.exuInfo, [
+			{ getValue: (e) => (e.wiper ? 'On' : 'Off'), variableId: 'exu_wiper' },
+			{ getValue: (e) => (e.autowiper ? 'On' : 'Off'), variableId: 'exu_autowiper' },
+			{ getValue: (e) => (e.defog ? 'On' : 'Off'), variableId: 'exu_defog' },
+			{ getValue: (e) => (e.heater ? 'On' : 'Off'), variableId: 'exu_heater' },
+			{ getValue: (e) => (e.laser ? 'On' : 'Off'), variableId: 'exu_laser' },
+		])
 	}
 
 	// Only update variables if something changed

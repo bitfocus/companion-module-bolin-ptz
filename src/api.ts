@@ -50,6 +50,7 @@ import type {
 	AudioInfo,
 	AutoRestartInfo,
 	AutoRestartRequest,
+	ExuInfo,
 } from './types.js'
 import type { BolinModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -112,6 +113,7 @@ function createEmptyState(): CameraState {
 		scanningInfo: null,
 		cruiseInfo: null,
 		autoRestartInfo: null,
+		exuInfo: null,
 	} satisfies CameraState
 }
 
@@ -132,6 +134,9 @@ export class BolinCamera {
 	private audioVolumeControl: AudioVolumeControl | null = null
 	/** TallyMode enum labels from ReqGetImageCapabilities content (fallback: generalCapabilities in state). */
 	private tallyModeChoicesFromImageCaps: Array<{ id: number; label: string }> | null = null
+	private isEXUModel: boolean = false
+	/** Session cookie for /api/* endpoints (distinct from /apiv2/* token auth) */
+	private apiSessionCookie: string | null = null
 
 	constructor(config: ModuleConfig, password: string, self: BolinModuleInstance) {
 		this.config = config
@@ -247,6 +252,15 @@ export class BolinCamera {
 		this.previousState = null
 		this.audioVolumeControl = null
 		this.tallyModeChoicesFromImageCaps = null
+		this.isEXUModel = false
+		this.apiSessionCookie = null
+	}
+
+	/**
+	 * Returns true if the connected camera is an EXU outdoor model
+	 */
+	getIsEXUModel(): boolean {
+		return this.isEXUModel
 	}
 
 	/**
@@ -279,6 +293,7 @@ export class BolinCamera {
 			audioInfo: ['audioEnabled', 'audioVolume'],
 			autoRestartInfo: ['autoRestartEnabled'],
 			osdSystemInfo: ['tallyMode'],
+			exuInfo: ['exuWiper', 'exuAutoWiper', 'exuDefog', 'exuHeater', 'exuLaser'],
 		}
 		return feedbackMap[stateKey] ?? []
 	}
@@ -1449,6 +1464,78 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Logs into the /api/* session (separate from /apiv2/* auth).
+	 * Stores the Set-Cookie value for subsequent /api/* requests.
+	 */
+	private async loginApiSession(): Promise<void> {
+		try {
+			const url = `http://${this.config.host}:${this.config.port}/api/user/login`
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: this.config.username, password: this.password }),
+			})
+			if (!response.ok) return
+			const setCookie = response.headers.get('set-cookie')
+			if (setCookie) {
+				// Extract just the name=value portion (before the first semicolon)
+				this.apiSessionCookie = setCookie.split(';')[0].trim()
+			}
+		} catch {
+			this.apiSessionCookie = null
+		}
+	}
+
+	/**
+	 * Checks /api/general/feature to detect if this is an EXU outdoor camera model.
+	 * Sets isEXUModel accordingly. Called once during capability initialization.
+	 */
+	private async checkAndSetEXUSupport(): Promise<void> {
+		try {
+			await this.loginApiSession()
+			if (!this.apiSessionCookie) return
+
+			const url = `http://${this.config.host}:${this.config.port}/api/general/feature`
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', Cookie: this.apiSessionCookie },
+				body: '{}',
+			})
+			if (!response.ok) return
+			const data = (await response.json()) as { model?: string; status?: number }
+			this.isEXUModel = data.model === 'EXU'
+			if (this.isEXUModel) {
+				this.self.log('debug', 'EXU outdoor unit detected, enabling EXU status polling')
+			}
+		} catch {
+			// Not an EXU model or endpoint not available — silently ignore
+			this.isEXUModel = false
+		}
+	}
+
+	/**
+	 * Fetches EXU outdoor unit status from /api/ptz/exu-info and stores in state
+	 */
+	async getEXUInfo(): Promise<ExuInfo> {
+		if (!this.apiSessionCookie) {
+			throw new Error('No API session cookie for EXU info request')
+		}
+		const url = `http://${this.config.host}:${this.config.port}/api/ptz/exu-info`
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json', Cookie: this.apiSessionCookie },
+			body: '{}',
+		})
+		if (!response.ok) {
+			throw new Error(`EXU info request failed with status: ${response.status}`)
+		}
+		const data = (await response.json()) as ExuInfo
+		this.state.exuInfo = data
+		this.updateVariablesOnStateChange()
+		return data
+	}
+
+	/**
 	 * Gets camera capabilities from all capability endpoints and stores object names
 	 */
 	async getCameraCapabilities(): Promise<CameraCapabilities> {
@@ -1522,6 +1609,8 @@ export class BolinCamera {
 		this.cameraCapabilities = capabilities
 		// Build capability set for efficient lookups
 		this.buildCapabilitySet()
+		// Check if this is an EXU outdoor model (must happen before updateModuleComponents)
+		await this.checkAndSetEXUSupport()
 		// Refresh module UI so actions, feedbacks, and presets match capability-derived maps
 		this.self.updateModuleComponents()
 		return capabilities
@@ -1591,6 +1680,7 @@ export class BolinCamera {
 			{ capabilities: ['ScanningInfo'], method: async () => this.getScanningInfo() },
 			{ capabilities: ['CruiseInfo'], method: async () => this.getCruiseInfo() },
 			{ capabilities: ['AutoRestartInfo'], method: async () => this.getAutoRestartInfo() },
+			...(this.isEXUModel ? [{ capabilities: [] as string[], method: async () => this.getEXUInfo() }] : []),
 		]
 
 		const promises = capabilityMappings

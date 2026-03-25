@@ -3518,38 +3518,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 61) {
 			// Preset 61: Defog OFF (Set) / ON (Call)
-			presets[`presetSetDefogOff`] = {
-				type: 'button',
-				category: 'Outdoor Features',
-				name: 'Defog OFF (Set)',
-				style: {
-					bgcolor: Color.lightGray,
-					color: Color.white,
-					text: `DEFOG\\nOFF`,
-					size: '14',
-					png64: icons.fog,
-					alignment: 'center:bottom',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'presetControl',
-								options: {
-									command: 'Set',
-									preset: preset.Number,
-									customPreset: preset?.Name ? false : true,
-									customPresetNumber: preset.Number,
-									customPresetName: preset.Name,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [],
-			}
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetCallDefogOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3580,10 +3549,45 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuDefog', options: {}, style: { bgcolor: Color.green } }] : [],
+			}
+			presets[`presetSetDefogOff`] = {
+				type: 'button',
+				category: 'Outdoor Features',
+				name: 'Defog OFF (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `DEFOG\\nOFF`,
+					size: '14',
+					png64: icons.fog,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuDefog', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 62) {
 			// Preset 62: Sngl.Wiper ON (Set) / OFF (Call)
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetSetWiperOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3614,7 +3618,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuWiper', options: {}, style: { bgcolor: Color.green } }] : [],
 			}
 			presets[`presetCallWiperOff`] = {
 				type: 'button',
@@ -3646,42 +3650,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuWiper', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 63) {
 			// Preset 63: Heater OFF (Set) / ON (Call)
-			presets[`presetSetHeaterOff`] = {
-				type: 'button',
-				category: 'Outdoor Features',
-				name: 'Heater OFF (Set)',
-				style: {
-					bgcolor: Color.lightGray,
-					color: Color.white,
-					text: `HEATER\\nOFF`,
-					size: '14',
-					png64: icons.temp,
-					alignment: 'center:bottom',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'presetControl',
-								options: {
-									command: 'Set',
-									preset: preset.Number,
-									customPreset: preset?.Name ? false : true,
-									customPresetNumber: preset.Number,
-									customPresetName: preset.Name,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [],
-			}
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetCallHeaterOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3712,10 +3687,45 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuHeater', options: {}, style: { bgcolor: Color.green } }] : [],
+			}
+			presets[`presetSetHeaterOff`] = {
+				type: 'button',
+				category: 'Outdoor Features',
+				name: 'Heater OFF (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `HEATER\\nOFF`,
+					size: '14',
+					png64: icons.temp,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuHeater', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 64) {
 			// Preset 64: Cont.Wiper ON (Set) / OFF (Call)
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetSetContWiperOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3746,7 +3756,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuAutoWiper', options: {}, style: { bgcolor: Color.green } }] : [],
 			}
 			presets[`presetCallContWiperOff`] = {
 				type: 'button',
@@ -3778,10 +3788,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuAutoWiper', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 65) {
 			// Preset 65:Illumination ON (Set) / OFF (Call)
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetSetIlluminationOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3812,7 +3825,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuLaser', options: {}, style: { bgcolor: Color.green } }] : [],
 			}
 			presets[`presetCallIlluminationOff`] = {
 				type: 'button',
@@ -3844,7 +3857,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuLaser', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		}
 	}
