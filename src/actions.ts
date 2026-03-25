@@ -643,6 +643,30 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Adjust the Zoom Speed',
 				)
 
+				actions['setZoomLock'] = {
+					name: 'PTZ - Set Zoom Lock',
+					description: 'Enable, disable, or toggle the local zoom lock. When locked, zoom commands are suppressed.',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Lock',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'lock',
+						},
+					],
+					callback: async (action) => {
+						const lockAction = action.options.lock as 'toggle' | 'true' | 'false'
+						if (lockAction === 'toggle') {
+							self.zoomLocked = !self.zoomLocked
+						} else {
+							self.zoomLocked = lockAction === 'true'
+						}
+						self.checkFeedbacks('zoomLocked')
+						updateSpeedVariables(self)
+					},
+				}
+
 				// Basic PTZ controls - always available
 				actions['goHome'] = {
 					name: 'PTZ - Go Home',
@@ -688,6 +712,8 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					description: 'Zoom the camera',
 					callback: async (action) => {
 						if (!self.camera) return
+						const direction = action.options.direction as ZoomCommand['Direction']
+						if (self.zoomLocked && direction !== 'Stop') return
 						const speed = action.options.customSpeed ? parseInt(action.options.speed as string) : self.zoomSpeed
 						if (isNaN(speed)) {
 							self.log('warn', 'Speed must be a number')
@@ -698,7 +724,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							return
 						}
 						const zoom: ZoomCommand = {
-							Direction: action.options.direction as ZoomCommand['Direction'],
+							Direction: direction,
 							Speed: speed,
 						}
 						await self.camera.zoom(zoom)

@@ -975,6 +975,21 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				}
 			},
 		},
+		{
+			capabilities: [],
+			createFeedbacks: () => {
+				feedbacks['zoomLocked'] = {
+					name: 'PTZ - Zoom Locked',
+					description: 'Zoom is locally locked — zoom commands are suppressed',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0xda2f21,
+					},
+					options: [],
+					callback: () => self.zoomLocked,
+				}
+			},
+		},
 	]
 
 	// Filter and create feedbacks based on capabilities

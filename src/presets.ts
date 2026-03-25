@@ -540,6 +540,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							lock: 'true',
 						},
 					},
+					{
+						actionId: 'setZoomLock',
+						options: { lock: 'true' },
+					},
 				],
 				up: [],
 			},
@@ -579,6 +583,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							lock: 'false',
 						},
 					},
+					{
+						actionId: 'setZoomLock',
+						options: { lock: 'false' },
+					},
 				],
 				up: [],
 			},
@@ -596,6 +604,43 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			},
 		],
 	}
+	presets['zoomLock'] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Zoom Lock',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: 'LOCK\\nZOOM',
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.unlocked,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'setZoomLock',
+						options: { lock: 'toggle' },
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'zoomLocked',
+				options: {},
+				style: {
+					bgcolor: Color.red,
+					text: 'UNLOCK\\nZOOM',
+					png64: icons.lock,
+				},
+			},
+		],
+	}
+
 	createAdjustmentPresets('ptSpeed', 'PTZ Control', 'PT Speed', 'panTiltSpeed', 'pt_speed', 'P/T SPEED', {
 		adjustmentValue: 10,
 		headerName: 'Pan / Tilt Speed Control',
