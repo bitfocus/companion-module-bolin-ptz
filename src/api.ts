@@ -60,6 +60,7 @@ import {
 	deepEqual,
 	formatAudioVolumeDisplay,
 	getEffectiveAudioVolume,
+	getTallyModeCapabilityChoices,
 	type AudioVolumeControl,
 } from './utils.js'
 import {
@@ -129,6 +130,8 @@ export class BolinCamera {
 	private capabilitySet: Set<string> | null = null
 	private usesSpeedField = false // Some camera models use 'Speed' instead of 'ShutterSpeed'
 	private audioVolumeControl: AudioVolumeControl | null = null
+	/** TallyMode enum labels from ReqGetImageCapabilities content (fallback: generalCapabilities in state). */
+	private tallyModeChoicesFromImageCaps: Array<{ id: number; label: string }> | null = null
 
 	constructor(config: ModuleConfig, password: string, self: BolinModuleInstance) {
 		this.config = config
@@ -243,6 +246,7 @@ export class BolinCamera {
 		this.capabilitySet = null
 		this.previousState = null
 		this.audioVolumeControl = null
+		this.tallyModeChoicesFromImageCaps = null
 	}
 
 	/**
@@ -1081,6 +1085,16 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Resolved TallyMode enum choices for UI (image capabilities first, then general capabilities state).
+	 */
+	getTallyModeChoicesForUi(): Array<{ id: number; label: string }> | null {
+		return (
+			this.tallyModeChoicesFromImageCaps ??
+			getTallyModeCapabilityChoices(this.state.generalCapabilities as Record<string, unknown> | null)
+		)
+	}
+
+	/**
 	 * Gets general capabilities from the camera and stores it in state
 	 */
 	async getGeneralCapabilities(): Promise<GeneralCapabilities> {
@@ -1473,9 +1487,13 @@ export class BolinCamera {
 				const imageContent = fullImageResp.Content as Record<string, unknown>
 				this.buildShutterSpeedMap(imageContent)
 				this.buildIrisMap(imageContent)
+				this.tallyModeChoicesFromImageCaps = getTallyModeCapabilityChoices(imageContent)
 			} catch (error) {
 				this.self.log('debug', `Failed to get image capabilities content: ${this.getErrorMessage(error)}`)
+				this.tallyModeChoicesFromImageCaps = null
 			}
+		} else {
+			this.tallyModeChoicesFromImageCaps = null
 		}
 		if (avStreamCapabilities.status === 'fulfilled' && avStreamCapabilities.value) {
 			capabilities.avStreamCapabilities = avStreamCapabilities.value

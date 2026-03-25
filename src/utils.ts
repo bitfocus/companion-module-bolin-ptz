@@ -48,6 +48,37 @@ export function findCapability(
 }
 
 /**
+ * TallyMode enum choices from general capabilities (nested under OSDSystemInfo or similar).
+ */
+export function getTallyModeCapabilityChoices(
+	general: Record<string, unknown> | null | undefined,
+): Array<{ id: number; label: string }> | null {
+	if (!general) return null
+	const cap = findCapability(general, 'TallyMode')
+	if (cap?.Type !== 'enum' || !Array.isArray(cap.Data)) return null
+	const choices: Array<{ id: number; label: string }> = []
+	for (const item of cap.Data) {
+		const row = item as { Value?: unknown; Description?: unknown }
+		if (typeof row.Value === 'number' && typeof row.Description === 'string') {
+			choices.push({ id: row.Value, label: row.Description })
+		}
+	}
+	if (choices.length === 0) return null
+	choices.sort((a, b) => a.id - b.id)
+	return choices
+}
+
+export function formatTallyModeVariable(
+	tally: boolean | number | undefined,
+	enumChoices: Array<{ id: number; label: string }> | null | undefined,
+): string {
+	if (tally === undefined) return ''
+	if (typeof tally === 'boolean') return tally ? 'On' : 'Off'
+	const hit = enumChoices?.find((c) => c.id === tally)
+	return hit?.label ?? String(tally)
+}
+
+/**
  * Lightweight deep equality check
  */
 export function deepEqual(a: unknown, b: unknown): boolean {

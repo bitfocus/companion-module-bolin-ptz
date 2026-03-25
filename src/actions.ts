@@ -1143,15 +1143,38 @@ export function UpdateActions(self: BolinModuleInstance): void {
 				}
 
 				if (self.camera?.hasCapability('OSDSystemInfo')) {
-					createToggleAction(
-						'tallyMode',
-						'Tally Mode',
-						() => self.camera?.getState().osdSystemInfo?.TallyMode,
-						async (value) => {
-							if (!self.camera) return
-							await self.camera.setOSDSystemInfo({ TallyMode: value } as Partial<OSDSystemInfo>)
-						},
-					)
+					const tallyChoices = self.camera.getTallyModeChoicesForUi()
+					if (tallyChoices) {
+						actions['tallyMode'] = {
+							name: 'Tally Mode',
+							options: [
+								{
+									type: 'dropdown',
+									label: 'Mode',
+									choices: tallyChoices.map((c) => ({ id: c.id, label: c.label })),
+									default: tallyChoices[0]?.id ?? 0,
+									id: 'mode',
+								},
+							],
+							description: 'Set tally mode',
+							callback: async (action) => {
+								if (!self.camera) return
+								await self.camera.setOSDSystemInfo({
+									TallyMode: action.options.mode as number,
+								} as Partial<OSDSystemInfo>)
+							},
+						}
+					} else {
+						createToggleAction(
+							'tallyMode',
+							'Tally Mode',
+							() => self.camera?.getState().osdSystemInfo?.TallyMode === true,
+							async (value) => {
+								if (!self.camera) return
+								await self.camera.setOSDSystemInfo({ TallyMode: value } as Partial<OSDSystemInfo>)
+							},
+						)
+					}
 				}
 			},
 		},

@@ -1,5 +1,5 @@
 import type { BolinModuleInstance } from './main.js'
-import { formatAudioVolumeDisplay, getEffectiveAudioVolume } from './utils.js'
+import { formatAudioVolumeDisplay, formatTallyModeVariable, getEffectiveAudioVolume } from './utils.js'
 import type { CameraState, PictureInfo } from './types.js'
 import { convertIrisValueToFStop, calculateNextAutoRestartTime, deepEqual } from './utils.js'
 
@@ -733,8 +733,12 @@ export function UpdateVariablesOnStateChange(
 		updateFields(variables, previousState?.osdSystemInfo, currentState.osdSystemInfo, [
 			{ getValue: (o) => o.PelcoID, variableId: 'pelco_id' },
 			{ getValue: (o) => o.VISCAID, variableId: 'visca_id' },
-			{ getValue: (o) => (o.TallyMode ? 'On' : 'Off'), variableId: 'tally_mode' },
 		])
+		const prevTally = previousState?.osdSystemInfo?.TallyMode
+		const curTally = currentState.osdSystemInfo.TallyMode
+		if (prevTally !== curTally) {
+			variables.tally_mode = formatTallyModeVariable(curTally, self.camera?.getTallyModeChoicesForUi() ?? null)
+		}
 	}
 
 	// Update RTSP stream variables if changed

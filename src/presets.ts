@@ -1841,7 +1841,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-	/* const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
+	const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
+	const tallyEnumChoices = self.camera?.getTallyModeChoicesForUi() ?? null
 	if (hasTallyMode) {
 		presets['tallyModeHeader'] = {
 			category: 'System Info',
@@ -1850,31 +1851,112 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			text: '',
 		}
 
-		for (const mode of [
-			{ id: 'toggle', label: 'Toggle', text: 'TALLY MODE' },
-			{ id: 'false', label: 'Off', text: 'TALLY\\nOFF' },
-			{ id: 'true', label: 'On', text: 'TALLY\\nON' },
-		]) {
-			const presetKey = mode.id === 'toggle' ? `presetTallyModeToggle${mode.label}` : `presetTallyMode${mode.label}`
-			createTogglePreset(
-				presets,
-				presetKey,
-				`Tally Mode ${mode.label}`,
-				'System Info',
-				mode.text,
-				'tallyMode',
-				mode.id,
-				'tallyMode',
-				mode.id === 'toggle',
-				{
-					toggleOffIcon: icons.toggleOff,
-					toggleOnIcon: icons.toggleOn,
-					defaultIcon: icons.bulb,
-					alignment: 'center:bottom',
-				},
-			)
+		if (tallyEnumChoices) {
+			const offChoice =
+				tallyEnumChoices.find((c) => /^off$/i.test(c.label.trim())) ?? tallyEnumChoices.find((c) => c.id === 0)
+			const outdoorChoice =
+				tallyEnumChoices.find((c) => /^outdoor$/i.test(c.label.trim())) ?? tallyEnumChoices.find((c) => c.id === 2)
+
+			if (offChoice) {
+				presets['presetTallyModeOff'] = {
+					type: 'button',
+					category: 'System Info',
+					name: 'Tally Mode Off',
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `TALLY\\n${offChoice.label}`,
+						size: '14' as const,
+						alignment: 'center:bottom' as const,
+						png64: icons.bulb,
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'tallyMode',
+									options: { mode: offChoice.id },
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'tallyMode',
+							isInverted: true,
+							options: {},
+							style: {
+								bgcolor: Color.red,
+							},
+						},
+					],
+				}
+			}
+			if (outdoorChoice) {
+				presets['presetTallyModeOn'] = {
+					type: 'button',
+					category: 'System Info',
+					name: 'Tally Mode On',
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `TALLY\\nON`,
+						size: '14' as const,
+						alignment: 'center:bottom' as const,
+						png64: icons.bulb,
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'tallyMode',
+									options: { mode: outdoorChoice.id },
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'tallyMode',
+							options: {},
+							style: {
+								bgcolor: Color.green,
+							},
+						},
+					],
+				}
+			}
+		} else {
+			for (const mode of [
+				{ id: 'toggle', label: 'Toggle', text: 'TALLY MODE' },
+				{ id: 'false', label: 'Off', text: 'TALLY\\nOFF' },
+				{ id: 'true', label: 'On', text: 'TALLY\\nON' },
+			]) {
+				const presetKey = mode.id === 'toggle' ? `presetTallyModeToggle${mode.label}` : `presetTallyMode${mode.label}`
+				createTogglePreset(
+					presets,
+					presetKey,
+					`Tally Mode ${mode.label}`,
+					'System Info',
+					mode.text,
+					'tallyMode',
+					mode.id,
+					'tallyMode',
+					mode.id === 'toggle',
+					{
+						toggleOffIcon: icons.toggleOff,
+						toggleOnIcon: icons.toggleOn,
+						defaultIcon: icons.bulb,
+						alignment: 'center:bottom',
+					},
+				)
+			}
 		}
-	} */
+	}
 
 	presets['ipAddressHeader'] = {
 		category: 'System Info',

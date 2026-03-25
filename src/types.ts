@@ -532,7 +532,8 @@ export interface OSDSystemInfo {
 	TemperatureDegree: number
 	DisplayInfo: boolean
 	VideoParametersOSD: boolean
-	TallyMode: boolean
+	/** Boolean on indoor cameras; enum (0=OFF, 1=INDOOR, 2=OUTDOOR) on certain outdoor cameras. */
+	TallyMode: boolean | number
 	Audio: boolean
 	InputType: number
 	VolumeLevel: number
