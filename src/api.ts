@@ -1103,10 +1103,7 @@ export class BolinCamera {
 	 * Resolved TallyMode enum choices for UI (image capabilities first, then general capabilities state).
 	 */
 	getTallyModeChoicesForUi(): Array<{ id: number; label: string }> | null {
-		return (
-			this.tallyModeChoicesFromImageCaps ??
-			getTallyModeCapabilityChoices(this.state.generalCapabilities as Record<string, unknown> | null)
-		)
+		return this.tallyModeChoicesFromImageCaps ?? getTallyModeCapabilityChoices(this.state.generalCapabilities)
 	}
 
 	/**
@@ -1335,7 +1332,7 @@ export class BolinCamera {
 			delete completeAudioInfo.VolumeLevel
 		}
 		await this.sendRequest('/apiv2/av', 'ReqSetAudioInfo', {
-			AudioInfo: completeAudioInfo as AudioInfo,
+			AudioInfo: completeAudioInfo,
 		})
 	}
 
