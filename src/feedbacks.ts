@@ -914,17 +914,12 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 		{
 			capabilities: ['OSDSystemInfo'],
 			createFeedbacks: () => {
-				createToggleFeedback(
-					'tallyMode',
-					'Tally - Active',
-					'True when tally is on (legacy enable, or Indoor / Outdoor enum)',
-					() => {
-						const raw = self.camera?.getState()?.osdSystemInfo?.TallyMode
-						if (raw === true) return true
-						if (typeof raw === 'number' && (raw === 1 || raw === 2)) return true
-						return false
-					},
-				)
+				createToggleFeedback('tallyMode', 'Tally - Active', 'True when tally is enabled in any mode', () => {
+					const raw = self.camera?.getState()?.osdSystemInfo?.TallyMode
+					if (raw === true) return true
+					if (typeof raw === 'number' && (raw === 1 || raw === 2)) return true
+					return false
+				})
 			},
 		},
 		{

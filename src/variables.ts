@@ -924,17 +924,24 @@ export function UpdateVariablesOnStateChange(
 		const previousMainStream = previousState?.encodeInfo?.EncodeInfo?.find((e) => e.Channel === 0)
 		const previousSubStream = previousState?.encodeInfo?.EncodeInfo?.find((e) => e.Channel === 1)
 
+		// When a stream follows the input (FrameRate === 0), its displayed FPS is derived from the
+		// output SystemFormat — so it must be recomputed whenever the SystemFormat changes too.
+		const currentSystemFormat = currentState.videoOutputInfo?.SystemFormat
+		const systemFormatChanged = currentSystemFormat !== previousState?.videoOutputInfo?.SystemFormat
+		const resolveFollowInputFPS = () =>
+			currentSystemFormat?.match(/[PI](\d+(?:\.\d+)?)/i)?.[1] ?? currentSystemFormat ?? 0
+
 		// Main stream variables
 		if (mainStream) {
 			if (!previousMainStream || previousMainStream.Resolution !== mainStream.Resolution) {
 				variables.encode_main_resolution = mainStream.Resolution ?? ''
 			}
-			if (!previousMainStream || previousMainStream.FrameRate !== mainStream.FrameRate) {
-				const followInputFPS =
-					currentState.videoOutputInfo?.SystemFormat?.match(/[PI](\d+(?:\.\d+)?)/i)?.[1] ??
-					currentState.videoOutputInfo?.SystemFormat ??
-					0
-				variables.encode_main_frame_rate = mainStream.FrameRate === 0 ? followInputFPS : mainStream.FrameRate
+			if (
+				!previousMainStream ||
+				previousMainStream.FrameRate !== mainStream.FrameRate ||
+				(mainStream.FrameRate === 0 && systemFormatChanged)
+			) {
+				variables.encode_main_frame_rate = mainStream.FrameRate === 0 ? resolveFollowInputFPS() : mainStream.FrameRate
 			}
 			if (!previousMainStream || previousMainStream.BitRate !== mainStream.BitRate) {
 				variables.encode_main_bitrate = mainStream.BitRate ?? 0
@@ -946,12 +953,12 @@ export function UpdateVariablesOnStateChange(
 			if (!previousSubStream || previousSubStream.Resolution !== subStream.Resolution) {
 				variables.encode_sub_resolution = subStream.Resolution ?? ''
 			}
-			if (!previousSubStream || previousSubStream.FrameRate !== subStream.FrameRate) {
-				const followInputSubStreamFPS =
-					currentState.videoOutputInfo?.SystemFormat?.match(/[PI](\d+(?:\.\d+)?)/i)?.[1] ??
-					currentState.videoOutputInfo?.SystemFormat ??
-					0
-				variables.encode_sub_frame_rate = subStream.FrameRate === 0 ? followInputSubStreamFPS : subStream.FrameRate
+			if (
+				!previousSubStream ||
+				previousSubStream.FrameRate !== subStream.FrameRate ||
+				(subStream.FrameRate === 0 && systemFormatChanged)
+			) {
+				variables.encode_sub_frame_rate = subStream.FrameRate === 0 ? resolveFollowInputFPS() : subStream.FrameRate
 			}
 			if (!previousSubStream || previousSubStream.BitRate !== subStream.BitRate) {
 				variables.encode_sub_bitrate = subStream.BitRate ?? 0

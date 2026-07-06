@@ -1511,18 +1511,33 @@ export class BolinCamera {
 	}
 
 	/**
-	 * Fetches EXU outdoor unit status from /api/ptz/exu-info and stores in state
+	 * Sends the /api/ptz/exu-info request using the current session cookie.
 	 */
-	async getEXUInfo(): Promise<ExuInfo> {
+	private async fetchEXUInfo(): Promise<Response> {
 		if (!this.apiSessionCookie) {
 			throw new Error('No API session cookie for EXU info request')
 		}
 		const url = `http://${this.config.host}:${this.config.port}/api/ptz/exu-info`
-		const response = await fetch(url, {
+		return fetch(url, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json', Cookie: this.apiSessionCookie },
 			body: '{}',
 		})
+	}
+
+	/**
+	 * Fetches EXU outdoor unit status from /api/ptz/exu-info and stores in state.
+	 * The /api session cookie can expire mid-session, so re-login once and retry on auth failure.
+	 */
+	async getEXUInfo(): Promise<ExuInfo> {
+		if (!this.apiSessionCookie) {
+			await this.loginApiSession()
+		}
+		let response = await this.fetchEXUInfo()
+		if (response.status === 401 || response.status === 403) {
+			await this.loginApiSession()
+			response = await this.fetchEXUInfo()
+		}
 		if (!response.ok) {
 			throw new Error(`EXU info request failed with status: ${response.status}`)
 		}

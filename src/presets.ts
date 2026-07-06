@@ -1899,8 +1899,6 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		if (tallyEnumChoices) {
 			const offChoice =
 				tallyEnumChoices.find((c) => /^off$/i.test(c.label.trim())) ?? tallyEnumChoices.find((c) => c.id === 0)
-			const outdoorChoice =
-				tallyEnumChoices.find((c) => /^outdoor$/i.test(c.label.trim())) ?? tallyEnumChoices.find((c) => c.id === 2)
 
 			if (offChoice) {
 				presets['presetTallyModeOff'] = {
@@ -1939,15 +1937,20 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 					],
 				}
 			}
-			if (outdoorChoice) {
-				presets['presetTallyModeOn'] = {
+			// Outdoor only when Indoor/Outdoor enum is available; otherwise one preset per non-off mode
+			const onChoices = tallyEnumChoices.filter((c) => c.id !== offChoice?.id)
+			const outdoorChoice = onChoices.find((c) => /^outdoor$/i.test(c.label.trim()))
+			const presetOnChoices = outdoorChoice ? [outdoorChoice] : onChoices
+			for (const onChoice of presetOnChoices) {
+				const suffix = onChoice.label.replace(/[^A-Za-z0-9]/g, '') || String(onChoice.id)
+				presets[`presetTallyModeOn${suffix}`] = {
 					type: 'button',
 					category: 'System Info',
-					name: 'Tally Mode On',
+					name: `Tally Mode ${onChoice.label}`,
 					style: {
 						bgcolor: Color.lightGray,
 						color: Color.white,
-						text: `TALLY\\nON`,
+						text: `TALLY\\n${onChoice.label.toUpperCase()}`,
 						size: '14' as const,
 						alignment: 'center:bottom' as const,
 						png64: icons.bulb,
@@ -1958,7 +1961,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							down: [
 								{
 									actionId: 'tallyMode',
-									options: { mode: outdoorChoice.id },
+									options: { mode: onChoice.id },
 								},
 							],
 							up: [],
@@ -2672,7 +2675,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 	}
 
-	// Stream control presets
+	/* // Stream control presets
 	const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
 	if (hasRTSPCapability) {
 		presets['streamRTSPHeader'] = {
@@ -2972,7 +2975,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				)
 			}
 		}
-	}
+	} */
 
 	// Audio Enable presets
 	if (!capabilitiesLoaded || self.camera?.hasCapability('AudioInfo')) {
