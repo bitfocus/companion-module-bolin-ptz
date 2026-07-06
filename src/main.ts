@@ -66,7 +66,7 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	}
 
 	async performLogin(): Promise<void> {
-		const password = this.secrets?.password ?? this.config?.password //Temp, until Buttons support secret-text
+		const password = this.secrets?.password
 		if (!this.config.host || !this.config.username || !this.config.port || !password) {
 			this.updateStatus(InstanceStatus.BadConfig)
 			return
