@@ -532,7 +532,8 @@ export interface OSDSystemInfo {
 	TemperatureDegree: number
 	DisplayInfo: boolean
 	VideoParametersOSD: boolean
-	TallyMode: boolean
+	/** Boolean on indoor cameras; enum (0=OFF, 1=INDOOR, 2=OUTDOOR) on certain outdoor cameras. */
+	TallyMode: boolean | number
 	Audio: boolean
 	InputType: number
 	VolumeLevel: number
@@ -666,7 +667,10 @@ export interface AudioInfo {
 	SamplingRate: number
 	ChannelNumber: number
 	Type: number
-	Volume: number
+	/** Percent-style gain (some models, see AV capabilities `Volume` range). */
+	Volume?: number
+	/** Discrete dB step index (some models, see AV capabilities `VolumeLevel` enum). */
+	VolumeLevel?: number
 }
 
 /**
@@ -769,6 +773,18 @@ export interface AutoRestartRequest {
 }
 
 /**
+ * EXU outdoor unit status (from /api/ptz/exu-info)
+ */
+export interface ExuInfo {
+	defog: boolean
+	wiper: boolean
+	heater: boolean
+	autowiper: boolean
+	laser: boolean
+	status: number
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -801,4 +817,5 @@ export interface CameraState {
 	scanningInfo: ScanningInfo[] | null
 	cruiseInfo: CruiseInfo[] | null
 	autoRestartInfo: AutoRestartInfo | null
+	exuInfo: ExuInfo | null
 }

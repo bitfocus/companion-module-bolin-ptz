@@ -20,6 +20,8 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	private isReconnecting: boolean = false
 	public ptSpeed: number = 128
 	public zoomSpeed: number = 5
+	// Local-only zoom lock — camera has no internal concept of this
+	public zoomLocked: boolean = false
 	// Track active trace states locally since camera API doesn't report this
 	public traceRecording: Map<number, boolean> = new Map() // Trace number -> is recording
 	public traceActive: Map<number, boolean> = new Map() // Trace number -> is active (playing)
@@ -64,7 +66,7 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	}
 
 	async performLogin(): Promise<void> {
-		const password = this.secrets?.password ?? this.config?.password //Temp, until Buttons support secret-text
+		const password = this.secrets?.password
 		if (!this.config.host || !this.config.username || !this.config.port || !password) {
 			this.updateStatus(InstanceStatus.BadConfig)
 			return

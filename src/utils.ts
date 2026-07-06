@@ -48,6 +48,37 @@ export function findCapability(
 }
 
 /**
+ * TallyMode enum choices from general capabilities (nested under OSDSystemInfo or similar).
+ */
+export function getTallyModeCapabilityChoices(
+	general: Record<string, unknown> | null | undefined,
+): Array<{ id: number; label: string }> | null {
+	if (!general) return null
+	const cap = findCapability(general, 'TallyMode')
+	if (cap?.Type !== 'enum' || !Array.isArray(cap.Data)) return null
+	const choices: Array<{ id: number; label: string }> = []
+	for (const item of cap.Data) {
+		const row = item as { Value?: unknown; Description?: unknown }
+		if (typeof row.Value === 'number' && typeof row.Description === 'string') {
+			choices.push({ id: row.Value, label: row.Description })
+		}
+	}
+	if (choices.length === 0) return null
+	choices.sort((a, b) => a.id - b.id)
+	return choices
+}
+
+export function formatTallyModeVariable(
+	tally: boolean | number | undefined,
+	enumChoices: Array<{ id: number; label: string }> | null | undefined,
+): string {
+	if (tally === undefined) return ''
+	if (typeof tally === 'boolean') return tally ? 'On' : 'Off'
+	const hit = enumChoices?.find((c) => c.id === tally)
+	return hit?.label ?? String(tally)
+}
+
+/**
  * Lightweight deep equality check
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
@@ -116,6 +147,204 @@ export function buildIrisMapFromCapabilities(imageCapabilitiesContent: Record<st
 	}
 
 	return { irisMap: null, irisRange: null }
+}
+
+/** Parsed AV-stream capability shape for audio gain (model-dependent). */
+export type AudioVolumeControl =
+	| {
+			kind: 'enum'
+			choices: Array<{ value: number; label: string }>
+			/** Discrete step is stored on `Volume` (range-shaped API) or `VolumeLevel`. */
+			apiField: 'Volume' | 'VolumeLevel'
+	  }
+	| { kind: 'range'; min: number; max: number }
+
+function parseVolumeLevelEnumChoices(levelCap: { Type: string; Data?: unknown } | null): Array<{
+	value: number
+	label: string
+}> | null {
+	if (levelCap?.Type !== 'enum' || !levelCap.Data || !Array.isArray(levelCap.Data)) {
+		return null
+	}
+	const choices: Array<{ value: number; label: string }> = []
+	for (const item of levelCap.Data) {
+		const dataItem = item as { Value?: number; Description?: string }
+		if (typeof dataItem.Value === 'number' && typeof dataItem.Description === 'string') {
+			choices.push({ value: dataItem.Value, label: dataItem.Description })
+		}
+	}
+	if (choices.length === 0) return null
+	choices.sort((a, b) => a.value - b.value)
+	return choices
+}
+
+function parseVolumeRangeCapability(volCap: { Type: string; Data?: unknown } | null): {
+	min: number
+	max: number
+} | null {
+	if (volCap?.Type !== 'range' || !volCap.Data || typeof volCap.Data !== 'object') {
+		return null
+	}
+	const rangeData = volCap.Data as { Min?: number; Max?: number }
+	if (typeof rangeData.Min !== 'number' || typeof rangeData.Max !== 'number') {
+		return null
+	}
+	return { min: rangeData.Min, max: rangeData.Max }
+}
+
+/** True when the camera documents Volume as a 0–100% style range (not a discrete 0–39 index range, etc.). */
+export function isPercentStyleVolumeRange(min: number, max: number): boolean {
+	return (min === 0 && max === 100) || (min === 1 && max === 100)
+}
+
+/** Bolin-style label for synthetic dB steps (matches common firmware: index 0 = -60 dB, step 2 dB). */
+function formatBolinDiscreteVolumeLabel(db: number): string {
+	if (db > 0) return `+${db}dB`
+	if (db === 0) return '0dB'
+	return `${db}dB`
+}
+
+/**
+ * When capabilities only expose `Volume` as 0–39 with no `VolumeLevel` enum, use known dB mapping.
+ */
+function syntheticChoicesForVolumeIndexRange0To39(): Array<{ value: number; label: string }> {
+	const out: Array<{ value: number; label: string }> = []
+	for (let v = 0; v <= 39; v++) {
+		const db = -60 + v * 2
+		out.push({ value: v, label: formatBolinDiscreteVolumeLabel(db) })
+	}
+	return out
+}
+
+/**
+ * Detects VolumeLevel (dB enum) vs Volume (percent range) from AV stream capabilities content.
+ * Some models expose `Volume` as range 0–39 while `VolumeLevel` carries dB labels — we treat those as enum UX on `Volume`.
+ * If `Volume` is 0–39 but no enum appears in the capability JSON (common), we still use dB labels via a fixed table.
+ */
+export function buildAudioVolumeControlFromCapabilities(
+	avCapabilitiesContent: Record<string, unknown>,
+): AudioVolumeControl | null {
+	const levelCap = findCapability(avCapabilitiesContent, 'VolumeLevel')
+	const volCap = findCapability(avCapabilitiesContent, 'Volume')
+	const parsedChoices = parseVolumeLevelEnumChoices(levelCap)
+	const vr = parseVolumeRangeCapability(volCap)
+
+	if (vr && isPercentStyleVolumeRange(vr.min, vr.max)) {
+		return { kind: 'range', min: vr.min, max: vr.max }
+	}
+
+	const syntheticFor039 = vr && vr.min === 0 && vr.max === 39 ? syntheticChoicesForVolumeIndexRange0To39() : null
+	const choices = parsedChoices ?? syntheticFor039
+
+	if (choices) {
+		if (vr && !isPercentStyleVolumeRange(vr.min, vr.max)) {
+			return { kind: 'enum', choices, apiField: 'Volume' }
+		}
+		return { kind: 'enum', choices, apiField: 'VolumeLevel' }
+	}
+
+	if (vr) {
+		return { kind: 'range', min: vr.min, max: vr.max }
+	}
+
+	return null
+}
+
+/** Parses signed dB from capability labels like "-60dB", "0dB", "+2dB". */
+export function parseDbFromVolumeLabel(label: string): number | null {
+	const m = label.match(/([+-]?\d+)\s*dB/i)
+	if (!m) return null
+	return Number.parseInt(m[1], 10)
+}
+
+export function volumeLevelToUserDb(
+	control: AudioVolumeControl & { kind: 'enum' },
+	volumeLevel: number,
+): number | undefined {
+	const c = control.choices.find((x) => x.value === volumeLevel)
+	if (!c) return undefined
+	return parseDbFromVolumeLabel(c.label) ?? undefined
+}
+
+/** Maps a user-facing dB value to the camera's VolumeLevel enum index. */
+export function resolveAudioVolumeLevelFromDb(
+	control: AudioVolumeControl & { kind: 'enum' },
+	db: number,
+): number | null {
+	for (const c of control.choices) {
+		const d = parseDbFromVolumeLabel(c.label)
+		if (d === db) return c.value
+	}
+	return null
+}
+
+/** Valid dB steps for enum-mode audio (from capability labels). */
+export function getAudioVolumeEnumDbSteps(control: AudioVolumeControl & { kind: 'enum' }): number[] {
+	const steps: number[] = []
+	for (const c of control.choices) {
+		const d = parseDbFromVolumeLabel(c.label)
+		if (d !== null) steps.push(d)
+	}
+	return [...new Set(steps)].sort((a, b) => a - b)
+}
+
+/**
+ * User-facing level: dB (integer) for enum cameras, percent for range cameras.
+ */
+export function getEffectiveAudioVolume(
+	control: AudioVolumeControl | null,
+	audioInfo: { Volume?: number; VolumeLevel?: number } | null | undefined,
+): number | undefined {
+	if (!audioInfo) return undefined
+	if (control?.kind === 'enum') {
+		const raw = control.apiField === 'Volume' ? audioInfo.Volume : audioInfo.VolumeLevel
+		if (raw === undefined) return undefined
+		return volumeLevelToUserDb(control, raw)
+	}
+	if (control?.kind === 'range') {
+		return audioInfo.Volume
+	}
+	return audioInfo.Volume ?? audioInfo.VolumeLevel
+}
+
+export function formatAudioVolumeDisplay(
+	control: AudioVolumeControl | null,
+	audioInfo: { Volume?: number; VolumeLevel?: number } | null | undefined,
+): string {
+	const eff = getEffectiveAudioVolume(control, audioInfo)
+	if (eff === undefined && control?.kind === 'enum') {
+		const raw = control.apiField === 'Volume' ? audioInfo?.Volume : audioInfo?.VolumeLevel
+		if (raw !== undefined) {
+			const c = control.choices.find((x) => x.value === raw)
+			if (c) return c.label
+		}
+	}
+	if (eff === undefined) return ''
+	if (control?.kind === 'enum') {
+		return String(eff)
+	}
+	if (control?.kind === 'range') {
+		return `${eff}%`
+	}
+	if (audioInfo?.Volume !== undefined) return `${audioInfo.Volume}%`
+	if (audioInfo?.VolumeLevel !== undefined) return String(audioInfo.VolumeLevel)
+	return ''
+}
+
+export function defaultAudioVolumeFeedbackValue(control: AudioVolumeControl | null): number {
+	if (control?.kind === 'range') {
+		return Math.round((control.min + control.max) / 2)
+	}
+	if (control?.kind === 'enum') {
+		const zeroDb = control.choices.find((c) => c.label === '0dB')
+		if (zeroDb) {
+			const z = parseDbFromVolumeLabel(zeroDb.label)
+			if (z !== null) return z
+		}
+		const mid = control.choices[Math.floor(control.choices.length / 2)]
+		return parseDbFromVolumeLabel(mid.label) ?? 0
+	}
+	return 50
 }
 
 /**

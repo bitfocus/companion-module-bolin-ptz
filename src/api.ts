@@ -50,10 +50,20 @@ import type {
 	AudioInfo,
 	AutoRestartInfo,
 	AutoRestartRequest,
+	ExuInfo,
 } from './types.js'
 import type { BolinModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
-import { buildIrisMapFromCapabilities, buildShutterSpeedMapFromCapabilities, deepEqual } from './utils.js'
+import {
+	buildAudioVolumeControlFromCapabilities,
+	buildIrisMapFromCapabilities,
+	buildShutterSpeedMapFromCapabilities,
+	deepEqual,
+	formatAudioVolumeDisplay,
+	getEffectiveAudioVolume,
+	getTallyModeCapabilityChoices,
+	type AudioVolumeControl,
+} from './utils.js'
 import {
 	AF_SENSITIVITY_MAP,
 	DE_FLICKER_MAP,
@@ -103,6 +113,7 @@ function createEmptyState(): CameraState {
 		scanningInfo: null,
 		cruiseInfo: null,
 		autoRestartInfo: null,
+		exuInfo: null,
 	} satisfies CameraState
 }
 
@@ -120,6 +131,12 @@ export class BolinCamera {
 	private irisRange: { min: number; max: number } | null = null
 	private capabilitySet: Set<string> | null = null
 	private usesSpeedField = false // Some camera models use 'Speed' instead of 'ShutterSpeed'
+	private audioVolumeControl: AudioVolumeControl | null = null
+	/** TallyMode enum labels from ReqGetImageCapabilities content (fallback: generalCapabilities in state). */
+	private tallyModeChoicesFromImageCaps: Array<{ id: number; label: string }> | null = null
+	private isEXUModel: boolean = false
+	/** Session cookie for /api/* endpoints (distinct from /apiv2/* token auth) */
+	private apiSessionCookie: string | null = null
 
 	constructor(config: ModuleConfig, password: string, self: BolinModuleInstance) {
 		this.config = config
@@ -233,6 +250,17 @@ export class BolinCamera {
 		this.cameraCapabilities = null
 		this.capabilitySet = null
 		this.previousState = null
+		this.audioVolumeControl = null
+		this.tallyModeChoicesFromImageCaps = null
+		this.isEXUModel = false
+		this.apiSessionCookie = null
+	}
+
+	/**
+	 * Returns true if the connected camera is an EXU outdoor model
+	 */
+	getIsEXUModel(): boolean {
+		return this.isEXUModel
 	}
 
 	/**
@@ -265,6 +293,7 @@ export class BolinCamera {
 			audioInfo: ['audioEnabled', 'audioVolume'],
 			autoRestartInfo: ['autoRestartEnabled'],
 			osdSystemInfo: ['tallyMode'],
+			exuInfo: ['exuWiper', 'exuAutoWiper', 'exuDefog', 'exuHeater', 'exuLaser'],
 		}
 		return feedbackMap[stateKey] ?? []
 	}
@@ -1004,6 +1033,13 @@ export class BolinCamera {
 		}
 	}
 
+	private buildAudioVolumeControl(avCapabilitiesContent?: Record<string, unknown>): void {
+		this.audioVolumeControl = null
+		if (avCapabilitiesContent) {
+			this.audioVolumeControl = buildAudioVolumeControlFromCapabilities(avCapabilitiesContent)
+		}
+	}
+
 	/**
 	 * Gets the shutter speed map, building it from capabilities if available
 	 * Falls back to the static map if capabilities haven't been loaded
@@ -1049,6 +1085,25 @@ export class BolinCamera {
 	 */
 	getIrisRangeForActions(): { min: number; max: number } | null {
 		return this.irisRange
+	}
+
+	getAudioVolumeControl(): AudioVolumeControl | null {
+		return this.audioVolumeControl
+	}
+
+	getEffectiveAudioVolumeFromState(): number {
+		return getEffectiveAudioVolume(this.audioVolumeControl, this.state.audioInfo) ?? 0
+	}
+
+	formatAudioVolumeForVariable(): string {
+		return formatAudioVolumeDisplay(this.audioVolumeControl, this.state.audioInfo)
+	}
+
+	/**
+	 * Resolved TallyMode enum choices for UI (image capabilities first, then general capabilities state).
+	 */
+	getTallyModeChoicesForUi(): Array<{ id: number; label: string }> | null {
+		return this.tallyModeChoicesFromImageCaps ?? getTallyModeCapabilityChoices(this.state.generalCapabilities)
 	}
 
 	/**
@@ -1267,8 +1322,17 @@ export class BolinCamera {
 			...(currentAudioInfo ?? {}),
 			...(audioInfo ?? {}),
 		}
+		if (this.audioVolumeControl?.kind === 'enum') {
+			if (this.audioVolumeControl.apiField === 'VolumeLevel') {
+				delete completeAudioInfo.Volume
+			} else {
+				delete completeAudioInfo.VolumeLevel
+			}
+		} else if (this.audioVolumeControl?.kind === 'range') {
+			delete completeAudioInfo.VolumeLevel
+		}
 		await this.sendRequest('/apiv2/av', 'ReqSetAudioInfo', {
-			AudioInfo: completeAudioInfo as AudioInfo,
+			AudioInfo: completeAudioInfo,
 		})
 	}
 
@@ -1397,6 +1461,93 @@ export class BolinCamera {
 	}
 
 	/**
+	 * Logs into the /api/* session (separate from /apiv2/* auth).
+	 * Stores the Set-Cookie value for subsequent /api/* requests.
+	 */
+	private async loginApiSession(): Promise<void> {
+		try {
+			const url = `http://${this.config.host}:${this.config.port}/api/user/login`
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: this.config.username, password: this.password }),
+			})
+			if (!response.ok) return
+			const setCookie = response.headers.get('set-cookie')
+			if (setCookie) {
+				// Extract just the name=value portion (before the first semicolon)
+				this.apiSessionCookie = setCookie.split(';')[0].trim()
+			}
+		} catch {
+			this.apiSessionCookie = null
+		}
+	}
+
+	/**
+	 * Checks /api/general/feature to detect if this is an EXU outdoor camera model.
+	 * Sets isEXUModel accordingly. Called once during capability initialization.
+	 */
+	private async checkAndSetEXUSupport(): Promise<void> {
+		try {
+			await this.loginApiSession()
+			if (!this.apiSessionCookie) return
+
+			const url = `http://${this.config.host}:${this.config.port}/api/general/feature`
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', Cookie: this.apiSessionCookie },
+				body: '{}',
+			})
+			if (!response.ok) return
+			const data = (await response.json()) as { model?: string; status?: number }
+			this.isEXUModel = data.model === 'EXU'
+			if (this.isEXUModel) {
+				this.self.log('debug', 'EXU outdoor unit detected, enabling EXU status polling')
+			}
+		} catch {
+			// Not an EXU model or endpoint not available — silently ignore
+			this.isEXUModel = false
+		}
+	}
+
+	/**
+	 * Sends the /api/ptz/exu-info request using the current session cookie.
+	 */
+	private async fetchEXUInfo(): Promise<Response> {
+		if (!this.apiSessionCookie) {
+			throw new Error('No API session cookie for EXU info request')
+		}
+		const url = `http://${this.config.host}:${this.config.port}/api/ptz/exu-info`
+		return fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json', Cookie: this.apiSessionCookie },
+			body: '{}',
+		})
+	}
+
+	/**
+	 * Fetches EXU outdoor unit status from /api/ptz/exu-info and stores in state.
+	 * The /api session cookie can expire mid-session, so re-login once and retry on auth failure.
+	 */
+	async getEXUInfo(): Promise<ExuInfo> {
+		if (!this.apiSessionCookie) {
+			await this.loginApiSession()
+		}
+		let response = await this.fetchEXUInfo()
+		if (response.status === 401 || response.status === 403) {
+			await this.loginApiSession()
+			response = await this.fetchEXUInfo()
+		}
+		if (!response.ok) {
+			throw new Error(`EXU info request failed with status: ${response.status}`)
+		}
+		const data = (await response.json()) as ExuInfo
+		this.state.exuInfo = data
+		this.updateVariablesOnStateChange()
+		return data
+	}
+
+	/**
 	 * Gets camera capabilities from all capability endpoints and stores object names
 	 */
 	async getCameraCapabilities(): Promise<CameraCapabilities> {
@@ -1435,12 +1586,27 @@ export class BolinCamera {
 				const imageContent = fullImageResp.Content as Record<string, unknown>
 				this.buildShutterSpeedMap(imageContent)
 				this.buildIrisMap(imageContent)
+				this.tallyModeChoicesFromImageCaps = getTallyModeCapabilityChoices(imageContent)
 			} catch (error) {
 				this.self.log('debug', `Failed to get image capabilities content: ${this.getErrorMessage(error)}`)
+				this.tallyModeChoicesFromImageCaps = null
 			}
+		} else {
+			this.tallyModeChoicesFromImageCaps = null
 		}
 		if (avStreamCapabilities.status === 'fulfilled' && avStreamCapabilities.value) {
 			capabilities.avStreamCapabilities = avStreamCapabilities.value
+			try {
+				const fullAvResp = await this.sendRequest('/apiv2/av', 'ReqGetAVStreamCapabilities')
+				const avContent = fullAvResp.Content as Record<string, unknown>
+
+				this.buildAudioVolumeControl(avContent)
+			} catch (error) {
+				this.self.log('debug', `Failed to get AV stream capabilities content: ${this.getErrorMessage(error)}`)
+				this.buildAudioVolumeControl()
+			}
+		} else {
+			this.buildAudioVolumeControl()
 		}
 		if (networkCapabilities.status === 'fulfilled' && networkCapabilities.value) {
 			capabilities.networkCapabilities = networkCapabilities.value
@@ -1455,8 +1621,10 @@ export class BolinCamera {
 		this.cameraCapabilities = capabilities
 		// Build capability set for efficient lookups
 		this.buildCapabilitySet()
-		// Trigger action update after maps are built so actions can use the dynamic maps
-		this.self.updateActions()
+		// Check if this is an EXU outdoor model (must happen before updateModuleComponents)
+		await this.checkAndSetEXUSupport()
+		// Refresh module UI so actions, feedbacks, and presets match capability-derived maps
+		this.self.updateModuleComponents()
 		return capabilities
 	}
 
@@ -1524,6 +1692,7 @@ export class BolinCamera {
 			{ capabilities: ['ScanningInfo'], method: async () => this.getScanningInfo() },
 			{ capabilities: ['CruiseInfo'], method: async () => this.getCruiseInfo() },
 			{ capabilities: ['AutoRestartInfo'], method: async () => this.getAutoRestartInfo() },
+			...(this.isEXUModel ? [{ capabilities: [] as string[], method: async () => this.getEXUInfo() }] : []),
 		]
 
 		const promises = capabilityMappings

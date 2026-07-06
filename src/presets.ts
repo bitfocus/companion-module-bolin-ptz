@@ -1,6 +1,6 @@
 import { CompanionPresetDefinitions, type CompanionOptionValues } from '@companion-module/base'
 import type { BolinModuleInstance } from './main.js'
-import { sortIrisChoices, convertIrisRangeToMap } from './utils.js'
+import { sortIrisChoices, convertIrisRangeToMap, parseDbFromVolumeLabel } from './utils.js'
 import { icons } from './icons.js'
 
 export function UpdatePresets(self: BolinModuleInstance): void {
@@ -540,6 +540,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							lock: 'true',
 						},
 					},
+					{
+						actionId: 'setZoomLock',
+						options: { lock: 'true' },
+					},
 				],
 				up: [],
 			},
@@ -579,6 +583,10 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 							lock: 'false',
 						},
 					},
+					{
+						actionId: 'setZoomLock',
+						options: { lock: 'false' },
+					},
 				],
 				up: [],
 			},
@@ -596,6 +604,43 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			},
 		],
 	}
+	presets['zoomLock'] = {
+		type: 'button',
+		category: 'PTZ Control',
+		name: 'Zoom Lock',
+		style: {
+			bgcolor: Color.darkGray,
+			color: Color.white,
+			text: 'LOCK\\nZOOM',
+			size: 14,
+			alignment: 'center:bottom',
+			png64: icons.unlocked,
+			show_topbar: false,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'setZoomLock',
+						options: { lock: 'toggle' },
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'zoomLocked',
+				options: {},
+				style: {
+					bgcolor: Color.red,
+					text: 'UNLOCK\\nZOOM',
+					png64: icons.lock,
+				},
+			},
+		],
+	}
+
 	createAdjustmentPresets('ptSpeed', 'PTZ Control', 'PT Speed', 'panTiltSpeed', 'pt_speed', 'P/T SPEED', {
 		adjustmentValue: 10,
 		headerName: 'Pan / Tilt Speed Control',
@@ -1841,7 +1886,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		],
 		feedbacks: [],
 	}
-	/* const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
+	const hasTallyMode = self.camera?.hasCapability('OSDSystemInfo') ?? false
+	const tallyEnumChoices = self.camera?.getTallyModeChoicesForUi() ?? null
 	if (hasTallyMode) {
 		presets['tallyModeHeader'] = {
 			category: 'System Info',
@@ -1850,31 +1896,115 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			text: '',
 		}
 
-		for (const mode of [
-			{ id: 'toggle', label: 'Toggle', text: 'TALLY MODE' },
-			{ id: 'false', label: 'Off', text: 'TALLY\\nOFF' },
-			{ id: 'true', label: 'On', text: 'TALLY\\nON' },
-		]) {
-			const presetKey = mode.id === 'toggle' ? `presetTallyModeToggle${mode.label}` : `presetTallyMode${mode.label}`
-			createTogglePreset(
-				presets,
-				presetKey,
-				`Tally Mode ${mode.label}`,
-				'System Info',
-				mode.text,
-				'tallyMode',
-				mode.id,
-				'tallyMode',
-				mode.id === 'toggle',
-				{
-					toggleOffIcon: icons.toggleOff,
-					toggleOnIcon: icons.toggleOn,
-					defaultIcon: icons.bulb,
-					alignment: 'center:bottom',
-				},
-			)
+		if (tallyEnumChoices) {
+			const offChoice =
+				tallyEnumChoices.find((c) => /^off$/i.test(c.label.trim())) ?? tallyEnumChoices.find((c) => c.id === 0)
+
+			if (offChoice) {
+				presets['presetTallyModeOff'] = {
+					type: 'button',
+					category: 'System Info',
+					name: 'Tally Mode Off',
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `TALLY\\n${offChoice.label}`,
+						size: '14' as const,
+						alignment: 'center:bottom' as const,
+						png64: icons.bulb,
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'tallyMode',
+									options: { mode: offChoice.id },
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'tallyMode',
+							isInverted: true,
+							options: {},
+							style: {
+								bgcolor: Color.red,
+							},
+						},
+					],
+				}
+			}
+			// Outdoor only when Indoor/Outdoor enum is available; otherwise one preset per non-off mode
+			const onChoices = tallyEnumChoices.filter((c) => c.id !== offChoice?.id)
+			const outdoorChoice = onChoices.find((c) => /^outdoor$/i.test(c.label.trim()))
+			const presetOnChoices = outdoorChoice ? [outdoorChoice] : onChoices
+			for (const onChoice of presetOnChoices) {
+				const suffix = onChoice.label.replace(/[^A-Za-z0-9]/g, '') || String(onChoice.id)
+				presets[`presetTallyModeOn${suffix}`] = {
+					type: 'button',
+					category: 'System Info',
+					name: `Tally Mode ${onChoice.label}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `TALLY\\n${onChoice.label.toUpperCase()}`,
+						size: '14' as const,
+						alignment: 'center:bottom' as const,
+						png64: icons.bulb,
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'tallyMode',
+									options: { mode: onChoice.id },
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'tallyMode',
+							options: {},
+							style: {
+								bgcolor: Color.green,
+							},
+						},
+					],
+				}
+			}
+		} else {
+			for (const mode of [
+				{ id: 'toggle', label: 'Toggle', text: 'TALLY MODE' },
+				{ id: 'false', label: 'Off', text: 'TALLY\\nOFF' },
+				{ id: 'true', label: 'On', text: 'TALLY\\nON' },
+			]) {
+				const presetKey = mode.id === 'toggle' ? `presetTallyModeToggle${mode.label}` : `presetTallyMode${mode.label}`
+				createTogglePreset(
+					presets,
+					presetKey,
+					`Tally Mode ${mode.label}`,
+					'System Info',
+					mode.text,
+					'tallyMode',
+					mode.id,
+					'tallyMode',
+					mode.id === 'toggle',
+					{
+						toggleOffIcon: icons.toggleOff,
+						toggleOnIcon: icons.toggleOn,
+						defaultIcon: icons.bulb,
+						alignment: 'center:bottom',
+					},
+				)
+			}
 		}
-	} */
+	}
 
 	presets['ipAddressHeader'] = {
 		category: 'System Info',
@@ -2345,8 +2475,208 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 		}
 	}
 
-	// Stream control presets
-	/* const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
+	// Encoder Info presets
+	const hasEncodeInfoCapability = !capabilitiesLoaded || (self.camera?.hasCapability('EncodeInfo') ?? false)
+	if (hasEncodeInfoCapability) {
+		// Main Stream Info
+		presets['encoderInfoMainStreamHeader'] = {
+			category: 'AV Streams',
+			name: 'Main Stream Info',
+			type: 'text',
+			text: '',
+		}
+		presets['encoderInfoMainStreamInfo'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Main Stream Info',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nSTREAM\\n$(bolin-ptz:encode_main_resolution)\\n$(bolin-ptz:encode_main_frame_rate) fps\\n$(bolin-ptz:encode_main_bitrate) Kbps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoMainStreamResolution'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Main Stream Resolution',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nRES\\n\\n$(bolin-ptz:encode_main_resolution)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoMainStreamFrameRate'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Main Stream Frame Rate',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nFRAME\\n\\n$(bolin-ptz:encode_main_frame_rate) fps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoMainStreamBitrate'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Main Stream Bitrate',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `MAIN\\nBITRATE\\n\\n$(bolin-ptz:encode_main_bitrate) Kbps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+
+		// Sub Stream Info
+		presets['encoderInfoSubStreamHeader'] = {
+			category: 'AV Streams',
+			name: 'Sub Stream Info',
+			type: 'text',
+			text: '',
+		}
+		presets['encoderInfoSubStreamInfo'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Sub Stream Info',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nSTREAM\\n$(bolin-ptz:encode_sub_resolution)$(bolin-ptz:encode_sub_frame_rate) fps\\n$(bolin-ptz:encode_sub_bitrate) Kbps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoSubStreamResolution'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Sub Stream Resolution',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nRES\\n\\n$(bolin-ptz:encode_sub_resolution)`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoSubStreamFrameRate'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Sub Stream Frame Rate',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nFRAME\\n\\n$(bolin-ptz:encode_sub_frame_rate) fps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		presets['encoderInfoSubStreamBitrate'] = {
+			type: 'button',
+			category: 'AV Streams',
+			name: 'Sub Stream Bitrate',
+			style: {
+				bgcolor: Color.darkGray,
+				color: Color.white,
+				text: `SUB\\nBITRATE\\n\\n$(bolin-ptz:encode_sub_bitrate) Kbps`,
+				size: 12,
+				show_topbar: false,
+			},
+			steps: [
+				{
+					down: [],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+		// Other encoder info
+		if (self.camera?.hasCapability('EncodeInfo.LowLatency')) {
+			presets['encoderInfoOtherHeader'] = {
+				category: 'AV Streams',
+				name: 'Other',
+				type: 'text',
+				text: '',
+			}
+			presets['encoderInfoLowLatency'] = {
+				type: 'button',
+				category: 'AV Streams',
+				name: 'Low Latency',
+				style: {
+					bgcolor: Color.darkGray,
+					color: Color.white,
+					text: `LOW\\nLATENCY\\n$(bolin-ptz:low_latency)`,
+					size: 12,
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			}
+		}
+	}
+
+	/* // Stream control presets
+	const hasRTSPCapability = !capabilitiesLoaded || (self.camera?.hasCapability('RTSPInfo') ?? false)
 	if (hasRTSPCapability) {
 		presets['streamRTSPHeader'] = {
 			category: 'AV Streams',
@@ -2645,8 +2975,8 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 				)
 			}
 		}
-	}
- */
+	} */
+
 	// Audio Enable presets
 	if (!capabilitiesLoaded || self.camera?.hasCapability('AudioInfo')) {
 		presets['presetAudioInputHeader'] = {
@@ -2681,13 +3011,14 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			)
 		}
 
-		/* 		// Audio Volume Set Value presets
+		// Audio Volume Set Value presets
 		presets['audioVolumeSetValueHeader'] = {
 			category: 'Audio',
 			name: 'Volume',
 			type: 'text',
 			text: '',
 		}
+		const audioVolCtrl = self.camera?.getAudioVolumeControl() ?? null
 		presets[`presetAudioVolumeStatus`] = {
 			type: 'button',
 			category: 'Audio',
@@ -2695,7 +3026,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			style: {
 				bgcolor: Color.darkGray,
 				color: Color.white,
-				text: `VOLUME\\n$(bolin-ptz:audio_volume)%`,
+				text: `VOLUME\\n$(bolin-ptz:audio_volume) ${audioVolCtrl?.kind === 'enum' ? 'dB' : '%'}`,
 				size: 12,
 				alignment: 'center:bottom',
 				png64: icons.meters,
@@ -2709,251 +3040,146 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			],
 			feedbacks: [],
 		}
-		for (const volume of [
-			{ value: 1, label: '1%' },
-			{ value: 25, label: '25%' },
-			{ value: 50, label: '50%' },
-			{ value: 75, label: '75%' },
-			{ value: 100, label: '100%' },
-		]) {
-			presets[`presetAudioVolume${volume.label}`] = {
-				type: 'button',
-				category: 'Audio',
-				name: `Audio Volume ${volume.label}`,
-				style: {
-					bgcolor: Color.lightGray,
-					color: Color.white,
-					text: `SET\\nVOLUME\\n${volume.label}`,
-					size: 12,
-					alignment: 'center:center',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'audioControl',
-								options: {
-									props: ['volume'],
-									volume: volume.value.toString(),
+
+		if (audioVolCtrl?.kind === 'enum') {
+			for (const c of audioVolCtrl.choices) {
+				const db = parseDbFromVolumeLabel(c.label)
+				if (db === null) continue
+				const dbLabel = `${db} dB`
+				presets[`presetAudioVolDb_${db}`] = {
+					type: 'button',
+					category: 'Audio',
+					name: `Audio Volume ${dbLabel}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `SET\\nVOLUME\\n${dbLabel}`,
+						size: 12,
+						alignment: 'center:center',
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'audioControl',
+									options: {
+										props: ['volume'],
+										volume: db.toString(),
+									},
 								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'audioVolume',
+							options: {
+								comparison: 'equal',
+								value: db.toString(),
 							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [
-					{
-						feedbackId: 'audioVolume',
-						options: {
-							comparison: 'equal',
-							value: volume.value.toString(),
+							style: {
+								bgcolor: Color.green,
+							},
 						},
-						style: {
-							bgcolor: Color.green,
+					],
+				}
+			}
+		} else if (audioVolCtrl?.kind === 'range') {
+			const defaultSteps = [1, 25, 50, 75, 100]
+			const clamped = [
+				...new Set(defaultSteps.map((p) => Math.min(audioVolCtrl.max, Math.max(audioVolCtrl.min, p)))),
+			].sort((a, b) => a - b)
+			for (const value of clamped) {
+				const label = `${value}%`
+				presets[`presetAudioVolume${value}pct`] = {
+					type: 'button',
+					category: 'Audio',
+					name: `Audio Volume ${label}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `SET\\nVOLUME\\n${label}`,
+						size: 12,
+						alignment: 'center:center',
+						show_topbar: false,
+					},
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'audioControl',
+									options: {
+										props: ['volume'],
+										volume: value.toString(),
+									},
+								},
+							],
+							up: [],
 						},
-					},
-				],
+					],
+					feedbacks: [
+						{
+							feedbackId: 'audioVolume',
+							options: {
+								comparison: 'equal',
+								value: value.toString(),
+							},
+							style: {
+								bgcolor: Color.green,
+							},
+						},
+					],
+				}
 			}
-		} */
-	}
-
-	// Encoder Info presets
-	const hasEncodeInfoCapability = !capabilitiesLoaded || (self.camera?.hasCapability('EncodeInfo') ?? false)
-	if (hasEncodeInfoCapability) {
-		// Main Stream Info
-		presets['encoderInfoMainStreamHeader'] = {
-			category: 'AV Streams',
-			name: 'Main Stream Info',
-			type: 'text',
-			text: '',
-		}
-		presets['encoderInfoMainStreamInfo'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Main Stream Info',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `MAIN\\nSTREAM\\n$(bolin-ptz:encode_main_resolution)\\n$(bolin-ptz:encode_main_frame_rate) fps\\n$(bolin-ptz:encode_main_bitrate) Kbps`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		presets['encoderInfoMainStreamResolution'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Main Stream Resolution',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `MAIN\\nRES\\n\\n$(bolin-ptz:encode_main_resolution)`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		presets['encoderInfoMainStreamFrameRate'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Main Stream Frame Rate',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `MAIN\\nFRAME\\n\\n$(bolin-ptz:encode_main_frame_rate) fps`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		presets['encoderInfoMainStreamBitrate'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Main Stream Bitrate',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `MAIN\\nBITRATE\\n\\n$(bolin-ptz:encode_main_bitrate) Kbps`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-
-		// Sub Stream Info
-		presets['encoderInfoSubStreamHeader'] = {
-			category: 'AV Streams',
-			name: 'Sub Stream Info',
-			type: 'text',
-			text: '',
-		}
-		presets['encoderInfoSubStreamInfo'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Sub Stream Info',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `SUB\\nSTREAM\\n$(bolin-ptz:encode_sub_resolution)$(bolin-ptz:encode_sub_frame_rate) fps\\n$(bolin-ptz:encode_sub_bitrate) Kbps`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		presets['encoderInfoSubStreamResolution'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Sub Stream Resolution',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `SUB\\nRES\\n\\n$(bolin-ptz:encode_sub_resolution)`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		presets['encoderInfoSubStreamFrameRate'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Sub Stream Frame Rate',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `SUB\\nFRAME\\n\\n$(bolin-ptz:encode_sub_frame_rate) fps`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		presets['encoderInfoSubStreamBitrate'] = {
-			type: 'button',
-			category: 'AV Streams',
-			name: 'Sub Stream Bitrate',
-			style: {
-				bgcolor: Color.darkGray,
-				color: Color.white,
-				text: `SUB\\nBITRATE\\n\\n$(bolin-ptz:encode_sub_bitrate) Kbps`,
-				size: 12,
-				show_topbar: false,
-			},
-			steps: [
-				{
-					down: [],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-		// Other encoder info
-		if (self.camera?.hasCapability('EncodeInfo.LowLatency')) {
-			presets['encoderInfoOtherHeader'] = {
-				category: 'AV Streams',
-				name: 'Other',
-				type: 'text',
-				text: '',
-			}
-			presets['encoderInfoLowLatency'] = {
-				type: 'button',
-				category: 'AV Streams',
-				name: 'Low Latency',
-				style: {
-					bgcolor: Color.darkGray,
-					color: Color.white,
-					text: `LOW\\nLATENCY\\n$(bolin-ptz:low_latency)`,
-					size: 12,
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [],
-						up: [],
+		} else {
+			for (const volume of [
+				{ value: 1, label: '1%' },
+				{ value: 25, label: '25%' },
+				{ value: 50, label: '50%' },
+				{ value: 75, label: '75%' },
+				{ value: 100, label: '100%' },
+			]) {
+				presets[`presetAudioVolume${volume.label}`] = {
+					type: 'button',
+					category: 'Audio',
+					name: `Audio Volume ${volume.label}`,
+					style: {
+						bgcolor: Color.lightGray,
+						color: Color.white,
+						text: `SET\\nVOLUME\\n${volume.label}`,
+						size: 12,
+						alignment: 'center:center',
+						show_topbar: false,
 					},
-				],
-				feedbacks: [],
+					steps: [
+						{
+							down: [
+								{
+									actionId: 'audioControl',
+									options: {
+										props: ['volume'],
+										volume: volume.value.toString(),
+									},
+								},
+							],
+							up: [],
+						},
+					],
+					feedbacks: [
+						{
+							feedbackId: 'audioVolume',
+							options: {
+								comparison: 'equal',
+								value: volume.value.toString(),
+							},
+							style: {
+								bgcolor: Color.green,
+							},
+						},
+					],
+				}
 			}
 		}
 	}
@@ -3340,38 +3566,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		} else if (presetNumber === 61) {
 			// Preset 61: Defog OFF (Set) / ON (Call)
-			presets[`presetSetDefogOff`] = {
-				type: 'button',
-				category: 'Outdoor Features',
-				name: 'Defog OFF (Set)',
-				style: {
-					bgcolor: Color.lightGray,
-					color: Color.white,
-					text: `DEFOG\\nOFF`,
-					size: '14',
-					png64: icons.fog,
-					alignment: 'center:bottom',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'presetControl',
-								options: {
-									command: 'Set',
-									preset: preset.Number,
-									customPreset: preset?.Name ? false : true,
-									customPresetNumber: preset.Number,
-									customPresetName: preset.Name,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [],
-			}
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetCallDefogOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3402,10 +3597,45 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuDefog', options: {}, style: { bgcolor: Color.green } }] : [],
+			}
+			presets[`presetSetDefogOff`] = {
+				type: 'button',
+				category: 'Outdoor Features',
+				name: 'Defog OFF (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `DEFOG\\nOFF`,
+					size: '14',
+					png64: icons.fog,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuDefog', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 62) {
 			// Preset 62: Sngl.Wiper ON (Set) / OFF (Call)
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetSetWiperOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3436,7 +3666,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuWiper', options: {}, style: { bgcolor: Color.green } }] : [],
 			}
 			presets[`presetCallWiperOff`] = {
 				type: 'button',
@@ -3468,42 +3698,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuWiper', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 63) {
 			// Preset 63: Heater OFF (Set) / ON (Call)
-			presets[`presetSetHeaterOff`] = {
-				type: 'button',
-				category: 'Outdoor Features',
-				name: 'Heater OFF (Set)',
-				style: {
-					bgcolor: Color.lightGray,
-					color: Color.white,
-					text: `HEATER\\nOFF`,
-					size: '14',
-					png64: icons.temp,
-					alignment: 'center:bottom',
-					show_topbar: false,
-				},
-				steps: [
-					{
-						down: [
-							{
-								actionId: 'presetControl',
-								options: {
-									command: 'Set',
-									preset: preset.Number,
-									customPreset: preset?.Name ? false : true,
-									customPresetNumber: preset.Number,
-									customPresetName: preset.Name,
-								},
-							},
-						],
-						up: [],
-					},
-				],
-				feedbacks: [],
-			}
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetCallHeaterOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3534,10 +3735,45 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuHeater', options: {}, style: { bgcolor: Color.green } }] : [],
+			}
+			presets[`presetSetHeaterOff`] = {
+				type: 'button',
+				category: 'Outdoor Features',
+				name: 'Heater OFF (Set)',
+				style: {
+					bgcolor: Color.lightGray,
+					color: Color.white,
+					text: `HEATER\\nOFF`,
+					size: '14',
+					png64: icons.temp,
+					alignment: 'center:bottom',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'presetControl',
+								options: {
+									command: 'Set',
+									preset: preset.Number,
+									customPreset: preset?.Name ? false : true,
+									customPresetNumber: preset.Number,
+									customPresetName: preset.Name,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuHeater', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 64) {
 			// Preset 64: Cont.Wiper ON (Set) / OFF (Call)
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetSetContWiperOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3568,7 +3804,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuAutoWiper', options: {}, style: { bgcolor: Color.green } }] : [],
 			}
 			presets[`presetCallContWiperOff`] = {
 				type: 'button',
@@ -3600,10 +3836,13 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuAutoWiper', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		} else if (presetNumber === 65) {
 			// Preset 65:Illumination ON (Set) / OFF (Call)
+			const isEXU = self.camera?.getIsEXUModel() ?? false
 			presets[`presetSetIlluminationOn`] = {
 				type: 'button',
 				category: 'Outdoor Features',
@@ -3634,7 +3873,7 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU ? [{ feedbackId: 'exuLaser', options: {}, style: { bgcolor: Color.green } }] : [],
 			}
 			presets[`presetCallIlluminationOff`] = {
 				type: 'button',
@@ -3666,7 +3905,9 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 						up: [],
 					},
 				],
-				feedbacks: [],
+				feedbacks: isEXU
+					? [{ feedbackId: 'exuLaser', isInverted: true, options: {}, style: { bgcolor: Color.red } }]
+					: [],
 			}
 		}
 	}

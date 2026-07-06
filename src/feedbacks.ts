@@ -2,7 +2,13 @@ import type { BolinModuleInstance } from './main.js'
 import type { PictureInfo } from './types.js'
 import type { CompanionFeedbackBooleanEvent } from '@companion-module/base'
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
-import { sortIrisChoices, sortShutterSpeedChoices, convertIrisRangeToMap, convertIrisValueToFStop } from './utils.js'
+import {
+	defaultAudioVolumeFeedbackValue,
+	sortIrisChoices,
+	sortShutterSpeedChoices,
+	convertIrisRangeToMap,
+	convertIrisValueToFStop,
+} from './utils.js'
 
 export function UpdateFeedbacks(self: BolinModuleInstance): void {
 	const feedbacks: CompanionFeedbackDefinitions = {}
@@ -867,9 +873,9 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				createValueFeedback(
 					'audioVolume',
 					'Audio - Volume Level',
-					'Audio volume level matches selected value',
-					50,
-					() => self.camera?.getState().audioInfo?.Volume ?? 0,
+					'Audio gain matches selected value (percent for range cameras, dB for discrete-step cameras)',
+					defaultAudioVolumeFeedbackValue(self.camera?.getAudioVolumeControl() ?? null),
+					() => self.camera?.getEffectiveAudioVolumeFromState() ?? 0,
 				)
 			},
 		},
@@ -908,8 +914,11 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 		{
 			capabilities: ['OSDSystemInfo'],
 			createFeedbacks: () => {
-				createToggleFeedback('tallyMode', 'Tally - Mode', 'Tally mode is enabled', () => {
-					return self.camera?.getState()?.osdSystemInfo?.TallyMode ?? false
+				createToggleFeedback('tallyMode', 'Tally - Active', 'True when tally is enabled in any mode', () => {
+					const raw = self.camera?.getState()?.osdSystemInfo?.TallyMode
+					if (raw === true) return true
+					if (typeof raw === 'number' && (raw === 1 || raw === 2)) return true
+					return false
 				})
 			},
 		},
@@ -961,6 +970,21 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 				}
 			},
 		},
+		{
+			capabilities: [],
+			createFeedbacks: () => {
+				feedbacks['zoomLocked'] = {
+					name: 'PTZ - Zoom Locked',
+					description: 'Zoom is locally locked — zoom commands are suppressed',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0xda2f21,
+					},
+					options: [],
+					callback: () => self.zoomLocked,
+				}
+			},
+		},
 	]
 
 	// Filter and create feedbacks based on capabilities
@@ -972,6 +996,25 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 		) {
 			mapping.createFeedbacks()
 		}
+	}
+
+	// EXU outdoor unit feedbacks — only shown when camera is confirmed EXU model
+	if (self.camera?.getIsEXUModel()) {
+		createToggleFeedback('exuWiper', 'Outdoor - Wiper Active', 'Wiper is currently running', () => {
+			return self.camera?.getState().exuInfo?.wiper ?? false
+		})
+		createToggleFeedback('exuAutoWiper', 'Outdoor - Auto Wiper Active', 'Auto wiper is currently running', () => {
+			return self.camera?.getState().exuInfo?.autowiper ?? false
+		})
+		createToggleFeedback('exuDefog', 'Outdoor - Defog Active', 'Defog is currently active', () => {
+			return self.camera?.getState().exuInfo?.defog ?? false
+		})
+		createToggleFeedback('exuHeater', 'Outdoor - Heater Active', 'Heater is currently on', () => {
+			return self.camera?.getState().exuInfo?.heater ?? false
+		})
+		createToggleFeedback('exuLaser', 'Outdoor - Laser Active', 'Laser illuminator is currently on', () => {
+			return self.camera?.getState().exuInfo?.laser ?? false
+		})
 	}
 
 	self.setFeedbackDefinitions(feedbacks)

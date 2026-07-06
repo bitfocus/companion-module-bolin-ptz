@@ -4,7 +4,10 @@ export interface ModuleConfig {
 	host: string
 	port: number
 	username: string
-	password: string //Temp, until Buttons support secret-text
+}
+
+export interface ModuleSecrets {
+	password: string
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -32,16 +35,10 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 6,
 		},
 		{
-			type: 'textinput', //Temp, until Buttons support secret-text
-			id: 'password',
-			label: 'Password',
-			width: 6,
-		},
-		/* {
 			type: 'secret-text',
 			id: 'password',
 			label: 'Password',
 			width: 6,
-		}, */
+		},
 	]
 }

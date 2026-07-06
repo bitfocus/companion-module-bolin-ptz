@@ -1,4 +1,5 @@
 import type { BolinModuleInstance } from './main.js'
+import { formatAudioVolumeDisplay, formatTallyModeVariable, getEffectiveAudioVolume } from './utils.js'
 import type { CameraState, PictureInfo } from './types.js'
 import { convertIrisValueToFStop, calculateNextAutoRestartTime, deepEqual } from './utils.js'
 
@@ -71,6 +72,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 				{ name: 'PTZ - Zoom Position', variableId: 'zoom_position' },
 				{ name: 'PTZ - Pan/Tilt Speed', variableId: 'pt_speed' },
 				{ name: 'PTZ - Zoom Speed', variableId: 'zoom_speed' },
+				{ name: 'PTZ - Zoom Locked', variableId: 'zoom_locked' },
 			],
 		},
 		{
@@ -410,6 +412,17 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 		},
 	]
 
+	// EXU outdoor unit variables — only shown when camera is confirmed EXU model
+	if (self.camera?.getIsEXUModel()) {
+		variables.push(
+			{ name: 'Outdoor - Wiper', variableId: 'exu_wiper' },
+			{ name: 'Outdoor - Auto Wiper', variableId: 'exu_autowiper' },
+			{ name: 'Outdoor - Defog', variableId: 'exu_defog' },
+			{ name: 'Outdoor - Heater', variableId: 'exu_heater' },
+			{ name: 'Outdoor - Laser', variableId: 'exu_laser' },
+		)
+	}
+
 	// Filter and collect variables based on capabilities
 	for (const mapping of variableMappings) {
 		if (!capabilitiesLoaded || mapping.capabilities.some((cap) => self.camera?.hasCapability(cap))) {
@@ -429,6 +442,7 @@ export function updateSpeedVariables(self: BolinModuleInstance): void {
 	self.setVariableValues({
 		pt_speed: self.ptSpeed,
 		zoom_speed: self.zoomSpeed,
+		zoom_locked: self.zoomLocked,
 	})
 }
 
@@ -732,8 +746,12 @@ export function UpdateVariablesOnStateChange(
 		updateFields(variables, previousState?.osdSystemInfo, currentState.osdSystemInfo, [
 			{ getValue: (o) => o.PelcoID, variableId: 'pelco_id' },
 			{ getValue: (o) => o.VISCAID, variableId: 'visca_id' },
-			{ getValue: (o) => (o.TallyMode ? 'On' : 'Off'), variableId: 'tally_mode' },
 		])
+		const prevTally = previousState?.osdSystemInfo?.TallyMode
+		const curTally = currentState.osdSystemInfo.TallyMode
+		if (prevTally !== curTally) {
+			variables.tally_mode = formatTallyModeVariable(curTally, self.camera?.getTallyModeChoicesForUi() ?? null)
+		}
 	}
 
 	// Update RTSP stream variables if changed
@@ -880,9 +898,12 @@ export function UpdateVariablesOnStateChange(
 			variables.audio_sampling_rate = samplingRateMap[currentAudio.SamplingRate] ?? currentAudio.SamplingRate.toString()
 		}
 
-		// Volume
-		if (!previousAudio || previousAudio.Volume !== currentAudio.Volume) {
-			variables.audio_volume = currentAudio.Volume
+		// Volume (percent or dB step depending on camera capabilities)
+		const volCtrl = self.camera?.getAudioVolumeControl() ?? null
+		const prevVol = getEffectiveAudioVolume(volCtrl, previousAudio)
+		const currVol = getEffectiveAudioVolume(volCtrl, currentAudio)
+		if (!previousAudio || prevVol !== currVol) {
+			variables.audio_volume = formatAudioVolumeDisplay(volCtrl, currentAudio)
 		}
 	}
 
@@ -903,17 +924,24 @@ export function UpdateVariablesOnStateChange(
 		const previousMainStream = previousState?.encodeInfo?.EncodeInfo?.find((e) => e.Channel === 0)
 		const previousSubStream = previousState?.encodeInfo?.EncodeInfo?.find((e) => e.Channel === 1)
 
+		// When a stream follows the input (FrameRate === 0), its displayed FPS is derived from the
+		// output SystemFormat — so it must be recomputed whenever the SystemFormat changes too.
+		const currentSystemFormat = currentState.videoOutputInfo?.SystemFormat
+		const systemFormatChanged = currentSystemFormat !== previousState?.videoOutputInfo?.SystemFormat
+		const resolveFollowInputFPS = () =>
+			currentSystemFormat?.match(/[PI](\d+(?:\.\d+)?)/i)?.[1] ?? currentSystemFormat ?? 0
+
 		// Main stream variables
 		if (mainStream) {
 			if (!previousMainStream || previousMainStream.Resolution !== mainStream.Resolution) {
 				variables.encode_main_resolution = mainStream.Resolution ?? ''
 			}
-			if (!previousMainStream || previousMainStream.FrameRate !== mainStream.FrameRate) {
-				const followInputFPS =
-					currentState.videoOutputInfo?.SystemFormat?.match(/[PI](\d+(?:\.\d+)?)/i)?.[1] ??
-					currentState.videoOutputInfo?.SystemFormat ??
-					0
-				variables.encode_main_frame_rate = mainStream.FrameRate === 0 ? followInputFPS : mainStream.FrameRate
+			if (
+				!previousMainStream ||
+				previousMainStream.FrameRate !== mainStream.FrameRate ||
+				(mainStream.FrameRate === 0 && systemFormatChanged)
+			) {
+				variables.encode_main_frame_rate = mainStream.FrameRate === 0 ? resolveFollowInputFPS() : mainStream.FrameRate
 			}
 			if (!previousMainStream || previousMainStream.BitRate !== mainStream.BitRate) {
 				variables.encode_main_bitrate = mainStream.BitRate ?? 0
@@ -925,8 +953,12 @@ export function UpdateVariablesOnStateChange(
 			if (!previousSubStream || previousSubStream.Resolution !== subStream.Resolution) {
 				variables.encode_sub_resolution = subStream.Resolution ?? ''
 			}
-			if (!previousSubStream || previousSubStream.FrameRate !== subStream.FrameRate) {
-				variables.encode_sub_frame_rate = subStream.FrameRate ?? 0
+			if (
+				!previousSubStream ||
+				previousSubStream.FrameRate !== subStream.FrameRate ||
+				(subStream.FrameRate === 0 && systemFormatChanged)
+			) {
+				variables.encode_sub_frame_rate = subStream.FrameRate === 0 ? resolveFollowInputFPS() : subStream.FrameRate
 			}
 			if (!previousSubStream || previousSubStream.BitRate !== subStream.BitRate) {
 				variables.encode_sub_bitrate = subStream.BitRate ?? 0
@@ -994,6 +1026,17 @@ export function UpdateVariablesOnStateChange(
 			variables.auto_restart_hour = autoRestart.Hour.toString()
 			variables.auto_restart_minute = autoRestart.Minute.toString()
 		}
+	}
+
+	// Update EXU outdoor unit variables if changed
+	if (currentState.exuInfo) {
+		updateFields(variables, previousState?.exuInfo, currentState.exuInfo, [
+			{ getValue: (e) => (e.wiper ? 'On' : 'Off'), variableId: 'exu_wiper' },
+			{ getValue: (e) => (e.autowiper ? 'On' : 'Off'), variableId: 'exu_autowiper' },
+			{ getValue: (e) => (e.defog ? 'On' : 'Off'), variableId: 'exu_defog' },
+			{ getValue: (e) => (e.heater ? 'On' : 'Off'), variableId: 'exu_heater' },
+			{ getValue: (e) => (e.laser ? 'On' : 'Off'), variableId: 'exu_laser' },
+		])
 	}
 
 	// Only update variables if something changed

@@ -9,11 +9,8 @@ import type {
 	MenuAction,
 	WhiteBalanceInfo,
 	PictureInfo,
-	LensInfo,
 	GammaInfo,
 	ExposureInfo,
-	PTZFPosition,
-	PanTiltInfo,
 	OverlayInfo,
 	RTSPInfo,
 	RTMPInfo,
@@ -26,10 +23,12 @@ import type {
 	ScanningRequest,
 	CruiseRequest,
 	AutoRestartRequest,
-	OSDSystemInfo,
 } from './types.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
+	defaultAudioVolumeFeedbackValue,
+	getAudioVolumeEnumDbSteps,
+	resolveAudioVolumeLevelFromDb,
 	sortIrisChoices,
 	getAdjacentIrisValue,
 	sortShutterSpeedChoices,
@@ -581,7 +580,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'PTZ - Pan Direction Invert',
 					() => self.camera?.getState().panTiltInfo?.PanDirection === 1,
 					async (value) => {
-						await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
+						await self.camera!.setPTInfo({ PanDirection: value ? 1 : 0 })
 					},
 				)
 				createToggleAction(
@@ -589,7 +588,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'PTZ - Tilt Direction Invert',
 					() => self.camera?.getState().panTiltInfo?.TiltDirection === 1,
 					async (value) => {
-						await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 } as Partial<PanTiltInfo>)
+						await self.camera!.setPTInfo({ TiltDirection: value ? 1 : 0 })
 					},
 				)
 			},
@@ -640,6 +639,30 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Adjust the Zoom Speed',
 				)
 
+				actions['setZoomLock'] = {
+					name: 'PTZ - Set Zoom Lock',
+					description: 'Enable, disable, or toggle the local zoom lock. When locked, zoom commands are suppressed.',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'Lock',
+							choices: toggleChoices,
+							default: 'toggle',
+							id: 'lock',
+						},
+					],
+					callback: async (action) => {
+						const lockAction = action.options.lock as 'toggle' | 'true' | 'false'
+						if (lockAction === 'toggle') {
+							self.zoomLocked = !self.zoomLocked
+						} else {
+							self.zoomLocked = lockAction === 'true'
+						}
+						self.checkFeedbacks('zoomLocked')
+						updateSpeedVariables(self)
+					},
+				}
+
 				// Basic PTZ controls - always available
 				actions['goHome'] = {
 					name: 'PTZ - Go Home',
@@ -685,6 +708,8 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					description: 'Zoom the camera',
 					callback: async (action) => {
 						if (!self.camera) return
+						const direction = action.options.direction as ZoomCommand['Direction']
+						if (self.zoomLocked && direction !== 'Stop') return
 						const speed = action.options.customSpeed ? parseInt(action.options.speed as string) : self.zoomSpeed
 						if (isNaN(speed)) {
 							self.log('warn', 'Speed must be a number')
@@ -695,7 +720,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							return
 						}
 						const zoom: ZoomCommand = {
-							Direction: action.options.direction as ZoomCommand['Direction'],
+							Direction: direction,
 							Speed: speed,
 						}
 						await self.camera.zoom(zoom)
@@ -900,7 +925,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Lens - Smart Focus',
 					() => self.camera?.getState().lensInfo?.SmartFocus,
 					async (value) => {
-						await self.camera!.setLensInfo({ SmartFocus: value } as Partial<LensInfo>)
+						await self.camera!.setLensInfo({ SmartFocus: value })
 					},
 					'Enable or disable smart focus mode',
 				)
@@ -909,7 +934,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Lens - Digital Zoom',
 					() => self.camera?.getState().lensInfo?.DigitalZoom,
 					async (value) => {
-						await self.camera!.setLensInfo({ DigitalZoom: value } as Partial<LensInfo>)
+						await self.camera!.setLensInfo({ DigitalZoom: value })
 					},
 					'Enable or disable digital zoom',
 				)
@@ -918,7 +943,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Lens - Zoom Ratio OSD',
 					() => self.camera?.getState().lensInfo?.ZoomRatioOSD,
 					async (value) => {
-						await self.camera!.setLensInfo({ ZoomRatioOSD: value } as Partial<LensInfo>)
+						await self.camera!.setLensInfo({ ZoomRatioOSD: value })
 					},
 					'Show or hide zoom ratio on OSD',
 				)
@@ -957,7 +982,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							newValue = Math.max(0, Math.min(7, parsedValue))
 						}
 
-						await self.camera.setLensInfo({ MFSpeed: newValue } as Partial<LensInfo>)
+						await self.camera.setLensInfo({ MFSpeed: newValue })
 					},
 				}
 				actions['afSensitivity'] = {
@@ -1058,10 +1083,9 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								choices:
 									self.camera
 										?.getState()
-										.generalCapabilities?.[
-											'VideoOutputInfo'
-										]?.['SystemFormat']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
-									[],
+										.generalCapabilities?.['VideoOutputInfo']?.['SystemFormat']?.Data?.map(
+											(data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string }),
+										) ?? [],
 								default:
 									self.camera?.getState().generalCapabilities?.['VideoOutputInfo']?.['SystemFormat']?.Data?.[0]
 										?.Value ?? '1920x1080P60',
@@ -1088,10 +1112,9 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								choices:
 									self.camera
 										?.getState()
-										.generalCapabilities?.[
-											'VideoOutputInfo'
-										]?.['HDMIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
-									[],
+										.generalCapabilities?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.map(
+											(data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string }),
+										) ?? [],
 								default:
 									self.camera?.getState().generalCapabilities?.['VideoOutputInfo']?.['HDMIResolution']?.Data?.[0]
 										?.Value ?? '1920x1080P60',
@@ -1118,10 +1141,9 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								choices:
 									self.camera
 										?.getState()
-										.generalCapabilities?.[
-											'VideoOutputInfo'
-										]?.['SDIResolution']?.Data?.map((data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string })) ??
-									[],
+										.generalCapabilities?.['VideoOutputInfo']?.['SDIResolution']?.Data?.map(
+											(data: CapabilityDataValue) => ({ label: data.Value as string, id: data.Value as string }),
+										) ?? [],
 								default:
 									self.camera?.getState().generalCapabilities?.['VideoOutputInfo']?.['SDIResolution']?.Data?.[0]
 										?.Value ?? '1920x1080P60',
@@ -1140,15 +1162,38 @@ export function UpdateActions(self: BolinModuleInstance): void {
 				}
 
 				if (self.camera?.hasCapability('OSDSystemInfo')) {
-					createToggleAction(
-						'tallyMode',
-						'Tally Mode',
-						() => self.camera?.getState().osdSystemInfo?.TallyMode,
-						async (value) => {
-							if (!self.camera) return
-							await self.camera.setOSDSystemInfo({ TallyMode: value } as Partial<OSDSystemInfo>)
-						},
-					)
+					const tallyChoices = self.camera.getTallyModeChoicesForUi()
+					if (tallyChoices) {
+						actions['tallyMode'] = {
+							name: 'Tally Mode',
+							options: [
+								{
+									type: 'dropdown',
+									label: 'Mode',
+									choices: tallyChoices.map((c) => ({ id: c.id, label: c.label })),
+									default: tallyChoices[0]?.id ?? 0,
+									id: 'mode',
+								},
+							],
+							description: 'Set tally mode',
+							callback: async (action) => {
+								if (!self.camera) return
+								await self.camera.setOSDSystemInfo({
+									TallyMode: action.options.mode as number,
+								})
+							},
+						}
+					} else {
+						createToggleAction(
+							'tallyMode',
+							'Tally Mode',
+							() => self.camera?.getState().osdSystemInfo?.TallyMode === true,
+							async (value) => {
+								if (!self.camera) return
+								await self.camera.setOSDSystemInfo({ TallyMode: value })
+							},
+						)
+					}
 				}
 			},
 		},
@@ -1246,18 +1291,18 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							await self.camera.setWhiteBalanceInfo({
 								[whiteBalanceOption]:
 									((self.camera.getState().whiteBalanceInfo?.[whiteBalanceOption] as number) ?? 0) + 1,
-							} as Partial<WhiteBalanceInfo>)
+							})
 						} else if (action.options.adjustment === 'decrease') {
 							await self.camera.setWhiteBalanceInfo({
 								[whiteBalanceOption]:
 									((self.camera.getState().whiteBalanceInfo?.[whiteBalanceOption] as number) ?? 0) - 1,
-							} as Partial<WhiteBalanceInfo>)
+							})
 						} else {
 							const parsedValue = parseInteger(action.options.value as string, 'White balance value', self)
 							if (parsedValue === null) return
 							await self.camera.setWhiteBalanceInfo({
 								[whiteBalanceOption]: parsedValue,
-							} as Partial<WhiteBalanceInfo>)
+							})
 						}
 					},
 				}
@@ -1269,9 +1314,9 @@ export function UpdateActions(self: BolinModuleInstance): void {
 						// Check if white balance mode is ManualColorTemperature, if not set it first
 						const currentMode = self.camera?.getState().whiteBalanceInfo?.Mode
 						if (currentMode !== 'ManualColorTemperature') {
-							await self.camera!.setWhiteBalanceInfo({ Mode: 'ManualColorTemperature' } as WhiteBalanceInfo)
+							await self.camera!.setWhiteBalanceInfo({ Mode: 'ManualColorTemperature' })
 						}
-						await self.camera!.setWhiteBalanceInfo({ ColorTemperature: value } as Partial<WhiteBalanceInfo>)
+						await self.camera!.setWhiteBalanceInfo({ ColorTemperature: value })
 					},
 					5500,
 					100,
@@ -1287,7 +1332,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Flip',
 					() => self.camera?.getState().pictureInfo?.Flip,
 					async (value) => {
-						await self.camera!.setPictureInfo({ Flip: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ Flip: value })
 					},
 					'Flip the image vertically',
 				)
@@ -1297,7 +1342,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Mirror',
 					() => self.camera?.getState().pictureInfo?.Mirror,
 					async (value) => {
-						await self.camera!.setPictureInfo({ Mirror: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ Mirror: value })
 					},
 					'Mirror the image horizontally',
 				)
@@ -1307,7 +1352,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - HLC Mode',
 					() => self.camera?.getState().pictureInfo?.HLCMode,
 					async (value) => {
-						await self.camera!.setPictureInfo({ HLCMode: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ HLCMode: value })
 					},
 					'Enable or disable high light compensation',
 				)
@@ -1316,7 +1361,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - BLC',
 					() => self.camera?.getState().pictureInfo?.BacklightCom ?? self.camera?.getState().pictureInfo?.BLC,
 					async (value) => {
-						await self.camera!.setPictureInfo({ BLC: value, BacklightCom: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ BLC: value, BacklightCom: value })
 					},
 					'Enable or disable back light compensation',
 				)
@@ -1326,7 +1371,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - 2DNR',
 					() => self.camera?.getState().pictureInfo?.['2DNR'],
 					async (value) => {
-						await self.camera!.setPictureInfo({ ['2DNR']: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ ['2DNR']: value })
 					},
 					50,
 					1,
@@ -1337,7 +1382,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - 3DNR',
 					() => self.camera?.getState().pictureInfo?.['3DNR'],
 					async (value) => {
-						await self.camera!.setPictureInfo({ ['3DNR']: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ ['3DNR']: value })
 					},
 					50,
 					1,
@@ -1349,7 +1394,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Sharpness',
 					() => self.camera?.getState().pictureInfo?.Sharpness,
 					async (value) => {
-						await self.camera!.setPictureInfo({ Sharpness: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ Sharpness: value })
 					},
 					50,
 					1,
@@ -1360,7 +1405,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Hue',
 					() => self.camera?.getState().pictureInfo?.Hue,
 					async (value) => {
-						await self.camera!.setPictureInfo({ Hue: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ Hue: value })
 					},
 					50,
 					1,
@@ -1371,7 +1416,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Contrast',
 					() => self.camera?.getState().pictureInfo?.Contrast,
 					async (value) => {
-						await self.camera!.setPictureInfo({ Contrast: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ Contrast: value })
 					},
 					50,
 					1,
@@ -1382,7 +1427,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Saturation',
 					() => self.camera?.getState().pictureInfo?.Saturation,
 					async (value) => {
-						await self.camera!.setPictureInfo({ Saturation: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ Saturation: value })
 					},
 					50,
 					1,
@@ -1393,7 +1438,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Picture - Defog Level',
 					() => self.camera?.getState().pictureInfo?.DefogLevel,
 					async (value) => {
-						await self.camera!.setPictureInfo({ DefogLevel: value } as Partial<PictureInfo>)
+						await self.camera!.setPictureInfo({ DefogLevel: value })
 					},
 					50,
 					1,
@@ -1550,11 +1595,11 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							if (action.options.adjustment === 'increase') {
 								await self.camera.setPictureInfo({
 									[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) + 1,
-								} as Partial<PictureInfo>)
+								})
 							} else if (action.options.adjustment === 'decrease') {
 								await self.camera.setPictureInfo({
 									[matrixOption]: ((self.camera.getState().pictureInfo?.[matrixOption] as number) ?? 0) - 1,
-								} as Partial<PictureInfo>)
+								})
 							} else {
 								const parsedValue = parseInt(action.options.value as string)
 								if (isNaN(parsedValue)) {
@@ -1563,7 +1608,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								}
 								await self.camera.setPictureInfo({
 									[matrixOption]: parsedValue,
-								} as Partial<PictureInfo>)
+								})
 							}
 						},
 					}
@@ -1578,7 +1623,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Gamma - WDR',
 					() => self.camera?.getState().gammaInfo?.WDR,
 					async (value) => {
-						await self.camera!.setGammaInfo({ WDR: value } as Partial<GammaInfo>)
+						await self.camera!.setGammaInfo({ WDR: value })
 					},
 					'Enable or disable wide dynamic range',
 				)
@@ -1611,7 +1656,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Gamma - Bright',
 					() => self.camera?.getState().gammaInfo?.Bright,
 					async (value) => {
-						await self.camera!.setGammaInfo({ Bright: value } as Partial<GammaInfo>)
+						await self.camera!.setGammaInfo({ Bright: value })
 					},
 					50,
 					1,
@@ -1622,7 +1667,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Gamma - WDR Level',
 					() => self.camera?.getState().gammaInfo?.WDRLevel,
 					async (value) => {
-						await self.camera!.setGammaInfo({ WDRLevel: value } as Partial<GammaInfo>)
+						await self.camera!.setGammaInfo({ WDRLevel: value })
 					},
 					50,
 					1,
@@ -1638,7 +1683,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Exposure - Gain',
 					() => self.camera?.getState().exposureInfo?.Gain,
 					async (value) => {
-						await self.camera!.setExposureInfo({ Gain: value } as Partial<ExposureInfo>)
+						await self.camera!.setExposureInfo({ Gain: value })
 					},
 					50,
 					1,
@@ -1649,7 +1694,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Exposure - Gain Limit',
 					() => self.camera?.getState().exposureInfo?.GainLimit,
 					async (value) => {
-						await self.camera!.setExposureInfo({ GainLimit: value } as Partial<ExposureInfo>)
+						await self.camera!.setExposureInfo({ GainLimit: value })
 					},
 					50,
 					1,
@@ -1660,7 +1705,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Exposure - Compensation Level',
 					() => self.camera?.getState().exposureInfo?.ExCompLevel,
 					async (value) => {
-						await self.camera!.setExposureInfo({ ExCompLevel: value } as Partial<ExposureInfo>)
+						await self.camera!.setExposureInfo({ ExCompLevel: value })
 					},
 					50,
 					1,
@@ -1671,7 +1716,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					'Exposure - Smart Exposure',
 					() => self.camera?.getState().exposureInfo?.SmartExposure,
 					async (value) => {
-						await self.camera!.setExposureInfo({ SmartExposure: value } as Partial<ExposureInfo>)
+						await self.camera!.setExposureInfo({ SmartExposure: value })
 					},
 					'Enable or disable smart exposure',
 				)
@@ -1747,7 +1792,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 										)
 
 							// Send the string value - setExposureInfo will convert to numeric for API
-							await self.camera.setExposureInfo({ ShutterSpeed: shutterSpeedString } as Partial<ExposureInfo>)
+							await self.camera.setExposureInfo({ ShutterSpeed: shutterSpeedString })
 						},
 					}
 				}
@@ -1802,7 +1847,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 									: getAdjacentIrisValue(irisChoices, currentIris, adjustment as 'increase' | 'decrease')
 
 							// The API expects the numeric enum value directly
-							await self.camera.setExposureInfo({ Iris: irisValue } as Partial<ExposureInfo>)
+							await self.camera.setExposureInfo({ Iris: irisValue })
 						},
 					}
 				}
@@ -1876,7 +1921,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							ZoomPosition: zoomPosition,
 							PanTiltSpeed: panTiltSpeed,
 							ZoomSpeed: zoomSpeed,
-						} as PTZFPosition)
+						})
 					},
 				}
 				actions['ptzRelPosition'] = {
@@ -2715,6 +2760,44 @@ export function UpdateActions(self: BolinModuleInstance): void {
 		{
 			capabilities: ['AudioInfo'],
 			createActions: () => {
+				const audioVolCtrl = self.camera?.getAudioVolumeControl() ?? null
+
+				const volumeOptions =
+					audioVolCtrl?.kind === 'enum'
+						? (() => {
+								const steps = getAudioVolumeEnumDbSteps(audioVolCtrl)
+								const span =
+									steps.length > 0 ? `${steps[0]} … ${steps[steps.length - 1]} dB` : 'camera-specific dB steps'
+								return [
+									{
+										type: 'textinput' as const,
+										label: 'Volume (dB)',
+										tooltip: `Gain in discrete dB steps (${span}). Use variables if needed.`,
+										default: String(defaultAudioVolumeFeedbackValue(audioVolCtrl)),
+										id: 'volume',
+										useVariables: true,
+										isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
+									},
+								]
+							})()
+						: [
+								{
+									type: 'textinput' as const,
+									label: 'Volume',
+									tooltip:
+										audioVolCtrl?.kind === 'range'
+											? `Volume level (${audioVolCtrl.min}–${audioVolCtrl.max})`
+											: 'Volume level (1–100)',
+									default:
+										audioVolCtrl?.kind === 'range'
+											? String(Math.round((audioVolCtrl.min + audioVolCtrl.max) / 2))
+											: '50',
+									id: 'volume',
+									useVariables: true,
+									isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
+								},
+							]
+
 				actions['audioControl'] = {
 					name: 'Audio Control',
 					options: [
@@ -2766,15 +2849,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 							id: 'samplingRate',
 							isVisibleExpression: `arrayIncludes($(options:props), 'samplingRate')`,
 						},
-						{
-							type: 'textinput',
-							label: 'Volume',
-							tooltip: 'Volume level (1-100)',
-							default: '50',
-							id: 'volume',
-							useVariables: true,
-							isVisibleExpression: `arrayIncludes($(options:props), 'volume')`,
-						},
+						...volumeOptions,
 					],
 					description: 'Set the audio control',
 					callback: async (action) => {
@@ -2782,6 +2857,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 						const props = action.options.props as string[]
 
 						const audioInfo: Partial<AudioInfo> = {}
+						const volCtrl = self.camera.getAudioVolumeControl()
 
 						for (const prop of props) {
 							if (prop === 'enable') {
@@ -2800,13 +2876,30 @@ export function UpdateActions(self: BolinModuleInstance): void {
 								audioInfo.SamplingRate = action.options.samplingRate as number
 							}
 							if (prop === 'volume') {
-								const volume = parseInteger(action.options.volume as string, 'Volume', self)
-								if (volume === null) return
-								if (volume < 1 || volume > 100) {
-									self.log('warn', 'Volume must be between 1 and 100')
-									return
+								if (volCtrl?.kind === 'enum') {
+									const db = parseInteger(action.options.volume as string, 'Volume (dB)', self)
+									if (db === null) return
+									const level = resolveAudioVolumeLevelFromDb(volCtrl, db)
+									if (level === null) {
+										self.log('warn', `${db} dB is not a valid gain step for this camera`)
+										return
+									}
+									if (volCtrl.apiField === 'Volume') {
+										audioInfo.Volume = level
+									} else {
+										audioInfo.VolumeLevel = level
+									}
+								} else {
+									const volume = parseInteger(action.options.volume as string, 'Volume', self)
+									if (volume === null) return
+									const min = volCtrl?.kind === 'range' ? volCtrl.min : 1
+									const max = volCtrl?.kind === 'range' ? volCtrl.max : 100
+									if (volume < min || volume > max) {
+										self.log('warn', `Volume must be between ${min} and ${max}`)
+										return
+									}
+									audioInfo.Volume = volume
 								}
-								audioInfo.Volume = volume
 							}
 						}
 
