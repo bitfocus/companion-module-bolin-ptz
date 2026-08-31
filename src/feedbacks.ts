@@ -518,6 +518,47 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					return self.camera?.getState().lensInfo?.DigitalZoom ?? false
 				})
 
+				createToggleFeedback(
+					'teleconverter',
+					'Lens - Teleconverter',
+					'Teleconverter is enabled',
+					() => self.camera?.getState().exuOSDInfo?.lens?.['tele-convert-mode'] ?? false,
+				)
+
+				createToggleFeedback(
+					'dc12vOutput',
+					'EXU – DC12V Output',
+					'DC12V Output is enabled',
+					() => self.camera?.getState().exuOSDInfo?.system?.['dc-12v-out'] ?? false,
+				)
+
+				feedbacks['ndFilter'] = {
+					name: 'Picture - ND Filter',
+					description: 'ND Filter matches selected value',
+					type: 'boolean',
+					defaultStyle: {
+						bgcolor: 0x009900,
+					},
+				options: [
+					{
+						type: 'dropdown',
+						label: 'ND Filter',
+						id: 'mode',
+					choices: [
+						{ label: 'OFF', id: 'OFF' },
+						{ label: '1/4', id: '1/4' },
+						{ label: '1/16', id: '1/16' },
+						{ label: '1/64', id: '1/64' },
+					],
+					default: 'OFF',
+				},
+			],
+			callback: (feedback: CompanionFeedbackBooleanEvent) => {
+				const selected = feedback.options.mode as string
+				return self.camera?.getState().exuOSDInfo?.picture?.['nd-filter'] === selected
+			},
+		}
+
 				createToggleFeedback('zoomRatioOSD', 'Lens - Zoom Ratio OSD', 'Zoom ratio OSD is enabled', () => {
 					return self.camera?.getState().lensInfo?.ZoomRatioOSD ?? false
 				})

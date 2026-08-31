@@ -51,6 +51,7 @@ import type {
 	AutoRestartInfo,
 	AutoRestartRequest,
 	ExuInfo,
+	ExuOSDInfo,
 } from './types.js'
 import type { BolinModuleInstance } from './main.js'
 import { UpdateVariablesOnStateChange } from './variables.js'
@@ -114,6 +115,7 @@ function createEmptyState(): CameraState {
 		cruiseInfo: null,
 		autoRestartInfo: null,
 		exuInfo: null,
+		exuOSDInfo: null,
 	} satisfies CameraState
 }
 
@@ -294,6 +296,7 @@ export class BolinCamera {
 			autoRestartInfo: ['autoRestartEnabled'],
 			osdSystemInfo: ['tallyMode'],
 			exuInfo: ['exuWiper', 'exuAutoWiper', 'exuDefog', 'exuHeater', 'exuLaser'],
+			exuOSDInfo: ['teleconverter', 'ndFilter', 'dc12vOutput'],
 		}
 		return feedbackMap[stateKey] ?? []
 	}
@@ -588,12 +591,127 @@ export class BolinCamera {
 			}
 		})
 	}
-
+// Teleconverter support will be added here
 	async setLensInfo(lensInfo: Partial<LensInfo>): Promise<void> {
 		await this.sendRequest('/apiv2/image', 'ReqSetLensInfo', {
 			LensInfo: lensInfo,
 		})
 	}
+/**
+ * Sets EXU Teleconverter mode using the /api endpoint.
+ */
+async setTeleconverter(enable: boolean): Promise<void> {
+	if (!this.apiSessionCookie) {
+		await this.loginApiSession()
+	}
+
+	const url = `http://${this.config.host}:${this.config.port}/api/ptz/osd-apply`
+
+	const response = await fetch(url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Cookie: this.apiSessionCookie!,
+		},
+		body: JSON.stringify({
+			lens: {
+				'tele-convert-mode': enable,
+			},
+		}),
+	})
+
+	if (!response.ok) {
+		throw new Error(`Teleconverter request failed: ${response.status}`)
+	}
+	await this.getEXUOSDInfo()
+}
+/**
+ * Sets EXU DC 12V out mode using the /api endpoint.
+ */
+async setDC12VOutput(enable: boolean): Promise<void> {
+	if (!this.apiSessionCookie) {
+		await this.loginApiSession()
+	}
+
+	const url = `http://${this.config.host}:${this.config.port}/api/ptz/osd-apply`
+
+	const response = await fetch(url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Cookie: this.apiSessionCookie!,
+		},
+		body: JSON.stringify({
+			system: {
+				'dc-12v-out': enable,
+			},
+		}),
+	})
+
+	if (!response.ok) {
+		throw new Error(`DC12V request failed: ${response.status}`)
+	}
+
+	await this.getEXUOSDInfo()
+}
+
+/**
+ * Sets EXU ND filter using the /api endpoint.
+ */
+async setNDFilter(mode: 'OFF' | '1/4' | '1/16' | '1/64'): Promise<void> {
+	if (!this.apiSessionCookie) {
+		await this.loginApiSession()
+	}
+
+	const url = `http://${this.config.host}:${this.config.port}/api/ptz/osd-apply`
+
+	const response = await fetch(url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Cookie: this.apiSessionCookie!,
+		},
+		body: JSON.stringify({
+			picture: {
+				'nd-filter': mode,
+			},
+		}),
+	})
+
+	if (!response.ok) {
+		throw new Error(`ND filter request failed: ${response.status}`)
+	}
+	await this.getEXUOSDInfo()
+}
+
+/**
+ * Gets EXU OSD information from /api/ptz/osd-info
+ */
+async getEXUOSDInfo(): Promise<ExuOSDInfo> {
+	if (!this.apiSessionCookie) {
+		await this.loginApiSession()
+	}
+
+	const url = `http://${this.config.host}:${this.config.port}/api/ptz/osd-info`
+
+	const response = await fetch(url, {
+		method: 'GET',
+		headers: {
+			Cookie: this.apiSessionCookie!,
+		},
+	})
+
+	if (!response.ok) {
+		throw new Error(`EXU OSD request failed: ${response.status}`)
+	}
+
+	const data = (await response.json()) as ExuOSDInfo
+
+	this.state.exuOSDInfo = data
+	this.updateVariablesOnStateChange()
+
+	return data
+}
 
 	/**
 	 * Gets picture information from the camera and stores it in state
@@ -1500,9 +1618,22 @@ export class BolinCamera {
 			})
 			if (!response.ok) return
 			const data = (await response.json()) as { model?: string; status?: number }
-			this.isEXUModel = data.model === 'EXU'
+			this.isEXUModel = data.model?.startsWith('EXU') ?? false
+			this.self.log(
+				'info',
+				`EXU detected = ${this.isEXUModel}, model=${data.model}`,
+			)
+			if (this.isEXUModel) {
+				this.self.log('info', 'Calling updateModuleComponents()')
+				this.self.updateModuleComponents()
+			}
+
 			if (this.isEXUModel) {
 				this.self.log('debug', 'EXU outdoor unit detected, enabling EXU status polling')
+
+				//Refresh Companion UI now that EXU features are known
+				this.self.updateModuleComponents()
+
 			}
 		} catch {
 			// Not an EXU model or endpoint not available — silently ignore
@@ -1692,8 +1823,17 @@ export class BolinCamera {
 			{ capabilities: ['ScanningInfo'], method: async () => this.getScanningInfo() },
 			{ capabilities: ['CruiseInfo'], method: async () => this.getCruiseInfo() },
 			{ capabilities: ['AutoRestartInfo'], method: async () => this.getAutoRestartInfo() },
-			...(this.isEXUModel ? [{ capabilities: [] as string[], method: async () => this.getEXUInfo() }] : []),
-		]
+			...(this.isEXUModel
+				? [
+					{ capabilities: [] as string[],
+						method: async () => this.getEXUInfo(),
+					 },
+					 { capabilities: [],
+						method: async () => this.getEXUOSDInfo(),
+					 },
+					]
+					: []),
+				]
 
 		const promises = capabilityMappings
 			.filter((mapping) => {

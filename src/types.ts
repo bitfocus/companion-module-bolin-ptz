@@ -785,6 +785,22 @@ export interface ExuInfo {
 }
 
 /**
+ * EXU OSD state (from /api/ptz/osd-info)
+ */
+export interface ExuOSDInfo {
+	lens: {
+		'tele-convert-mode': boolean
+	}
+	picture: {
+		'nd-filter': 'OFF' | '1/4' | '1/16' | '1/64'
+	}
+
+	system: {
+		'dc-12v-out': boolean
+	}
+}
+
+/**
  * Camera state tracking
  */
 export interface CameraState {
@@ -818,4 +834,5 @@ export interface CameraState {
 	cruiseInfo: CruiseInfo[] | null
 	autoRestartInfo: AutoRestartInfo | null
 	exuInfo: ExuInfo | null
+	exuOSDInfo: ExuOSDInfo | null
 }
