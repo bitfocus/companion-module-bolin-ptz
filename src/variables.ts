@@ -1046,8 +1046,8 @@ export function UpdateVariablesOnStateChange(
 	// Update EXU OSD variables if changed
 	if (currentState.exuOSDInfo) {
 		updateFields(variables, previousState?.exuOSDInfo, currentState.exuOSDInfo, [
-			{getValue: (o) => (o.lens?.['tele-convert-mode'] ? 'On' : 'Off'),variableId: 'teleconverter',},
-			{getValue: (o) => o.picture?.['nd-filter'] ?? 'OFF',variableId: 'nd_filter',},
+			{ getValue: (o) => (o.lens?.['tele-convert-mode'] ? 'On' : 'Off'), variableId: 'teleconverter' },
+			{ getValue: (o) => o.picture?.['nd-filter'] ?? 'OFF', variableId: 'nd_filter' },
 		])
 	}
 

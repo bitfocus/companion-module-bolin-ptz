@@ -50,7 +50,6 @@ function parseInteger(value: string | number | undefined, fieldName: string, sel
 }
 
 export function UpdateActions(self: BolinModuleInstance): void {
-
 	const actions: CompanionActionDefinitions = {}
 
 	// Only check capabilities if they've been loaded, otherwise create all actions
@@ -1068,7 +1067,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 						if (!self.camera) return
 
 						const mode = event.options.mode as 'OFF' | '1/4' | '1/16' | '1/64'
-						await self.camera!.setNDFilter(mode)
+						await self.camera.setNDFilter(mode)
 					},
 				}
 			},
