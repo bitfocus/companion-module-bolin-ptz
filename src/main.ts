@@ -32,7 +32,6 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	}
 
 	async init(config: ModuleConfig, _isFirstInit: boolean, secrets: ModuleSecrets): Promise<void> {
-
 		this.config = config
 		this.secrets = secrets
 		this.updateVariableDefinitions()

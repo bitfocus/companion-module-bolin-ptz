@@ -539,25 +539,25 @@ export function UpdateFeedbacks(self: BolinModuleInstance): void {
 					defaultStyle: {
 						bgcolor: 0x009900,
 					},
-				options: [
-					{
-						type: 'dropdown',
-						label: 'ND Filter',
-						id: 'mode',
-					choices: [
-						{ label: 'OFF', id: 'OFF' },
-						{ label: '1/4', id: '1/4' },
-						{ label: '1/16', id: '1/16' },
-						{ label: '1/64', id: '1/64' },
+					options: [
+						{
+							type: 'dropdown',
+							label: 'ND Filter',
+							id: 'mode',
+							choices: [
+								{ label: 'OFF', id: 'OFF' },
+								{ label: '1/4', id: '1/4' },
+								{ label: '1/16', id: '1/16' },
+								{ label: '1/64', id: '1/64' },
+							],
+							default: 'OFF',
+						},
 					],
-					default: 'OFF',
-				},
-			],
-			callback: (feedback: CompanionFeedbackBooleanEvent) => {
-				const selected = feedback.options.mode as string
-				return self.camera?.getState().exuOSDInfo?.picture?.['nd-filter'] === selected
-			},
-		}
+					callback: (feedback: CompanionFeedbackBooleanEvent) => {
+						const selected = feedback.options.mode as string
+						return self.camera?.getState().exuOSDInfo?.picture?.['nd-filter'] === selected
+					},
+				}
 
 				createToggleFeedback('zoomRatioOSD', 'Lens - Zoom Ratio OSD', 'Zoom ratio OSD is enabled', () => {
 					return self.camera?.getState().lensInfo?.ZoomRatioOSD ?? false
