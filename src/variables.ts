@@ -99,6 +99,7 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 				{ name: 'Focus - MF Speed', variableId: 'mf_speed' },
 			],
 		},
+
 		{
 			capabilities: ['PTZFPresetSpeed', 'PresetSpeed'],
 			variables: [
@@ -420,6 +421,9 @@ export function UpdateVariableDefinitions(self: BolinModuleInstance): void {
 			{ name: 'Outdoor - Defog', variableId: 'exu_defog' },
 			{ name: 'Outdoor - Heater', variableId: 'exu_heater' },
 			{ name: 'Outdoor - Laser', variableId: 'exu_laser' },
+
+			{ name: 'EXU - Teleconverter', variableId: 'teleconverter' },
+			{ name: 'EXU - ND Filter', variableId: 'nd_filter' },
 		)
 	}
 
@@ -1036,6 +1040,14 @@ export function UpdateVariablesOnStateChange(
 			{ getValue: (e) => (e.defog ? 'On' : 'Off'), variableId: 'exu_defog' },
 			{ getValue: (e) => (e.heater ? 'On' : 'Off'), variableId: 'exu_heater' },
 			{ getValue: (e) => (e.laser ? 'On' : 'Off'), variableId: 'exu_laser' },
+		])
+	}
+
+	// Update EXU OSD variables if changed
+	if (currentState.exuOSDInfo) {
+		updateFields(variables, previousState?.exuOSDInfo, currentState.exuOSDInfo, [
+			{getValue: (o) => (o.lens?.['tele-convert-mode'] ? 'On' : 'Off'),variableId: 'teleconverter',},
+			{getValue: (o) => o.picture?.['nd-filter'] ?? 'OFF',variableId: 'nd_filter',},
 		])
 	}
 

@@ -3911,5 +3911,93 @@ export function UpdatePresets(self: BolinModuleInstance): void {
 			}
 		}
 	}
+
+	if (self.camera?.getIsEXUModel()) {
+
+			// Teleconverter presets
+			for (const mode of [
+				{ id: 'toggle', label: 'Toggle', text: 'TELE\nCONV' },
+				{ id: 'true', label: 'On', text: 'TELE\nCONV\nON' },
+				{ id: 'false', label: 'Off', text: 'TELE\nCONV\nOFF' },
+			]) {
+				createTogglePreset(
+					presets,
+					`presetTeleconverter${mode.label}`,
+					`Teleconverter ${mode.label}`,
+					'EXU Lens',
+					mode.text,
+					'teleconverter',
+					mode.id,
+					'teleconverter',
+					mode.id === 'toggle',
+				)
+			}
+
+			// DC12V Output presets
+			for (const mode of [
+				{ id: 'toggle', label: 'Toggle', text: 'DC12V\nOUT' },
+				{ id: 'true', label: 'On', text: 'DC12V\nOUT\nON' },
+				{ id: 'false', label: 'Off', text: 'DC12V\nOUT\nOFF' },
+			]) {
+				createTogglePreset(
+					presets,
+					`presetDC12VOutput${mode.label}`,
+					`DC12V Output ${mode.label}`,
+					'EXU System',
+					mode.text,
+					'dc12vOutput',
+					mode.id,
+					'dc12vOutput',
+					mode.id === 'toggle',
+				)
+			}
+
+			// ND Filter presets
+			for (const mode of [
+				{ id: 'OFF', label: 'OFF', text: 'ND\nOFF' },
+				{ id: '1/4', label: '1/4', text: 'ND\n1/4' },
+				{ id: '1/16', label: '1/16', text: 'ND\n1/16' },
+				{ id: '1/64', label: '1/64', text: 'ND\n1/64' },
+			]) {
+				presets[`presetNDFilter${mode.label.replaceAll('/', '_')}`] = {
+					type: 'button',
+				category: 'EXU Picture',
+				name: `ND Filter ${mode.label}`,
+				style: {
+					bgcolor: Color.darkGray,
+					color: Color.white,
+					text: mode.text,
+					size: 14,
+					alignment: 'center:center',
+					show_topbar: false,
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'ndFilter',
+								options: {
+									mode: mode.id,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'ndFilter',
+						options: {
+							mode: mode.id,
+						},
+						style: {
+							bgcolor: Color.green,
+						},
+					},
+				],
+			}
+		}
+	}
+
 	self.setPresetDefinitions(presets)
 }

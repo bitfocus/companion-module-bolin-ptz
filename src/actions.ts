@@ -50,6 +50,7 @@ function parseInteger(value: string | number | undefined, fieldName: string, sel
 }
 
 export function UpdateActions(self: BolinModuleInstance): void {
+
 	const actions: CompanionActionDefinitions = {}
 
 	// Only check capabilities if they've been loaded, otherwise create all actions
@@ -93,13 +94,17 @@ export function UpdateActions(self: BolinModuleInstance): void {
 			description: description ?? `Set the ${name.toLowerCase()}`,
 			callback: async (action) => {
 				if (!self.camera) return
+
 				const currentValue = getCurrentValue() ?? false
+
 				let newValue: boolean
+
 				if (action.options.mode === 'toggle') {
 					newValue = !currentValue
 				} else {
 					newValue = action.options.mode === 'true' ? true : false
 				}
+
 				await setValue(newValue)
 			},
 		}
@@ -947,6 +952,7 @@ export function UpdateActions(self: BolinModuleInstance): void {
 					},
 					'Show or hide zoom ratio on OSD',
 				)
+
 				actions['mfSpeed'] = {
 					name: 'Lens - MF Speed',
 					options: [
@@ -1018,6 +1024,56 @@ export function UpdateActions(self: BolinModuleInstance): void {
 				}
 			},
 		},
+
+		{
+			capabilities: [],
+			createActions: () => {
+				createToggleAction(
+					'teleconverter',
+					'Lens - Teleconverter',
+					() => self.camera?.getState().exuOSDInfo?.lens['tele-convert-mode'] ?? false,
+					async (value) => {
+						await self.camera!.setTeleconverter(value)
+					},
+					'Enable or disable teleconverter',
+				)
+
+				createToggleAction(
+					'dc12vOutput',
+					'System - DC 12V Output',
+					() => self.camera?.getState().exuOSDInfo?.system?.['dc-12v-out'] ?? false,
+					async (value) => {
+						await self.camera!.setDC12VOutput(value)
+					},
+					'Enable or disable DC 12V Output',
+				)
+
+				actions['ndFilter'] = {
+					name: 'Picture - ND Filter',
+					options: [
+						{
+							type: 'dropdown',
+							label: 'ND Filter',
+							id: 'mode',
+							choices: [
+								{ label: 'OFF', id: 'OFF' },
+								{ label: '1/4', id: '1/4' },
+								{ label: '1/16', id: '1/16' },
+								{ label: '1/64', id: '1/64' },
+							],
+							default: 'OFF',
+						},
+					],
+					callback: async (event) => {
+						if (!self.camera) return
+
+						const mode = event.options.mode as 'OFF' | '1/4' | '1/16' | '1/64'
+						await self.camera!.setNDFilter(mode)
+					},
+				}
+			},
+		},
+
 		{
 			capabilities: ['PositionLimitations'],
 			createActions: () => {

@@ -20,6 +20,7 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	private isReconnecting: boolean = false
 	public ptSpeed: number = 128
 	public zoomSpeed: number = 5
+
 	// Local-only zoom lock — camera has no internal concept of this
 	public zoomLocked: boolean = false
 	// Track active trace states locally since camera API doesn't report this
@@ -31,6 +32,7 @@ export class BolinModuleInstance extends InstanceBase<ModuleConfig, ModuleSecret
 	}
 
 	async init(config: ModuleConfig, _isFirstInit: boolean, secrets: ModuleSecrets): Promise<void> {
+
 		this.config = config
 		this.secrets = secrets
 		this.updateVariableDefinitions()
