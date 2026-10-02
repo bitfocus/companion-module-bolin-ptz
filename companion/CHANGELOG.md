@@ -5,6 +5,12 @@ All notable changes to this module will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-02
+
+### Added
+
+- EXU camera controls: actions, feedbacks, variables, and presets for Teleconverter, ND Filter, and DC 12V Output
+
 ## [1.1.0] - 2026-07-06
 
 ### Added
@@ -28,5 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the module
 
+[1.2.0]: https://github.com/bitfocus/companion-module-bolin-ptz/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/bitfocus/companion-module-bolin-ptz/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/bitfocus/companion-module-bolin-ptz/releases/tag/v1.0.0

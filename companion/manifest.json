@@ -9,8 +9,8 @@
 	"bugs": "https://github.com/bitfocus/companion-module-bolin-ptz/issues",
 	"maintainers": [
 		{
-			"name": "Bryce Seifert",
-			"email": "bryce@bitfocus.io"
+			"name": "Bitfocus AS",
+			"email": "connections@bitfocus.io"
 		}
 	],
 	"runtime": {
